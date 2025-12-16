@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Luthia – Manuale</title>
+  <style>
+    :root{
+      --bg:#0b1214;
+      --panel:#111b1f;
+      --text:#e9f2f2;
+      --muted:#a9b7b7;
+      --accent:#4fd1c5;
+      --line:rgba(255,255,255,.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:var(--bg); color:var(--text);
+      line-height:1.5;
+    }
+    header{
+      position:sticky; top:0; z-index:10;
+      background:rgba(11,18,20,.92);
+      backdrop-filter: blur(8px);
+      border-bottom:1px solid var(--line);
+      padding:14px 18px;
+      display:flex; align-items:center; gap:14px; justify-content:space-between;
+    }
+    .brand{display:flex; flex-direction:column; gap:2px}
+    .brand strong{font-size:16px}
+    .brand span{font-size:12px; color:var(--muted)}
+    .version{font-size:12px; color:var(--muted)}
+    .layout{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      min-height: calc(100vh - 60px);
+    }
+    aside{
+      border-right:1px solid var(--line);
+      background:var(--panel);
+      padding:16px;
+    }
+    main{padding:22px; max-width:980px}
+    .search{
+      width:100%;
+      padding:12px 12px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      outline:none;
+    }
+    .list{margin-top:14px; display:flex; flex-direction:column; gap:8px}
+    a.card{
+      text-decoration:none;
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 12px;
+      background:rgba(255,255,255,.02);
+      display:flex; flex-direction:column; gap:2px;
+      transition: transform .08s ease, border-color .08s ease;
+    }
+    a.card:hover{transform: translateY(-1px); border-color: rgba(79,209,197,.45)}
+    a.card small{color:var(--muted)}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border:1px solid var(--line);
+      border-radius:999px; font-size:12px; color:var(--muted);
+      background:rgba(255,255,255,.02);
+    }
+    .cta{
+      margin-top:16px;
+      display:flex; gap:10px; flex-wrap:wrap;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(79,209,197,.35);
+      background: rgba(79,209,197,.10);
+      color: var(--text);
+      text-decoration:none;
+      font-weight:600;
+    }
+    .btn.secondary{
+      border-color: var(--line);
+      background: rgba(255,255,255,.03);
+      color: var(--muted);
+      font-weight:600;
+    }
+    .section{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      background:rgba(255,255,255,.02);
+      margin-bottom:14px;
+    }
+    h1{margin:0 0 10px 0; font-size:26px}
+    h2{margin:0 0 8px 0; font-size:16px; color:var(--accent)}
+    p{margin:0 0 10px 0; color:var(--muted)}
+    ul{margin:10px 0 0 18px; color:var(--muted)}
+    @media (max-width: 880px){
+      .layout{grid-template-columns: 1fr}
+      aside{border-right:none; border-bottom:1px solid var(--line)}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <strong>Luthia – Manuale</strong>
+      <span>Indice pulito, capitoli navigabili, versioni sotto controllo.</span>
+    </div>
+    <div class="version">v0.1 • aggiornato: 16/12/2025</div>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <input id="q" class="search" placeholder="Cerca capitolo… (es. magia, classi, mondo)" />
+      <div class="list" id="list">
+        <a class="card" href="chapters/00-introduzione.html" data-tags="introduzione visione tono obiettivo">
+          <strong>00 • Introduzione</strong>
+          <small>Cos’è Luthia, come si gioca, a chi è rivolto.</small>
+        </a>
+        <a class="card" href="chapters/01-regole-base.html" data-tags="regole base dadi prove vantaggio svantaggio">
+          <strong>01 • Regole Base</strong>
+          <small>Test, difficoltà, condizioni, principi.</small>
+        </a>
+        <a class="card" href="chapters/02-personaggi.html" data-tags="personaggi creazione background attributi">
+          <strong>02 • Creazione Personaggio</strong>
+          <small>Attributi, talenti, equipaggiamento, background.</small>
+        </a>
+        <a class="card" href="chapters/03-classi.html" data-tags="classi progressione archetipi ruoli">
+          <strong>03 • Classi</strong>
+          <small>Classi, sottoclassi, progressione.</small>
+        </a>
+        <a class="card" href="chapters/04-magia-essenza.html" data-tags="magia essenza incantesimi energia corruzione">
+          <strong>04 • Magia dell’Essenza</strong>
+          <small>Sistema magico, costi, rischi, esempi.</small>
+        </a>
+        <a class="card" href="chapters/05-combattimento.html" data-tags="combattimento iniziativa azioni danni status">
+          <strong>05 • Combattimento</strong>
+          <small>Turni, azioni, manovre, ferite.</small>
+        </a>
+        <a class="card" href="chapters/06-mondo-lore.html" data-tags="mondo lore divinità storia fazioni mappe">
+          <strong>06 • Mondo & Lore</strong>
+          <small>Continenti, divinità, eventi, fazioni.</small>
+        </a>
+        <a class="card" href="chapters/07-bestiario.html" data-tags="bestiario mostri nemici creature">
+          <strong>07 • Bestiario</strong>
+          <small>Creature, statistiche, varianti.</small>
+        </a>
+        <a class="card" href="chapters/08-master.html" data-tags="master avventure consigli gestione sessione">
+          <strong>08 • Guida del Master</strong>
+          <small>Preparazione, ritmo, strumenti, avventure.</small>
+        </a>
+
+        <a class="card" href="extras/changelog.html" data-tags="changelog versioni aggiornamenti">
+          <strong>Extra • Changelog</strong>
+          <small>Cosa cambia ad ogni versione.</small>
+        </a>
+        <a class="card" href="extras/download.html" data-tags="download pdf schede risorse">
+          <strong>Extra • Download</strong>
+          <small>PDF, schede, risorse stampabili.</small>
+        </a>
+      </div>
+    </aside>
+
+    <main>
+      <div class="section">
+        <h1>Manuale ordinato = testa libera</h1>
+        <p>
+          Questo sito è la “fonte unica di verità” del tuo progetto. Niente più 14 file chiamati
+          “capitolo_magia_finale_v7_def2”.
+        </p>
+        <div class="cta">
+          <span class="pill">✅ Navigazione veloce</span>
+          <span class="pill">✅ Ricerca capitoli</span>
+          <span class="pill">✅ Versioni & changelog</span>
+        </div>
+        <div class="cta">
+          <a class="btn" href="chapters/00-introduzione.html">Inizia a leggere</a>
+          <a class="btn secondary" href="extras/changelog.html">Vedi aggiornamenti</a>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Regola operativa (non negoziabile)</h2>
+        <ul>
+          <li>Ogni modifica importante va nel changelog.</li>
+          <li>Un capitolo ha un solo posto dove vivere.</li>
+          <li>Se non è linkato da qui, per te non esiste.</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>Prossimo passo</h2>
+        <p>
+          Crea adesso il primo file: <code>chapters/00-introduzione.html</code>.
+          Se inizi dalla “grafica” e non dal contenuto, stai procrastinando.
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const q = document.getElementById('q');
+    const cards = [...document.querySelectorAll('#list a.card')];
+
+    q.addEventListener('input', () => {
+      const term = q.value.trim().toLowerCase();
+      cards.forEach(a => {
+        const hay = (a.innerText + " " + (a.dataset.tags || "")).toLowerCase();
+        a.style.display = hay.includes(term) ? '' : 'none';
+      });
+    });
+  </script>
+</body>
+</html>
