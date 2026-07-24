@@ -3,16 +3,19 @@ manuale
 
 ## Pokédex di Aethera
 
-`pokedex.html` + `p5e-data.js` — compagno digitale per la campagna «Cronache di Allenatori»
-(Pokémon 5e). I due file vanno tenuti nella stessa cartella: si apre `pokedex.html` nel
-browser, anche da telefono, senza installare nulla; i salvataggi restano sul dispositivo
-(con Esporta/Importa per condividerli).
+`pokedex.html` — compagno digitale per la campagna «Cronache di Allenatori» (Pokémon 5e),
+**file unico** con tutto il database incorporato: si apre nel browser, anche da telefono,
+senza installare nulla; i salvataggi restano sul dispositivo di ognuno (con
+Esporta/Importa per condividerli).
 
+- **Schede Pokémon** (schermata iniziale): ogni giocatore crea la sua scheda allenatore e
+  le schede dei suoi Pokémon in stile scheda del personaggio; scegli la specie e si
+  compila da sola dal dex; nature ufficiali P5e applicate in automatico, mosse con
+  dettagli e danni scalati al livello, PF/competenza/STAB ricalcolati a ogni livello,
+  evoluzioni che aggiornano la scheda.
 - **Pokédex**: le 896 specie del dex P5e con scheda completa (CA, PF, statistiche, tiri
-  salvezza, abilità, mosse per livello, evoluzioni, MT) più zone, livelli e rarità di Aethera.
-- **Squadre**: scegli la specie e la scheda si compila da sola dal dex; nature ufficiali P5e
-  applicate in automatico, mosse con dettagli e danni scalati al livello, PF/competenza/STAB
-  ricalcolati a ogni livello, evoluzioni che aggiornano la scheda.
+  salvezza, abilità, mosse per livello, evoluzioni, MT) — senza indicazioni su dove
+  trovarle in Aethera, per non fare spoiler ai giocatori.
 - **Lotte**: tavolo del GM per più scontri selvatici in contemporanea — PF auto-calcolati,
   stati, prova di cattura in stile PHB (CD = base + livello + PF rimasti, modificabile).
 - **Strumenti**: gli oggetti tenuti del dex P5e, assegnabili ai Pokémon.
