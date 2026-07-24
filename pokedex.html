@@ -90,7 +90,9 @@ th{color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase
   background:rgba(255,255,255,.02); display:flex; flex-direction:column; gap:4px;
 }
 .dex-item .top{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-.dex-item .top strong{font-size:15px}
+.dex-item .top strong{font-size:15px; cursor:pointer}
+.dex-item .top strong:hover{color:var(--accent)}
+.dex-item .num{font-size:11px; color:var(--muted)}
 .dex-item .spots{font-size:12.5px; color:var(--muted)}
 .dex-item .spots b{color:var(--text); font-weight:600}
 .dexgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px}
@@ -117,6 +119,7 @@ th{color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase
 .abilities .ab label{font-size:10.5px; color:var(--muted); letter-spacing:.5px}
 .abilities .ab input{width:46px; text-align:center; padding:3px 2px; font-size:14px; font-weight:700}
 .abilities .ab small{font-size:11px; color:var(--accent)}
+.abilities .ab small.nat{color:var(--warn)}
 .hpbar{height:8px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden}
 .hpbar i{display:block; height:100%; background:var(--ok); border-radius:99px}
 .xpbar{height:6px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden}
@@ -126,10 +129,14 @@ th{color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase
   font-size:12px; padding:3px 9px; border-radius:9px;
   border:1px solid var(--line); background:rgba(255,255,255,.03); cursor:pointer;
 }
+.move:hover{border-color:var(--accent)}
 .move.locked{opacity:.35}
 .move .x{cursor:pointer; margin-left:5px; color:var(--danger)}
 .defline{font-size:12px; color:var(--muted)}
-.defline .type-chip{transform:scale(.92); transform-origin:left}
+.abil-chip{
+  font-size:12px; padding:2px 9px; border-radius:9px; cursor:pointer;
+  border:1px solid rgba(246,224,94,.35); color:var(--warn); background:rgba(246,224,94,.05);
+}
 details.cfg{border-top:1px solid var(--line); padding-top:8px}
 details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 .badges{display:flex; gap:6px; flex-wrap:wrap}
@@ -163,6 +170,10 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
   font-size:13px;
 }
 .cdbox b{color:var(--accent); font-size:17px}
+/* strumenti */
+.itemlist .panel{padding:10px 14px}
+.itemlist b{font-size:14.5px}
+.itemlist p{margin:3px 0 0; font-size:13px; color:var(--muted)}
 /* tipi */
 .typegrid{display:flex; gap:6px; flex-wrap:wrap}
 .tsel{cursor:pointer; opacity:.55; border:2px solid transparent}
@@ -177,12 +188,17 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 #modal-bg.open{display:flex}
 #modal{
   background:var(--panel); border:1px solid var(--accent); border-radius:16px;
-  max-width:480px; width:100%; padding:18px; max-height:82vh; overflow:auto;
+  max-width:560px; width:100%; padding:18px; max-height:84vh; overflow:auto;
 }
 #modal h3{margin-top:0}
 .levelup-gain{font-size:14px; margin:6px 0}
 .levelup-gain b{color:var(--accent)}
 .mrow{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0}
+.sheet .statline{display:flex; gap:12px; flex-wrap:wrap; font-size:13.5px; margin:8px 0}
+.sheet .statline div{border:1px solid var(--line); border-radius:9px; padding:4px 9px}
+.sheet .flavor{font-size:12.5px; color:var(--muted); font-style:italic; margin:8px 0}
+.sheet .mvgroup{margin:6px 0}
+.sheet .mvgroup .lbl{font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px}
 .footer-note{font-size:11.5px; color:var(--muted); text-align:center; padding:16px 0 26px}
 @media (max-width:640px){
   main{padding:12px}
@@ -204,31 +220,28 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 <main>
   <!-- ============ POKEDEX ============ -->
   <section class="tab" id="tab-dex">
-    <h2>Pokédex della regione</h2>
-    <p class="hint">Tutte le specie catturabili in Aethera: dove trovarle, a che livello e con quale rarità. Segna le catture del gruppo con la spunta ◓.</p>
+    <h2>Pokédex</h2>
+    <p class="hint" id="dex-intro">Tutte le specie del dex Pokémon 5e con scheda completa: clicca il nome per aprirla. Le specie che vivono in Aethera mostrano anche dove trovarle.</p>
     <div class="panel">
       <div class="row">
-        <input id="dex-search" placeholder="Cerca specie…" style="flex:1; min-width:160px" oninput="renderDex()" />
-        <select id="dex-type" onchange="renderDex()"></select>
-        <select id="dex-zone" onchange="renderDex()"></select>
-        <select id="dex-rar" onchange="renderDex()">
-          <option value="">Rarità: tutte</option>
-          <option value="C">Comune</option>
-          <option value="NC">Non comune</option>
-          <option value="R">Raro</option>
-          <option value="RR">Rarissimo</option>
-        </select>
-        <label class="caughtbox"><input type="checkbox" id="dex-caught" onchange="renderDex()" /> solo catturati</label>
+        <input id="dex-search" placeholder="Cerca specie…" style="flex:1; min-width:160px" oninput="dexShown=DEX_PAGE; renderDex()" />
+        <select id="dex-type" onchange="dexShown=DEX_PAGE; renderDex()"></select>
+        <select id="dex-zone" onchange="dexShown=DEX_PAGE; renderDex()"></select>
+        <label class="caughtbox"><input type="checkbox" id="dex-aethera" onchange="dexShown=DEX_PAGE; renderDex()" /> solo Aethera</label>
+        <label class="caughtbox"><input type="checkbox" id="dex-caught" onchange="dexShown=DEX_PAGE; renderDex()" /> solo catturati</label>
       </div>
       <p class="hint" id="dex-count" style="margin:10px 0 0"></p>
     </div>
     <div class="dexgrid" id="dex-list"></div>
+    <div class="row" style="justify-content:center; margin-top:12px">
+      <button class="btn ghost" id="dex-more" onclick="dexShown+=DEX_PAGE; renderDex()">Mostra altre specie</button>
+    </div>
   </section>
 
   <!-- ============ SQUADRE ============ -->
   <section class="tab" id="tab-squad">
     <h2>Schede Allenatori & Squadre</h2>
-    <p class="hint">Ogni giocatore ha la sua scheda. PF, competenza e STAB si ricalcolano da soli a ogni livello; mosse e nature si scelgono da elenchi, senza riscrivere nulla a mano.</p>
+    <p class="hint">Scegli la specie e la scheda si compila da sola dal dex P5e: statistiche, CA, PF, mosse ai giusti livelli. PF, competenza e STAB si ricalcolano a ogni livello.</p>
 
     <div class="panel">
       <div class="row" id="trainer-chips"></div>
@@ -238,7 +251,7 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 
     <div class="panel sub">
       <h3 style="margin-top:0">⚙️ Regole veloci di esperienza (della casa — modificabili)</h3>
-      <p class="hint">La guida del GM non fissa una tabella XP: questa è la regola rapida proposta. Un Pokémon guadagna XP pari al <b>livello del nemico</b> sconfitto o catturato; per salire serve <b>moltiplicatore × livello attuale</b> XP. Cambia i numeri per un ritmo diverso.</p>
+      <p class="hint">Regola rapida per velocizzare: un Pokémon guadagna XP pari al <b>livello del nemico</b> sconfitto o catturato; per salire serve <b>moltiplicatore × livello attuale</b> XP. (Il PHB usa una tabella XP classica molto più lenta: se preferisci quella, gestisci l'esperienza a mano e usa solo «+1 livello».)</p>
       <div class="row">
         <label>XP per salire = <input type="number" id="set-need" min="1" step="0.5" onchange="saveSettings()"/> × livello</label>
         <label>XP sconfitta = <input type="number" id="set-defeat" min="0" step="0.5" onchange="saveSettings()"/> × liv. nemico</label>
@@ -256,7 +269,7 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
   <!-- ============ LOTTE ============ -->
   <section class="tab" id="tab-battle">
     <h2>Tavolo del GM — Lotte in contemporanea</h2>
-    <p class="hint">Apri uno scontro per ogni giocatore che incontra un selvatico: ogni carta ha PF, stati e prova di cattura indipendenti. Così nessuno resta a guardare — cinque lotte girano insieme.</p>
+    <p class="hint">Apri uno scontro per ogni giocatore che incontra un selvatico: ogni carta ha PF, stati e prova di cattura indipendenti. I PF del selvatico si calcolano da soli dal dex.</p>
 
     <div class="panel">
       <h3 style="margin-top:0">➕ Nuovo scontro</h3>
@@ -269,32 +282,38 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
         </label>
         <label>Tipi <input id="nb-types" placeholder="Fuo" style="width:80px"/></label>
         <label>Livello <input type="number" id="nb-level" value="5" onchange="nbSuggestPF()"/></label>
-        <label>PF max <input type="number" id="nb-pf" placeholder="dal dex"/></label>
+        <label>PF max <input type="number" id="nb-pf" placeholder="auto"/></label>
         <button class="btn" onclick="newBattle()">Apri scontro</button>
       </div>
-      <p class="hint" style="margin:8px 0 0">Se hai già usato la specie, i PF si precompilano da soli. Con la formula P5e bastano PF base, liv. min, Dado Vita e COS del dex.</p>
     </div>
 
     <div class="battlegrid" id="battle-list"></div>
 
     <div class="panel sub" style="margin-top:14px">
-      <h3 style="margin-top:0">⚙️ Regola veloce di cattura (della casa — modificabile)</h3>
-      <p class="hint">CD di cattura = base + livello del selvatico + modificatori per PF bassi e stati. Il giocatore tira (d20 + i suoi bonus), la Ball aggiunge il suo bonus: se il totale raggiunge la CD, catturato! Adatta i numeri alla tua versione del dex P5e.</p>
+      <h3 style="margin-top:0">⚙️ Regola di cattura (stile PHB — modificabile)</h3>
+      <p class="hint">CD di cattura = base + livello del selvatico + PF che gli restano: più lo indebolisci, più è facile. Il giocatore tira d20 + competenza, la Ball aggiunge il suo bonus; gli <b>stati</b> (sonno, paralisi…) danno <b>vantaggio</b> al tiro. Verifica i valori sul tuo PHB e adattali qui.</p>
       <div class="row">
-        <label>CD base <input type="number" id="set-cdbase" onchange="saveSettings()"/></label>
-        <label>PF ≤ 50% <input type="number" id="set-cd50" onchange="saveSettings()"/></label>
-        <label>PF ≤ 25% <input type="number" id="set-cd25" onchange="saveSettings()"/></label>
-        <label>PF ≤ 10% <input type="number" id="set-cd10" onchange="saveSettings()"/></label>
-        <label>per stato <input type="number" id="set-cdstatus" onchange="saveSettings()"/></label>
-        <label>sonno/gelo <input type="number" id="set-cdsleep" onchange="saveSettings()"/></label>
+        <label>CD base <input type="number" id="set-capbase" onchange="saveSettings()"/></label>
+        <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-caplevel" onchange="saveSettings()"/> + livello del selvatico</label>
+        <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-caphp" onchange="saveSettings()"/> + PF rimanenti</label>
       </div>
     </div>
+  </section>
+
+  <!-- ============ STRUMENTI ============ -->
+  <section class="tab" id="tab-items">
+    <h2>Strumenti</h2>
+    <p class="hint">Gli oggetti tenuti del dex P5e. Assegnali a un Pokémon dalla sua scheda (campo «Strumento»).</p>
+    <div class="panel">
+      <input id="item-search" placeholder="Cerca strumento…" style="width:100%" oninput="renderItems()"/>
+    </div>
+    <div class="itemlist" id="item-list"></div>
   </section>
 
   <!-- ============ CALCOLATRICE ============ -->
   <section class="tab" id="tab-calc">
     <h2>Calcolatrice P5e</h2>
-    <p class="hint">Le formule ufficiali della guida, pronte all'uso per qualsiasi Pokémon del dex.</p>
+    <p class="hint">Le formule della guida, pronte all'uso per qualsiasi Pokémon del dex.</p>
 
     <div class="panel">
       <h3 style="margin-top:0">Punti Ferita per livello</h3>
@@ -318,7 +337,7 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 
     <div class="panel">
       <h3 style="margin-top:0">Bonus di evoluzione</h3>
-      <p class="hint">Quando un Pokémon evolve, guadagna una tantum 2 × il suo livello in PF (più gli ASI).</p>
+      <p class="hint">Quando un Pokémon evolve, guadagna una tantum 2 × il suo livello in PF, più i punti caratteristica della nuova forma.</p>
       <div class="row">
         <label>Livello all'evoluzione <input type="number" id="c-evo" value="4" oninput="calcEvo()"/></label>
         <span style="font-size:16px">➜ <b id="c-evo-out" style="color:var(--accent)"></b></span>
@@ -326,12 +345,14 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
     </div>
 
     <div class="panel">
-      <h3 style="margin-top:0">Competenza e STAB per livello</h3>
+      <h3 style="margin-top:0">Competenza, STAB e ASI per livello (tabella ufficiale P5e)</h3>
       <div class="tablewrap"><table>
-        <tr><th>Livello</th><td>1–2</td><td>3–4</td><td>5–8</td><td>9–12</td><td>13–16</td><td>17–20</td><td>21+ (Lega)</td></tr>
-        <tr><th>Competenza</th><td>+2</td><td>+2</td><td>+3</td><td>+4</td><td>+5</td><td>+6</td><td>+6</td></tr>
-        <tr><th>STAB</th><td>—</td><td>+1</td><td>+2</td><td>+3</td><td>+4</td><td>+5</td><td>+5</td></tr>
+        <tr><th>Livello</th><td>1–2</td><td>3–4</td><td>5–8</td><td>9–12</td><td>13–16</td><td>17–20</td></tr>
+        <tr><th>Competenza</th><td>+2</td><td>+2</td><td>+3</td><td>+4</td><td>+5</td><td>+6</td></tr>
+        <tr><th>STAB</th><td>—</td><td>+1 (dal 3)</td><td>+2 (dal 7*)</td><td>+3 (dall'11*)</td><td>+4 (dal 15*)</td><td>+5 (dal 19*)</td></tr>
+        <tr><th>ASI</th><td>—</td><td>al 4</td><td>all'8</td><td>al 12</td><td>al 16</td><td>al 20</td></tr>
       </table></div>
+      <p class="hint">* La tua guida usa fasce leggermente più generose per lo STAB (+2 dal 5, +3 dal 9, +4 dal 13, +5 dal 17): l'app segue la guida.</p>
     </div>
 
     <div class="panel">
@@ -354,7 +375,7 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
   <!-- ============ TIPI ============ -->
   <section class="tab" id="tab-types">
     <h2>Tabella dei tipi</h2>
-    <p class="hint">Riferimento rapido per le lotte. Nota: vulnerabilità e resistenze ufficiali di ogni specie stanno sulla sua scheda del dex P5e — questa è la mappa classica dei tipi per orientarsi al volo.</p>
+    <p class="hint">Riferimento rapido per le lotte: la mappa classica dei tipi, la stessa da cui derivano vulnerabilità e resistenze delle schede.</p>
 
     <div class="panel">
       <div class="row" style="margin-bottom:10px">
@@ -375,11 +396,15 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 <datalist id="movelist"></datalist>
 <datalist id="specieslist"></datalist>
 <datalist id="naturelist"></datalist>
+<datalist id="itemlist"></datalist>
 
-<p class="footer-note">Pokédex di Aethera · compagno digitale di «Cronache di Allenatori» · i dati restano salvati su questo dispositivo (usa Esporta per condividerli)</p>
+<p class="footer-note">Pokédex di Aethera · compagno digitale di «Cronache di Allenatori» · dati P5e dal dex standard · i salvataggi restano su questo dispositivo</p>
 
+<script src="p5e-data.js"></script>
 <script>
-/* ================= DATI DELLA REGIONE ================= */
+/* ================= DATI ================= */
+
+const P5 = window.P5E || null;
 
 const TYPES = {
   Nor:{n:'Normale',c:'#A8A878'}, Fuo:{n:'Fuoco',c:'#F08030'}, Acq:{n:'Acqua',c:'#6890F0'},
@@ -392,29 +417,29 @@ const TYPES = {
 const STAT_KEYS = ['FOR','DES','COS','INT','SAG','CAR'];
 
 const ZONES = [
-  {id:'INI', name:'Doni del Professor Eidon', lv:'5', kind:'Inizio'},
-  {id:'P1',  name:'Percorso 1 — Praterie del Mattino', lv:'2–4', kind:'Percorso'},
-  {id:'CRO', name:'Sentiero del Crocevia', lv:'4–6', kind:'Di passaggio'},
-  {id:'P2',  name:'Percorso 2 — Bosco Sussurrante', lv:'4–7', kind:'Percorso'},
-  {id:'P3',  name:'Percorso 3 — Distretto Folgore', lv:'7–9', kind:'Percorso'},
-  {id:'P4',  name:'Percorso 4 — Cava Pietragrigia', lv:'9–12', kind:'Percorso'},
-  {id:'CAV', name:'Cave Ardenti', lv:'10–12', kind:'Di passaggio'},
-  {id:'P5',  name:'Percorso 5 — Costa Salmastro', lv:'12–14', kind:'Percorso'},
-  {id:'TOR', name:'Torre dei Sussurri', lv:'13–15', kind:'Di passaggio'},
-  {id:'P6',  name:'Percorso 6 — Palude Caligine', lv:'14–16', kind:'Percorso'},
-  {id:'ALT', name:'Altopiano del Vento', lv:'16–18', kind:'Di passaggio'},
-  {id:'P7',  name:'Percorso 7 — Valico Gelorespiro', lv:'16–18', kind:'Percorso'},
-  {id:'P8',  name:'Percorso 8 — Picco Squamadrago', lv:'18–20', kind:'Percorso'},
-  {id:'LAG', name:'Lago degli Specchi', lv:'5–8', kind:'Area'},
-  {id:'SAN', name:'Santuario del Bosco', lv:'6–10', kind:'Area'},
-  {id:'CRA', name:'Cratere delle Lande', lv:'10–13', kind:'Area'},
-  {id:'MAR', name:'Mare Aperto e Fondali', lv:'12–16', kind:'Area'},
-  {id:'GRO', name:'Grotta Cristallina', lv:'15–18', kind:'Area'},
-  {id:'RIS', name:'Riserva di Fogliaverde', lv:'8–15', kind:'Area'},
-  {id:'VIT', name:'Strada Vittoria', lv:'20–22', kind:'Finale'}
+  {id:'INI', name:'Doni del Professor Eidon'},
+  {id:'P1',  name:'Percorso 1 — Praterie del Mattino'},
+  {id:'CRO', name:'Sentiero del Crocevia'},
+  {id:'P2',  name:'Percorso 2 — Bosco Sussurrante'},
+  {id:'P3',  name:'Percorso 3 — Distretto Folgore'},
+  {id:'P4',  name:'Percorso 4 — Cava Pietragrigia'},
+  {id:'CAV', name:'Cave Ardenti'},
+  {id:'P5',  name:'Percorso 5 — Costa Salmastro'},
+  {id:'TOR', name:'Torre dei Sussurri'},
+  {id:'P6',  name:'Percorso 6 — Palude Caligine'},
+  {id:'ALT', name:'Altopiano del Vento'},
+  {id:'P7',  name:'Percorso 7 — Valico Gelorespiro'},
+  {id:'P8',  name:'Percorso 8 — Picco Squamadrago'},
+  {id:'LAG', name:'Lago degli Specchi'},
+  {id:'SAN', name:'Santuario del Bosco'},
+  {id:'CRA', name:'Cratere delle Lande'},
+  {id:'MAR', name:'Mare Aperto e Fondali'},
+  {id:'GRO', name:'Grotta Cristallina'},
+  {id:'RIS', name:'Riserva di Fogliaverde'},
+  {id:'VIT', name:'Strada Vittoria'}
 ];
 
-/* [zona, nome, tipi, livello, rarità] — dalle tabelle dell'erba alta della guida */
+/* [zona, nome, tipi, livello, rarità] — dalle tabelle dell'erba alta della guida di Aethera */
 const DEX_RAW = [
   ['INI','Bulbasaur','Erb/Vel','5','—'],
   ['INI','Charmander','Fuo','5','—'],
@@ -614,77 +639,39 @@ const DEX_RAW = [
   ['VIT','Weavile','Bui/Ghi','22','R'], ['VIT','Pupitar','Roc/Ter','22','RR']
 ];
 
-/* Schede complete verbatim dalla guida (dex P5e standard) */
+/* nomi della guida → nomi del dataset */
+const AETHERA_TO_P5E = {
+  'Vulpix di Alola':'Alolan Vulpix',
+  'Sandshrew di Alola':'Alolan Sandshrew'
+};
+function p5name(name){
+  if(!P5) return null;
+  if(P5.POKEMON[name]) return name;
+  const m = AETHERA_TO_P5E[name];
+  return (m && P5.POKEMON[m]) ? m : null;
+}
+function p5data(name){ const n = p5name(name); return n ? P5.POKEMON[n] : null; }
+
+/* Schede degli iniziali come nella guida di Aethera (mosse in italiano, livelli della guida) */
 const PRESETS = {
-  'Bulbasaur':{ca:13, basePF:17, minLevel:1, die:6,
-    stats:{FOR:13,DES:12,COS:12,INT:6,SAG:10,CAR:10}, ts:'Forza', speed:'9 m',
-    vul:'Fuoco, Volante, Ghiaccio, Psico', res:'Elettro, Folletto, Lotta, Erba, Acqua',
-    ability:'Erbafolta: raddoppia lo STAB sotto il 25% dei PF.',
-    evo:'Ivysaur (dal liv. 4)',
+  'Bulbasaur':{vul:'Fuoco, Volante, Ghiaccio, Psico', res:'Elettro, Folletto, Lotta, Erba, Acqua',
+    ability:'Erbafolta: raddoppia lo STAB sotto il 25% dei PF.', evo:'Ivysaur (dal liv. 4 nella guida)',
     moves:[[1,'Azione'],[1,'Ruggito'],[2,'Frustata'],[2,'Parassiseme'],
       [4,'Velenpolvere'],[4,'Sonnifero'],[4,'Riduttore'],[4,'Foglielama'],
       [7,'Profumino'],[7,'Crescita'],[7,'Sdoppiatore'],
       [10,'Seme Diabolico'],[10,'Sintesi'],[13,'Bomba Seme']]},
-  'Charmander':{ca:13, basePF:16, minLevel:1, die:6,
-    stats:{FOR:12,DES:14,COS:11,INT:6,SAG:10,CAR:10}, ts:'Destrezza', speed:'9 m',
-    vul:'Terra, Roccia, Acqua', res:'Coleottero, Folletto, Fuoco, Erba, Ghiaccio, Acciaio',
-    ability:'Brace: raddoppia lo STAB sotto il 25% dei PF.',
-    evo:'Charmeleon (dal liv. 4)',
+  'Charmander':{vul:'Terra, Roccia, Acqua', res:'Coleottero, Folletto, Fuoco, Erba, Ghiaccio, Acciaio',
+    ability:'Brace: raddoppia lo STAB sotto il 25% dei PF.', evo:'Charmeleon (dal liv. 4 nella guida)',
     moves:[[1,'Ruggito'],[1,'Graffio'],[2,'Braci'],[2,'Cortina Fumogena'],
       [4,'Ira di Drago'],[4,'Visotruce'],[7,'Morso di Fuoco'],[7,'Lacerazione'],
       [10,'Pirosfera'],[10,'Lanciafiamme'],[13,'Turbofuoco'],[13,'Marchio Rovente']]},
-  'Squirtle':{ca:14, basePF:18, minLevel:1, die:6,
-    stats:{FOR:12,DES:11,COS:14,INT:6,SAG:10,CAR:10}, ts:'Costituzione', speed:'9 m, nuoto 6 m',
-    vul:'Elettro, Erba', res:'Fuoco, Ghiaccio, Acciaio, Acqua',
-    ability:'Torrente: raddoppia lo STAB sotto il 25% dei PF.',
-    evo:'Wartortle (dal liv. 4)',
+  'Squirtle':{vul:'Elettro, Erba', res:'Fuoco, Ghiaccio, Acciaio, Acqua',
+    ability:'Torrente: raddoppia lo STAB sotto il 25% dei PF.', evo:'Wartortle (dal liv. 4 nella guida)',
     moves:[[1,'Azione'],[1,'Colpocoda'],[2,'Pistolacqua'],[2,'Ritirata'],
       [4,'Bolla'],[4,'Morso'],[4,'Rapigiro'],[7,'Protezione'],[7,'Idropulsar'],
       [10,'Acquacoda'],[10,'Capocciata'],[10,'Ferroscudo'],
       [13,'Pioggiadanza'],[13,'Idropompa']]}
 };
-
-/* Nature (classiche, mappate sulle caratteristiche: Attacco→FOR, Velocità→DES, Difesa→COS, Att.Sp.→INT, Dif.Sp.→SAG) */
-const NATURES = {
-  'Ardita':'equilibrata','Docile':'equilibrata','Seria':'equilibrata','Ritrosa':'equilibrata','Furba':'equilibrata',
-  'Schiva':'+FOR −COS','Audace':'+FOR −DES','Decisa':'+FOR −INT','Birbona':'+FOR −SAG',
-  'Sicura':'+COS −FOR','Placida':'+COS −DES','Scaltra':'+COS −INT','Fiacca':'+COS −SAG',
-  'Timida':'+DES −FOR','Frettolosa':'+DES −COS','Allegra':'+DES −INT','Ingenua':'+DES −SAG',
-  'Modesta':'+INT −FOR','Mite':'+INT −COS','Quieta':'+INT −DES','Ardente':'+INT −SAG',
-  'Calma':'+SAG −FOR','Gentile':'+SAG −COS','Vigile':'+SAG −DES','Cauta':'+SAG −INT'
-};
-
-/* Libreria mosse (nomi italiani) per la scelta rapida — puoi comunque scrivere qualsiasi nome */
-const MOVES = ('Azione|Attacco Rapido|Graffio|Lacerazione|Taglio|Morso|Sgranocchio|Riduttore|Corposcontro|Schianto|Comete|' +
-'Ruggito|Stridio|Canto|Ultrasuono|Supersuono|Visotruce|Fascino|Iperraggio|Gigaimpatto|Metronomo|Riposo|Sostituto|' +
-'Doppioteam|Focalenergia|Incornata|Perforcorno|Furia|Turbine|Legatutto|Costrizione|Cozzata|Bottintesta|Capocciata|' +
-'Autodistruzione|Esplosione|Uovobomba|Buonlatte|Trasformazione|Schizzo|Ira|Facciata|Ritorno|Aiuto|Baraonda|Localizza|' +
-'Danzaspada|Agilità|Fortezza|Colpocoda|Frustata|Leccata|Protezione|Ripeti|Sdoppiatore|Riduttore|Rapigiro|' +
-'Braci|Lanciafiamme|Fuocobomba|Turbofuoco|Ondacalda|Pirosfera|Ruotafuoco|Fuocopugno|Morso di Fuoco|Rogodente|' +
-'Marchio Rovente|Nitrocarica|Vampata|Eruzione|Giornodisole|Fuocofatuo|Cortina Fumogena|' +
-'Pistolacqua|Idropompa|Surf|Cascata|Bollaraggio|Bolla|Idropulsar|Acquacoda|Acquagetto|Pioggiadanza|Ritirata|' +
-'Liquidazione|Mulinello|Salamoia|' +
-'Foglielama|Petalodanza|Parassiseme|Assorbimento|Megassorbimento|Gigassorbimento|Bomba Seme|Foglia Magica|' +
-'Solarraggio|Solarlama|Energipalla|Sonnifero|Spora|Paralizzante|Sintesi|Crescita|Radicamento|Cottonspora|' +
-'Verdebufera|Vigorfrusta|Profumino|Seme Diabolico|' +
-'Tuonoshock|Tuononda|Fulmine|Tuono|Scintilla|Locomovolt|Tuonopugno|Carica|Elettrotela|Scarica|' +
-'Geloraggio|Bora|Vento Gelato|Polneve|Gelopugno|Gelodente|Grandine|Slavina|' +
-'Doppiocalcio|Colpokarate|Sottomissione|Breccia|Superzampata|Pugnodinamico|Zuffa|Palmoforza|Aurasfera|' +
-'Contrattacco|Movimento Sismico|Vendetta|Calciobasso|Calcinvolo|' +
-'Velentacca|Smog|Fangosberla|Fangobomba|Velenobomba|Codavelenosa|Gas Velenoso|Tossina|Acido|Bombacida|' +
-'Velenoshock|Fangonda|Velenocroce|Velenpolvere|' +
-'Terremoto|Fossa|Magnitudo|Sabbiattacco|Terrempesta|Fangata|Ossoclava|Ossomerang|Geoforza|' +
-'Beccata|Attacco d\'Ala|Aeroassalto|Aerasoio|Eterelama|Volo|Raffica|Acrobazia|Baldeali|' +
-'Confusione|Psichico|Psicoraggio|Ipnosi|Telecinesi|Riflesso|Schermoluce|Amnesia|Barriera|Recupero|' +
-'Teletrasporto|Mangiasogni|Psiconda|Psicotaglio|Cozzata Zen|Calmamente|Extrasenso|Divinazione|' +
-'Millebave|Ragnatela|Segnoraggio|Forbice X|Tagliofuria|Sanguisuga|Ronzio|Missilspillo|' +
-'Sassata|Frana|Pietrataglio|Rotolamento|Gemmoforza|Cadutamassi|' +
-'Ombra Notturna|Palla Ombra|Ombrartigli|Maledizione|Rancore|Dispetto|Furtivombra|' +
-'Ira di Drago|Dragospiro|Dragartigli|Dragobolide|Dragodanza|Oltraggio|Dragopulsar|' +
-'Finta|Sbigoattacco|Furto|Provocazione|Nottesberla|Buiopulsar|' +
-'Codacciaio|Cannonflash|Ferroscudo|Metaltestata|Meteorpugno|Metalartigli|Alacciaio|' +
-'Vento di Fata|Forzaluna|Baciamore|Dolcebacio|Incantavoce|Carineria|Occhioniteneri')
-.split('|').filter((v,i,a)=>v && a.indexOf(v)===i).sort();
 
 /* Efficacia dei tipi (attaccante → difensore): mappa classica */
 const EFF_SUPER = {
@@ -714,6 +701,8 @@ const BADGE_NAMES = ['Sentiero','Fioritura','Scintilla','Bastione','Marea','Toss
 const BADGE_LV = ['2–4','4–7','7–9','9–12','12–14','14–16','16–18','18–20','20–25'];
 const DIE_AVG = {6:4, 8:5, 10:6, 12:7};
 const STATUSES = ['Avvelenato','Paralizzato','Addormentato','Congelato','Scottato','Confuso'];
+const ASI_LEVELS = (P5 && P5.ASI_LEVELS) || [4,8,12,16,20];
+const NATURES = (P5 && P5.NATURES) || {};
 
 /* ================= FORMULE P5e ================= */
 
@@ -721,7 +710,14 @@ function mod(v){ return Math.floor(((v||10)-10)/2); }
 function fmtMod(m){ return (m>=0?'+':'')+m; }
 function compBonus(l){ return l>=17?6 : l>=13?5 : l>=9?4 : l>=5?3 : 2; }
 function stabBonus(l){ return l>=17?5 : l>=13?4 : l>=9?3 : l>=5?2 : l>=3?1 : 0; }
-function conMod(p){ return p.stats ? mod(p.stats.COS) : (p.con||0); }
+function natDelta(p, key){
+  const n = NATURES[p.nature]; return n && n[key] ? n[key] : 0;
+}
+function natAC(p){
+  const n = NATURES[p.nature]; return n && n.AC ? n.AC : 0;
+}
+function effStat(p, key){ return (p.stats[key]||10) + natDelta(p,key); }
+function conMod(p){ return p.stats ? mod(effStat(p,'COS')) : (p.con||0); }
 function maxPF(p){
   return p.basePF + (p.level - p.minLevel) * (DIE_AVG[p.die] + conMod(p)) + (p.evoBonus||0);
 }
@@ -733,10 +729,10 @@ let state = load();
 
 function defaultSettings(){
   return {needMult:2, defeatMult:1, captureMult:1, autoLevel:true,
-    cdBase:10, cd50:-2, cd25:-5, cd10:-8, cdStatus:-2, cdSleep:-3};
+    capBase:10, capLevel:true, capHP:true};
 }
 function defaultState(){
-  return {caught:{}, trainers:[], activeTrainer:null, battles:[], speciesData:{}, settings:defaultSettings()};
+  return {caught:{}, trainers:[], activeTrainer:null, battles:[], settings:defaultSettings()};
 }
 function load(){
   let s = defaultState();
@@ -748,13 +744,13 @@ function load(){
       s.settings = Object.assign(defaultSettings(), saved.settings||{});
     }
   }catch(e){}
-  /* migrazione schede vecchie */
   for(const t of s.trainers){
     t.notes = t.notes || '';
     for(const p of t.team){
       if(!p.stats) p.stats = {FOR:10,DES:10,COS:10+2*(p.con||0),INT:10,SAG:10,CAR:10};
-      p.nature = p.nature || '';
-      p.ts = p.ts || ''; p.speed = p.speed || ''; p.vul = p.vul || ''; p.res = p.res || ''; p.ability = p.ability || '';
+      p.nature = p.nature || ''; p.item = p.item || '';
+      p.ts = p.ts || ''; p.speed = p.speed || ''; p.vul = p.vul || ''; p.res = p.res || '';
+      p.ability = p.ability || ''; p.abNames = p.abNames || [];
     }
   }
   return s;
@@ -762,29 +758,13 @@ function load(){
 function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
 let uid = () => Math.random().toString(36).slice(2,9);
 
-/* Memoria dei dati base per specie: la seconda volta si precompila tutto */
-function rememberSpecies(p){
-  if(!p.species) return;
-  state.speciesData[p.species] = {
-    basePF:p.basePF, minLevel:p.minLevel, die:p.die, cos:p.stats?p.stats.COS:10, ca:p.ca
-  };
-}
-function speciesPFat(name, lvl){
-  const d = state.speciesData[name];
-  if(!d) return null;
-  return d.basePF + (lvl - d.minLevel) * (DIE_AVG[d.die] + mod(d.cos));
-}
-for(const [name,pr] of Object.entries(PRESETS)){
-  /* semi il cache con gli iniziali */
-}
-
 /* ================= UTIL UI ================= */
 
 function esc(s){ return String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function jsArg(s){ return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 function typeChips(types){
-  return String(types||'').split('/').map(t => {
-    t = t.trim(); const T = TYPES[t]; if(!T) return '';
+  const arr = Array.isArray(types) ? types : String(types||'').split('/');
+  return arr.map(t => {
+    t = String(t).trim(); const T = TYPES[t]; if(!T) return '';
     return `<span class="type-chip" style="background:${T.c}">${T.n}</span>`;
   }).join(' ');
 }
@@ -797,7 +777,7 @@ function closeModal(){ document.getElementById('modal-bg').classList.remove('ope
 /* ================= TABS ================= */
 
 const TABS = [
-  ['dex','📖 Pokédex'],['squad','⚔️ Squadre'],['battle','⚡ Lotte'],['calc','🧮 Calcoli'],['types','🛡️ Tipi']
+  ['dex','📖 Pokédex'],['squad','⚔️ Squadre'],['battle','⚡ Lotte'],['items','🎒 Strumenti'],['calc','🧮 Calcoli'],['types','🛡️ Tipi']
 ];
 let activeTab = 'dex';
 function renderTabs(){
@@ -808,82 +788,186 @@ function renderTabs(){
 }
 function setTab(id){ activeTab = id; renderTabs(); }
 
-/* ================= POKÉDEX ================= */
+/* ================= SPECIE (dex P5e + zone di Aethera) ================= */
 
 const SPECIES = (() => {
   const map = new Map();
-  for(const [z,name,types,lv,rar] of DEX_RAW){
-    if(!map.has(name)) map.set(name, {name, types, spots:[]});
-    map.get(name).spots.push({zone:z, lv, rar});
+  const add = name => {
+    if(!map.has(name)) map.set(name, {name, types:'', spots:[]});
+    return map.get(name);
+  };
+  if(P5){
+    for(const [n,d] of Object.entries(P5.POKEMON)){
+      const s = add(n); s.types = d.t.join('/'); s.p5 = d;
+    }
   }
-  return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  for(const [z,name,types,lv,rar] of DEX_RAW){
+    const key = p5name(name) || name;
+    const s = add(key);
+    if(!s.types) s.types = types;
+    s.spots.push({zone:z, lv, rar});
+  }
+  return [...map.values()].sort((a,b) => {
+    const na = a.p5 ? a.p5.n : 9999, nb = b.p5 ? b.p5.n : 9999;
+    return na-nb || a.name.localeCompare(b.name);
+  });
 })();
+const SPECIES_IDX = new Map(SPECIES.map((s,i)=>[s.name,i]));
+
+function findMoveData(name){
+  if(!P5) return null;
+  return P5.MOVES[name] || (P5.ALIAS[name] ? P5.MOVES[P5.ALIAS[name]] : null);
+}
 
 function initDatalists(){
-  document.getElementById('movelist').innerHTML = MOVES.map(m=>`<option value="${esc(m)}">`).join('');
+  const moveNames = P5 ? [...Object.keys(P5.MOVES), ...Object.keys(P5.ALIAS)].sort() : [];
+  document.getElementById('movelist').innerHTML = moveNames.map(m=>`<option value="${esc(m)}">`).join('');
   document.getElementById('specieslist').innerHTML = SPECIES.map(s=>`<option value="${esc(s.name)}">`).join('');
-  document.getElementById('naturelist').innerHTML = Object.keys(NATURES).map(n=>`<option value="${n}">`).join('');
+  document.getElementById('naturelist').innerHTML = Object.keys(NATURES).map(n=>`<option value="${esc(n)}">`).join('');
+  document.getElementById('itemlist').innerHTML = P5 ? Object.keys(P5.ITEMS).sort().map(i=>`<option value="${esc(i)}">`).join('') : '';
 }
 function initDexFilters(){
   const tsel = document.getElementById('dex-type');
   tsel.innerHTML = '<option value="">Tipo: tutti</option>' +
     Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
   const zsel = document.getElementById('dex-zone');
-  zsel.innerHTML = '<option value="">Zona: tutte</option>' +
+  zsel.innerHTML = '<option value="">Zona di Aethera: tutte</option>' +
     ZONES.map(z=>`<option value="${z.id}">${z.name}</option>`).join('');
 }
+
+/* ================= POKÉDEX ================= */
+
+const DEX_PAGE = 48;
+let dexShown = DEX_PAGE;
+
+function zoneName(id){ const z = ZONES.find(z=>z.id===id); return z ? z.name.replace(/ — .*/,'') : id; }
 
 function renderDex(){
   const q = document.getElementById('dex-search').value.trim().toLowerCase();
   const ft = document.getElementById('dex-type').value;
   const fz = document.getElementById('dex-zone').value;
-  const fr = document.getElementById('dex-rar').value;
+  const onlyAe = document.getElementById('dex-aethera').checked;
   const onlyCaught = document.getElementById('dex-caught').checked;
 
   const list = SPECIES.filter(s => {
     if(q && !s.name.toLowerCase().includes(q)) return false;
     if(ft && !s.types.split('/').includes(ft)) return false;
     if(fz && !s.spots.some(sp=>sp.zone===fz)) return false;
-    if(fr && !s.spots.some(sp=>sp.rar===fr)) return false;
+    if(onlyAe && !s.spots.length) return false;
     if(onlyCaught && !state.caught[s.name]) return false;
     return true;
   });
 
   const caughtCount = SPECIES.filter(s=>state.caught[s.name]).length;
   document.getElementById('dex-count').textContent =
-    `${list.length} specie mostrate · ${SPECIES.length} nella regione · ${caughtCount} catturate dal gruppo`;
+    `${list.length} specie trovate · ${SPECIES.length} nel dex · ${caughtCount} catturate dal gruppo` +
+    (P5 ? '' : ' · ⚠ p5e-data.js non trovato: metti il file accanto a pokedex.html per le schede complete');
 
-  document.getElementById('dex-list').innerHTML = list.map(s => {
-    const zoneName = id => { const z = ZONES.find(z=>z.id===id); return z ? z.name.replace(/ — .*/,'') : id; };
+  const shown = list.slice(0, dexShown);
+  document.getElementById('dex-more').style.display = list.length > dexShown ? '' : 'none';
+
+  document.getElementById('dex-list').innerHTML = shown.map(s => {
+    const i = SPECIES_IDX.get(s.name);
     const spots = s.spots.map(sp =>
-      `<div>· <b>${esc(zoneName(sp.zone))}</b> — liv. ${sp.lv} <span class="rar ${sp.rar}">${sp.rar}</span></div>`).join('');
+      `<div>📍 <b>${esc(zoneName(sp.zone))}</b> — liv. ${sp.lv} ${sp.rar!=='—'?`<span class="rar ${sp.rar}">${sp.rar}</span>`:''}</div>`).join('');
     const isCaught = !!state.caught[s.name];
-    const preset = PRESETS[s.name] ? ' <span class="rar" style="color:var(--accent); border-color:var(--accent)">scheda inclusa</span>' : '';
+    const num = s.p5 ? `<span class="num">#${s.p5.n}</span>` : '';
+    const sr = s.p5 ? `<span class="num">SR ${s.p5.sr}</span>` : '';
     return `<div class="dex-item">
       <div class="top">
-        <strong>${esc(s.name)}</strong> ${typeChips(s.types)}${preset}
+        <strong onclick="openSheet(${i})" title="apri la scheda">${esc(s.name)}</strong> ${num} ${typeChips(s.types)} ${sr}
         <label class="caughtbox" title="segna come catturato dal gruppo">
-          <input type="checkbox" ${isCaught?'checked':''} onchange="toggleCaught('${jsArg(s.name)}')"/> ◓
+          <input type="checkbox" ${isCaught?'checked':''} onchange="toggleCaught(${i})"/> ◓
         </label>
       </div>
-      <div class="spots">${spots}</div>
-      <div><button class="btn small ghost" onclick="addFromDex('${jsArg(s.name)}')">+ Aggiungi a una squadra</button></div>
+      ${spots ? `<div class="spots">${spots}</div>` : ''}
+      <div class="row">
+        ${s.p5 ? `<button class="btn small ghost" onclick="openSheet(${i})">📜 Scheda</button>` : ''}
+        <button class="btn small ghost" onclick="addFromDex(${i})">+ Squadra</button>
+      </div>
     </div>`;
   }).join('');
 }
-function toggleCaught(name){
+function toggleCaught(i){
+  const name = SPECIES[i].name;
   if(state.caught[name]) delete state.caught[name]; else state.caught[name] = true;
   save(); renderDex();
 }
-function addFromDex(name){
+function addFromDex(i){
   if(state.trainers.length===0){
     alert('Prima crea un allenatore nella scheda «Squadre».');
     setTab('squad'); return;
   }
   const t = getActiveTrainer() || state.trainers[0];
-  const sp = SPECIES.find(s=>s.name===name);
-  addPokemon(t, name, sp ? sp.types : '', null);
+  const s = SPECIES[i];
+  const lvGuess = s.spots.length ? parseInt((s.spots[0].lv.match(/\d+/)||[5])[0]) : 5;
+  addPokemon(t, s.name, s.types, lvGuess);
   setTab('squad');
+}
+
+/* --- scheda completa dal dex --- */
+
+function moveChipHTML(name, ctx){
+  const md = findMoveData(name);
+  const t = md ? md.t : null;
+  const col = t && TYPES[t] ? TYPES[t].c : 'transparent';
+  return `<span class="move" style="border-left:3px solid ${col}" onclick="openMoveInfo('${esc(name).replace(/'/g,"\\'")}',${ctx||0})">${esc(name)}</span>`;
+}
+function openSheet(i){
+  const s = SPECIES[i];
+  const d = s.p5;
+  if(!d){ showModal(`<h3>${esc(s.name)}</h3><p class="hint">Questa specie non è nel dataset P5e (generazioni successive): inserisci i dati a mano dalla tua fonte.</p><button class="btn" onclick="closeModal()">OK</button>`); return; }
+  const ex = P5.EXTRA[d.n] || {};
+  const statCells = STAT_KEYS.map(k=>`<div><b>${k}</b> ${d.attr[k]??10} (${fmtMod(mod(d.attr[k]))})</div>`).join('');
+  const ad = autoDefense(s.types);
+  const lvls = Object.keys(d.mv.l).map(Number).sort((a,b)=>a-b);
+  const mvHTML =
+    `<div class="mvgroup"><span class="lbl">Iniziali</span><div class="moves">${d.mv.s.map(m=>moveChipHTML(m,d.min)).join('')}</div></div>` +
+    lvls.map(lv=>`<div class="mvgroup"><span class="lbl">Livello ${lv}</span><div class="moves">${d.mv.l[lv].map(m=>moveChipHTML(m,lv)).join('')}</div></div>`).join('');
+  const abHTML = d.ab.map(a=>`<span class="abil-chip" onclick="openAbil('${esc(a).replace(/'/g,"\\'")}')">${esc(a)}</span>`).join(' ') +
+    (d.hab ? ` <span class="abil-chip" style="opacity:.7" onclick="openAbil('${esc(d.hab).replace(/'/g,"\\'")}')">${esc(d.hab)} (nascosta)</span>` : '');
+  const evo = d.ev ? `<p class="levelup-gain">🌟 Evolve in <b>${d.ev.into.map(esc).join(' / ')}</b> dal liv. ${d.ev.lv} · +${d.ev.pts} punti caratteristica (stadio ${d.ev.st}/${d.ev.tot})</p>` : '';
+  const spots = s.spots.length ? `<p class="hint">In Aethera: ${s.spots.map(sp=>`${esc(zoneName(sp.zone))} (liv. ${sp.lv})`).join(' · ')}</p>` : '';
+  showModal(`<div class="sheet">
+    <h3>#${d.n} ${esc(s.name)} ${typeChips(s.types)}</h3>
+    ${ex.g?`<p class="hint" style="margin:0">${esc(ex.g)}${ex.h?` · ${(ex.h/10).toLocaleString('it')} m · ${(ex.w/10).toLocaleString('it')} kg`:''}</p>`:''}
+    ${ex.f?`<p class="flavor">${esc(ex.f)}</p>`:''}
+    <div class="statline">
+      <div><b>CA</b> ${d.ac}</div><div><b>PF</b> ${d.hp} (liv. ${d.min})</div>
+      <div><b>Dado Vita</b> d${d.die}</div><div><b>SR</b> ${d.sr}</div>
+      <div><b>Taglia</b> ${esc(d.size)}</div><div><b>Velocità</b> ${esc(d.spd)}</div>
+    </div>
+    <div class="statline">${statCells}</div>
+    <p class="defline"><b>Tiri salvezza:</b> ${d.ts.length?d.ts.map(esc).join(', '):'—'} · <b>Abilità (skill):</b> ${d.sk.length?d.sk.map(esc).join(', '):'—'}${d.sen?` · <b>Sensi:</b> ${esc(d.sen)}`:''}</p>
+    <p class="defline">✨ ${abHTML}</p>
+    ${ad ? `<p class="defline">⚠ <b>Vulnerabile:</b> ${ad.vul.join(', ')||'—'}<br/>🛡 <b>Resiste:</b> ${ad.res.join(', ')||'—'}${ad.imm.length?`<br/>✋ <b>Immune:</b> ${ad.imm.join(', ')}`:''}</p>` : ''}
+    ${evo}${spots}
+    <h3>Mosse</h3>${mvHTML}
+    ${d.mv.tm && d.mv.tm.length ? `<p class="hint">MT compatibili: ${d.mv.tm.join(', ')}</p>` : ''}
+    <div class="mrow"><button class="btn" onclick="closeModal(); addFromDex(${i})">+ Aggiungi a una squadra</button>
+    <button class="btn ghost" onclick="closeModal()">Chiudi</button></div>
+  </div>`);
+}
+function openAbil(name){
+  const desc = (P5 && P5.ABIL[name]) || 'Descrizione non nel dataset.';
+  showModal(`<h3>✨ ${esc(name)}</h3><p style="font-size:14px">${esc(desc)}</p><button class="btn" onclick="closeModal()">OK</button>`);
+}
+function openMoveInfo(name, level){
+  const md = findMoveData(name);
+  if(!md){ showModal(`<h3>${esc(name)}</h3><p class="hint">Mossa non nel dataset (nome personalizzato della guida o della campagna).</p><button class="btn" onclick="closeModal()">OK</button>`); return; }
+  let dmg = '';
+  if(md.dmg){
+    const tiers = Object.keys(md.dmg).map(Number).sort((a,b)=>a-b);
+    const cur = tiers.filter(t=>t<=(level||1)).pop() ?? tiers[0];
+    dmg = `<p class="levelup-gain">🎲 Danno${level?` (liv. ${level})`:''}: <b>${esc(md.dmg[cur])}</b></p>` +
+      `<p class="hint">${tiers.map(t=>`liv. ${t}: ${esc(md.dmg[t])}`).join(' · ')}</p>`;
+  }
+  showModal(`<h3>${esc(name)} ${typeChips([md.t])}</h3>
+    <p class="hint" style="margin:0">${esc(md.time||'')} · gittata: ${esc(md.rng||'—')} · PP ${md.pp||'—'} · durata: ${esc(md.dur||'—')}${md.save?` · TS ${esc(md.save)}`:''}${md.pow&&md.pow.length?` · potenza: ${md.pow.join('/')}`:''}</p>
+    ${dmg}
+    <p style="font-size:14px">${esc(md.desc||'')}</p>
+    ${md.sc?`<p class="hint">${esc(md.sc)}</p>`:''}
+    <button class="btn" onclick="closeModal()">OK</button>`);
 }
 
 /* ================= SQUADRE ================= */
@@ -908,26 +992,39 @@ function removeTrainer(id){
 }
 function setActiveTrainer(id){ state.activeTrainer = id; save(); renderSquad(); }
 
+function learnsetMoves(d){
+  const moves = (d.mv.s||[]).map(n=>({lv:1, name:n}));
+  for(const [lv,arr] of Object.entries(d.mv.l||{}))
+    for(const n of arr) moves.push({lv:parseInt(lv), name:n});
+  moves.sort((a,b)=>a.lv-b.lv);
+  return moves;
+}
+
 function addPokemon(trainer, species, types, level){
+  const d = p5data(species);
   const preset = PRESETS[species];
-  const cache = state.speciesData[species];
   const sp = SPECIES.find(s=>s.name===species);
   const p = {
-    id:uid(), nick:species||'Nuovo', species:species||'', types:types||(sp?sp.types:''),
-    level: level ?? (preset ? 5 : 1),
-    minLevel: preset ? preset.minLevel : (cache ? cache.minLevel : 1),
-    basePF: preset ? preset.basePF : (cache ? cache.basePF : 10),
-    die: preset ? preset.die : (cache ? cache.die : 6),
-    ca: preset ? preset.ca : (cache ? cache.ca : null),
-    stats: preset ? Object.assign({},preset.stats) : {FOR:10,DES:10,COS:(cache?cache.cos:10),INT:10,SAG:10,CAR:10},
-    nature:'', ts: preset ? preset.ts : '', speed: preset ? preset.speed : '',
-    vul: preset ? preset.vul : '', res: preset ? preset.res : '',
+    id:uid(), nick:species||'Nuovo', species:species||'',
+    types: types || (sp ? sp.types : ''),
+    level: level ?? (d ? Math.max(d.min,1) : 1),
+    minLevel: d ? d.min : 1,
+    basePF: d ? d.hp : 10,
+    die: d ? d.die : 6,
+    ca: d ? d.ac : null,
+    stats: d ? Object.assign({},d.attr) : {FOR:10,DES:10,COS:10,INT:10,SAG:10,CAR:10},
+    nature:'', item:'',
+    ts: d ? d.ts.join(', ') : '',
+    speed: d ? d.spd : '',
+    abNames: d ? [...d.ab, ...(d.hab?[d.hab]:[])] : [],
     ability: preset ? preset.ability : '',
+    vul: preset ? preset.vul : '', res: preset ? preset.res : '',
     evoBonus:0, xp:0, curPF:null,
-    moves: preset ? preset.moves.map(([lv,n])=>({lv,name:n})) : []
+    moves: preset ? preset.moves.map(([lv,n])=>({lv,name:n}))
+         : d ? learnsetMoves(d) : []
   };
+  if(p.level < p.minLevel) p.level = p.minLevel;
   p.curPF = maxPF(p);
-  rememberSpecies(p);
   trainer.team.push(p);
   save(); renderSquad();
   return p;
@@ -947,7 +1044,6 @@ function pkmField(pid, field, value, isNum){
   p[field] = isNum ? (parseFloat(value)||0) : value;
   const after = maxPF(p);
   if(p.curPF!=null && after!==before) p.curPF = Math.max(0, p.curPF + (after-before));
-  rememberSpecies(p);
   save(); renderSquad();
 }
 function pkmStat(pid, key, value){
@@ -956,7 +1052,6 @@ function pkmStat(pid, key, value){
   p.stats[key] = parseInt(value)||10;
   const after = maxPF(p);
   if(p.curPF!=null && after!==before) p.curPF = Math.max(0, p.curPF + (after-before));
-  rememberSpecies(p);
   save(); renderSquad();
 }
 function pkmHP(pid, delta){
@@ -976,17 +1071,17 @@ function removePkm(pid){
   save(); renderSquad();
 }
 
-/* --- mosse: scelta rapida da elenco --- */
+/* --- mosse --- */
 
 function openMoveModal(pid, idx){
   const [,p] = findPkm(pid); if(!p) return;
-  const m = idx!=null ? p.moves[idx] : {name:'', lv:p.level, detail:''};
+  const m = idx!=null ? p.moves[idx] : {name:'', lv:p.level};
   showModal(`<h3>${idx!=null?'Modifica mossa':'Nuova mossa'}</h3>
-    <div class="mrow"><label>Nome<br/><input id="mm-name" list="movelist" value="${esc(m.name)}" style="width:220px" placeholder="scrivi o scegli…"/></label></div>
-    <div class="mrow"><label>Dal livello<br/><input id="mm-lv" type="number" min="1" value="${m.lv}"/></label>
-      <label>Dettagli (danno, portata…)<br/><input id="mm-detail" value="${esc(m.detail||'')}" style="width:200px" placeholder="es. 2d6+STAB, 18 m"/></label></div>
+    <div class="mrow"><label>Nome<br/><input id="mm-name" list="movelist" value="${esc(m.name)}" style="width:220px" placeholder="scrivi o scegli…"/></label>
+    <label>Dal livello<br/><input id="mm-lv" type="number" min="1" value="${m.lv}"/></label></div>
     <div class="mrow">
       <button class="btn" onclick="saveMoveModal('${pid}',${idx!=null?idx:'null'})">Salva</button>
+      ${idx!=null?`<button class="btn ghost" onclick="closeModal(); openMoveInfo('${esc(m.name).replace(/'/g,"\\'")}',${p.level})">📜 Dettagli</button>`:''}
       <button class="btn ghost" onclick="closeModal()">Annulla</button>
     </div>`);
   setTimeout(()=>document.getElementById('mm-name').focus(),50);
@@ -996,9 +1091,8 @@ function saveMoveModal(pid, idx){
   const name = document.getElementById('mm-name').value.trim();
   if(!name){ alert('Serve il nome della mossa.'); return; }
   const lv = Math.max(1, parseInt(document.getElementById('mm-lv').value)||1);
-  const detail = document.getElementById('mm-detail').value.trim();
-  if(idx!=null) p.moves[idx] = {name, lv, detail};
-  else p.moves.push({name, lv, detail});
+  if(idx!=null) p.moves[idx] = {name, lv};
+  else p.moves.push({name, lv});
   p.moves.sort((a,b)=>a.lv-b.lv);
   save(); closeModal(); renderSquad();
 }
@@ -1017,9 +1111,12 @@ function levelUp(pid, silent){
   p.level += 1;
   if(p.curPF!=null) p.curPF += gain;
   const newMoves = p.moves.filter(m=>m.lv===p.level).map(m=>m.name);
+  const d = p5data(p.species);
   const info = {level:p.level, gain, pf:maxPF(p),
     compUp: compBonus(p.level)>oldComp ? compBonus(p.level) : null,
     stabUp: stabBonus(p.level)>oldStab ? stabBonus(p.level) : null,
+    asi: ASI_LEVELS.includes(p.level),
+    evoReady: d && d.ev && p.level>=d.ev.lv ? d.ev.into.join(' / ') : null,
     newMoves, nick:p.nick};
   save();
   if(!silent){ renderSquad(); showLevelUpModal(p,[info]); }
@@ -1060,37 +1157,65 @@ function levelUpRows(ups){
     let extra = '';
     if(u.compUp) extra += `<div class="levelup-gain">📈 Competenza sale a <b>+${u.compUp}</b></div>`;
     if(u.stabUp) extra += `<div class="levelup-gain">💥 STAB sale a <b>+${u.stabUp}</b></div>`;
+    if(u.asi) extra += `<div class="levelup-gain">🎯 <b>Aumento di caratteristica (ASI)!</b> Distribuisci i punti sulla scheda.</div>`;
     if(u.newMoves.length) extra += `<div class="levelup-gain">✨ Nuove mosse: <b>${u.newMoves.map(esc).join(', ')}</b></div>`;
+    if(u.evoReady) extra += `<div class="levelup-gain">🌟 Può evolvere in <b>${esc(u.evoReady)}</b>!</div>`;
     return `<div style="border-bottom:1px solid var(--line); padding:6px 0">
       <div class="levelup-gain">⬆ <b>${esc(u.nick)}</b> sale al <b>livello ${u.level}</b>! (+${u.gain} PF → ${u.pf} PF)</div>${extra}</div>`;
   }).join('');
 }
 function showLevelUpModal(p, ups, xpGained, mode){
   const head = xpGained ? `<p class="hint">${mode==='capture'?'Cattura':'Vittoria'}: +${xpGained} XP</p>` : '';
-  const evoNote = PRESETS[p.species] && PRESETS[p.species].evo
-    ? `<p class="hint">Evoluzione: ${esc(PRESETS[p.species].evo)} — usa «Evolvi» quando accade.</p>` : '';
-  showModal(`<h3>🎉 Livello superato!</h3>${head}${levelUpRows(ups)}${evoNote}
+  showModal(`<h3>🎉 Livello superato!</h3>${head}${levelUpRows(ups)}
     <p class="hint">XP attuali: ${p.xp} / ${xpNeed(p)}</p>
     <button class="btn" onclick="closeModal()">Fantastico</button>`);
 }
+
 function evolvePkm(pid){
   const [,p] = findPkm(pid); if(!p) return;
-  const suggestion = PRESETS[p.species] && PRESETS[p.species].evo ? PRESETS[p.species].evo.replace(/ \(.*\)/,'') : '';
-  const newName = prompt('In cosa evolve? (nome della nuova specie)', suggestion);
-  if(!newName) return;
+  const d = p5data(p.species);
+  if(d && d.ev && d.ev.into.length){
+    const opts = d.ev.into.map(n =>
+      `<button class="btn" onclick="closeModal(); applyEvolution('${pid}','${esc(n).replace(/'/g,"\\'")}',${d.ev.pts})">${esc(n)}</button>`).join(' ');
+    showModal(`<h3>🌟 Evoluzione di ${esc(p.nick)}</h3>
+      <p class="levelup-gain">Dal dex: evolve dal liv. ${d.ev.lv} con <b>+${d.ev.pts} punti caratteristica</b> da distribuire.</p>
+      <div class="mrow">${opts}</div>
+      <div class="mrow"><button class="btn ghost" onclick="closeModal()">Annulla</button></div>`);
+  } else {
+    const guideEvo = PRESETS[p.species] ? PRESETS[p.species].evo.replace(/ \(.*\)/,'') : '';
+    const name = prompt('In cosa evolve?', guideEvo);
+    if(name) applyEvolution(pid, name, 0);
+  }
+}
+function applyEvolution(pid, newName, pts){
+  const [,p] = findPkm(pid); if(!p) return;
   const bonus = 2 * p.level;
+  const nd = p5data(newName);
   p.evoBonus = (p.evoBonus||0) + bonus;
   const wasNickSpecies = p.nick === p.species;
   p.species = newName;
   if(wasNickSpecies) p.nick = newName;
-  const sp = SPECIES.find(s=>s.name===newName);
-  if(sp) p.types = sp.types;
-  if(p.curPF!=null) p.curPF += bonus;
+  if(nd){
+    p.types = nd.t.join('/');
+    p.basePF = nd.hp; p.die = nd.die; p.minLevel = nd.min; p.ca = nd.ac;
+    p.stats = Object.assign({}, nd.attr);
+    p.ts = nd.ts.join(', '); p.speed = nd.spd;
+    p.abNames = [...nd.ab, ...(nd.hab?[nd.hab]:[])];
+    /* mosse: tiene le conosciute, aggiunge il learnset della nuova forma */
+    const known = new Set(p.moves.map(m=>m.name));
+    for(const m of learnsetMoves(nd)) if(!known.has(m.name)) p.moves.push(m);
+    p.moves.sort((a,b)=>a.lv-b.lv);
+  } else {
+    const sp = SPECIES.find(s=>s.name===newName);
+    if(sp) p.types = sp.types;
+  }
+  p.curPF = (p.curPF==null) ? maxPF(p) : Math.min(maxPF(p), p.curPF + bonus);
   save(); renderSquad();
   showModal(`<h3>🌟 Evoluzione!</h3>
     <p class="levelup-gain"><b>${esc(p.nick)}</b> è evoluto in <b>${esc(newName)}</b>!</p>
     <p class="levelup-gain">💗 PF una tantum: <b>+${bonus}</b> (2 × liv. ${p.level}) → ora ${maxPF(p)} PF</p>
-    <p class="hint">Ricorda dal dex P5e: assegna gli <b>ASI</b> (punti caratteristica) e aggiorna CA, statistiche e mosse della nuova forma.</p>
+    ${nd ? `<p class="levelup-gain">📋 Scheda aggiornata dal dex: CA ${nd.ac}, statistiche e mosse della nuova forma.</p>` : ''}
+    ${pts ? `<p class="levelup-gain">🎯 Distribuisci <b>+${pts} punti caratteristica</b> (regola ufficiale P5e).</p>` : ''}
     <button class="btn" onclick="closeModal()">OK</button>`);
 }
 
@@ -1151,7 +1276,7 @@ function renderSquad(){
       <div class="badges" style="margin-top:10px">${badges}</div>
       <details style="margin-top:10px">
         <summary class="hint" style="cursor:pointer; display:inline">🎒 Zaino & appunti</summary>
-        <textarea placeholder="Pozioni, Poké Ball, MT, soldi, appunti…" onchange="trainerNotes('${t.id}',this.value)">${esc(t.notes)}</textarea>
+        <textarea placeholder="Poké Ball, pozioni, MT, soldi, appunti…" onchange="trainerNotes('${t.id}',this.value)">${esc(t.notes)}</textarea>
       </details>
     </div>
     <div class="grid">${team}</div>
@@ -1170,32 +1295,43 @@ function renderPkm(p){
   const xpPct = Math.min(100, Math.round(100*p.xp/need));
   const comp = compBonus(p.level), stab = stabBonus(p.level);
 
-  const abilities = STAT_KEYS.map(k =>
-    `<div class="ab"><label>${k}</label>
+  const abilities = STAT_KEYS.map(k => {
+    const delta = natDelta(p,k);
+    const eff = effStat(p,k);
+    return `<div class="ab"><label>${k}</label>
       <input type="number" value="${p.stats[k]}" onchange="pkmStat('${p.id}','${k}',this.value)"/>
-      <small>${fmtMod(mod(p.stats[k]))}</small></div>`).join('');
+      <small>${fmtMod(mod(eff))}</small>
+      ${delta ? `<small class="nat">${fmtMod(delta)} nat.</small>` : ''}
+    </div>`;
+  }).join('');
 
-  const natureInfo = p.nature && NATURES[p.nature] ? NATURES[p.nature] : '';
+  const natEff = NATURES[p.nature];
+  const natLabel = natEff ? Object.entries(natEff).map(([k,v])=>`${fmtMod(v)} ${k}`).join(' ') : '';
 
   const moves = p.moves.map((m,i) => {
     const locked = m.lv > p.level;
-    const det = m.detail ? ` — ${m.detail}` : '';
-    return `<span class="move ${locked?'locked':''}" title="dal livello ${m.lv}${esc(det)}" onclick="openMoveModal('${p.id}',${i})">${esc(m.name)} <small style="opacity:.6">liv.${m.lv}</small><span class="x" onclick="delMove('${p.id}',${i},event)">×</span></span>`;
+    const md = findMoveData(m.name);
+    const col = md && TYPES[md.t] ? TYPES[md.t].c : 'transparent';
+    return `<span class="move ${locked?'locked':''}" style="border-left:3px solid ${col}" title="dal livello ${m.lv} — clic per dettagli" onclick="openMoveInfo('${esc(m.name).replace(/'/g,"\\'")}',${p.level})">${esc(m.name)} <small style="opacity:.6">liv.${m.lv}</small><span class="x" title="rimuovi" onclick="delMove('${p.id}',${i},event)">×</span></span>`;
   }).join('');
 
-  /* difese: quelle della scheda se compilate, altrimenti auto dai tipi */
+  const abChips = (p.abNames||[]).map(a=>`<span class="abil-chip" onclick="openAbil('${esc(a).replace(/'/g,"\\'")}')">${esc(a)}</span>`).join(' ');
+
   let defHTML = '';
   if(p.vul || p.res){
     defHTML = `${p.vul?`<div class="defline">⚠ Vulnerabilità: ${esc(p.vul)}</div>`:''}
                ${p.res?`<div class="defline">🛡 Resistenze: ${esc(p.res)}</div>`:''}`;
   } else {
     const ad = autoDefense(p.types);
-    if(ad) defHTML = `${ad.vul.length?`<div class="defline">⚠ Vulnerabile (auto dai tipi): ${ad.vul.join(', ')}</div>`:''}
-                      ${ad.res.length?`<div class="defline">🛡 Resiste (auto): ${ad.res.join(', ')}</div>`:''}
-                      ${ad.imm.length?`<div class="defline">✋ Immune (auto): ${ad.imm.join(', ')}</div>`:''}`;
+    if(ad) defHTML = `${ad.vul.length?`<div class="defline">⚠ Vulnerabile: ${ad.vul.join(', ')}</div>`:''}
+                      ${ad.res.length?`<div class="defline">🛡 Resiste: ${ad.res.join(', ')}</div>`:''}
+                      ${ad.imm.length?`<div class="defline">✋ Immune: ${ad.imm.join(', ')}</div>`:''}`;
   }
 
-  const atkFor = mod(p.stats.FOR)+comp, atkDes = mod(p.stats.DES)+comp;
+  const atkFor = mod(effStat(p,'FOR'))+comp, atkDes = mod(effStat(p,'DES'))+comp;
+  const caShow = p.ca!=null ? p.ca + natAC(p) : '—';
+  const itemEff = P5 && p.item && P5.ITEMS[p.item] ? P5.ITEMS[p.item] : '';
+  const sIdx = SPECIES_IDX.has(p5name(p.species)||p.species) ? SPECIES_IDX.get(p5name(p.species)||p.species) : null;
 
   return `<div class="pkm">
     <div class="head">
@@ -1207,22 +1343,31 @@ function renderPkm(p){
 
     <div class="statrow">
       <div class="stat"><b>${mx}</b><span>PF max</span></div>
-      <div class="stat"><b>${p.ca ?? '—'}</b><span>CA</span></div>
+      <div class="stat"><b>${caShow}</b><span>CA</span></div>
       <div class="stat"><b>+${comp}</b><span>Competenza</span></div>
       <div class="stat"><b>${stab>0?'+'+stab:'—'}</b><span>STAB</span></div>
       <div class="stat"><b>${fmtMod(atkFor)} / ${fmtMod(atkDes)}</b><span>Attacco FOR / DES</span></div>
+      ${p.speed?`<div class="stat"><b style="font-size:13px">${esc(p.speed)}</b><span>Velocità</span></div>`:''}
     </div>
 
     <div class="row">
       <div class="abilities">${abilities}</div>
       <label style="font-size:12.5px; color:var(--muted)">Natura<br/>
         <input list="naturelist" value="${esc(p.nature)}" style="width:110px" onchange="pkmField('${p.id}','nature',this.value)"/>
-        ${natureInfo?`<small style="color:var(--accent)">${natureInfo}</small>`:''}
+        ${natLabel?`<small style="color:var(--warn)">${natLabel}</small>`:''}
       </label>
     </div>
 
-    ${p.ability?`<div class="defline">✨ ${esc(p.ability)}</div>`:''}
+    ${abChips?`<div class="defline">✨ ${abChips}${p.ts?` · <b>TS:</b> ${esc(p.ts)}`:''}</div>`:(p.ts?`<div class="defline"><b>TS:</b> ${esc(p.ts)}</div>`:'')}
+    ${p.ability?`<div class="defline">📖 ${esc(p.ability)}</div>`:''}
     ${defHTML}
+
+    <div class="row" style="gap:6px">
+      <label style="font-size:12.5px; color:var(--muted)">Strumento
+        <input list="itemlist" value="${esc(p.item)}" style="width:150px" onchange="pkmField('${p.id}','item',this.value)"/>
+      </label>
+      ${itemEff?`<span class="hint" style="margin:0; flex:1">→ ${esc(itemEff)}</span>`:''}
+    </div>
 
     <div>
       <div class="row" style="justify-content:space-between; font-size:12.5px; color:var(--muted)">
@@ -1253,7 +1398,7 @@ function renderPkm(p){
 
     <div>
       <div class="row" style="justify-content:space-between">
-        <span style="font-size:12.5px; color:var(--muted)">Mosse — tocca per modificare${p.moves.length? '' : ' (scegli dall’elenco, niente da riscrivere)'}</span>
+        <span style="font-size:12.5px; color:var(--muted)">Mosse — clic per i dettagli (in grigio: non ancora sbloccate)</span>
         <button class="btn small ghost" onclick="openMoveModal('${p.id}',null)">+ mossa</button>
       </div>
       <div class="moves" style="margin-top:5px">${moves}</div>
@@ -1262,11 +1407,12 @@ function renderPkm(p){
     <div class="row">
       <button class="btn small" onclick="levelUp('${p.id}')">⬆ +1 livello</button>
       <button class="btn small" onclick="evolvePkm('${p.id}')">🌟 Evolvi</button>
+      ${sIdx!=null && SPECIES[sIdx].p5 ? `<button class="btn small ghost" onclick="openSheet(${sIdx})">📜 Scheda dex</button>` : ''}
       <button class="btn danger small" style="margin-left:auto" onclick="removePkm('${p.id}')">Rimuovi</button>
     </div>
 
     <details class="cfg">
-      <summary>Dati base della scheda (dal dex P5e)</summary>
+      <summary>Dati base della scheda</summary>
       <div class="row" style="margin-top:8px">
         <label>Specie <input value="${esc(p.species)}" list="specieslist" style="width:130px" onchange="pkmField('${p.id}','species',this.value)"/></label>
         <label>Tipi <input value="${esc(p.types)}" style="width:90px" placeholder="Erb/Vel" onchange="pkmField('${p.id}','types',this.value)"/></label>
@@ -1280,18 +1426,12 @@ function renderPkm(p){
         <label>Livello <input type="number" value="${p.level}" onchange="pkmField('${p.id}','level',this.value,1)"/></label>
       </div>
       <div class="row" style="margin-top:8px">
-        <label>Velocità <input value="${esc(p.speed)}" style="width:110px" placeholder="9 m" onchange="pkmField('${p.id}','speed',this.value)"/></label>
-        <label>Tiri salvezza <input value="${esc(p.ts)}" style="width:130px" placeholder="Forza" onchange="pkmField('${p.id}','ts',this.value)"/></label>
+        <label>Velocità <input value="${esc(p.speed)}" style="width:140px" onchange="pkmField('${p.id}','speed',this.value)"/></label>
+        <label>Tiri salvezza <input value="${esc(p.ts)}" style="width:150px" onchange="pkmField('${p.id}','ts',this.value)"/></label>
       </div>
-      <div class="row" style="margin-top:8px">
-        <label style="flex:1">Vulnerabilità (vuoto = auto dai tipi)<br/><input value="${esc(p.vul)}" style="width:100%" onchange="pkmField('${p.id}','vul',this.value)"/></label>
-      </div>
-      <div class="row">
-        <label style="flex:1">Resistenze (vuoto = auto dai tipi)<br/><input value="${esc(p.res)}" style="width:100%" onchange="pkmField('${p.id}','res',this.value)"/></label>
-      </div>
-      <div class="row">
-        <label style="flex:1">Abilità speciale<br/><input value="${esc(p.ability)}" style="width:100%" placeholder="es. Erbafolta: raddoppia lo STAB sotto il 25% dei PF" onchange="pkmField('${p.id}','ability',this.value)"/></label>
-      </div>
+      <div class="row"><label style="flex:1">Vulnerabilità (vuoto = auto dai tipi)<br/><input value="${esc(p.vul)}" style="width:100%" onchange="pkmField('${p.id}','vul',this.value)"/></label></div>
+      <div class="row"><label style="flex:1">Resistenze (vuoto = auto dai tipi)<br/><input value="${esc(p.res)}" style="width:100%" onchange="pkmField('${p.id}','res',this.value)"/></label></div>
+      <div class="row"><label style="flex:1">Note abilità / tratti<br/><input value="${esc(p.ability)}" style="width:100%" onchange="pkmField('${p.id}','ability',this.value)"/></label></div>
       <p class="hint" style="margin:8px 0 0">Bonus evoluzioni: +${p.evoBonus||0} PF · PF max = ${p.basePF} + (${p.level} − ${p.minLevel}) × (${DIE_AVG[p.die]} + ${conMod(p)}) + ${p.evoBonus||0} = <b>${mx}</b></p>
     </details>
   </div>`;
@@ -1302,7 +1442,7 @@ function addBlankPkm(tid){
   showModal(`<h3>Nuovo Pokémon</h3>
     <div class="mrow"><label>Specie<br/><input id="np-species" list="specieslist" style="width:200px" placeholder="es. Growlithe"/></label>
       <label>Livello<br/><input id="np-level" type="number" min="1" value="5"/></label></div>
-    <p class="hint">Se la specie è già stata usata, PF base e Dado Vita si ricordano da soli. Gli iniziali hanno la scheda completa inclusa.</p>
+    <p class="hint">La scheda si compila da sola dal dex P5e: statistiche, CA, PF, mosse ai giusti livelli.</p>
     <div class="mrow">
       <button class="btn" onclick="confirmBlankPkm('${tid}')">Aggiungi</button>
       <button class="btn ghost" onclick="closeModal()">Annulla</button>
@@ -1332,20 +1472,29 @@ function renderBattleForm(){
   const act = getActiveTrainer();
   if(act) sel.value = act.id;
 }
+function speciesPFat(name, lvl){
+  const d = p5data(name);
+  if(!d) return null;
+  const L = Math.max(lvl, d.min);
+  return d.hp + (L - d.min) * (DIE_AVG[d.die] + mod(d.attr.COS));
+}
 function nbSpeciesPick(){
   const name = document.getElementById('nb-species').value.trim();
   const sp = SPECIES.find(s=>s.name.toLowerCase()===name.toLowerCase());
   if(sp){
     document.getElementById('nb-types').value = sp.types;
-    const m = sp.spots[0].lv.match(/\d+/);
-    if(m) document.getElementById('nb-level').value = m[0];
+    if(sp.spots.length){
+      const m = sp.spots[0].lv.match(/\d+/);
+      if(m) document.getElementById('nb-level').value = m[0];
+    }
   }
   nbSuggestPF();
 }
 function nbSuggestPF(){
   const name = document.getElementById('nb-species').value.trim();
   const lvl = parseInt(document.getElementById('nb-level').value)||1;
-  const pf = speciesPFat(name, lvl) ?? (PRESETS[name] ? PRESETS[name].basePF + (lvl-PRESETS[name].minLevel)*(DIE_AVG[PRESETS[name].die]+mod(PRESETS[name].stats.COS)) : null);
+  const sp = SPECIES.find(s=>s.name.toLowerCase()===name.toLowerCase());
+  const pf = sp ? speciesPFat(sp.name, lvl) : null;
   if(pf!=null) document.getElementById('nb-pf').value = pf;
 }
 function newBattle(){
@@ -1354,9 +1503,9 @@ function newBattle(){
   const types = document.getElementById('nb-types').value.trim();
   const level = Math.max(1, parseInt(document.getElementById('nb-level').value)||1);
   const pfMax = Math.max(1, parseInt(document.getElementById('nb-pf').value)||0);
-  if(!pfMax){ alert('Inserisci i PF max del selvatico (dal dex, o con la Calcolatrice).'); return; }
+  if(!pfMax){ alert('Inserisci i PF max del selvatico (o scegli una specie del dex: si calcolano da soli).'); return; }
   const b = {id:uid(), trainerId:document.getElementById('nb-trainer').value||'',
-    species, types, level, pfMax, pf:pfMax, statuses:[], ball:0, note:''};
+    species, types, level, pfMax, pf:pfMax, statuses:[], ball:0};
   state.battles.push(b);
   document.getElementById('nb-species').value=''; document.getElementById('nb-types').value='';
   document.getElementById('nb-pf').value='';
@@ -1380,39 +1529,40 @@ function battleStatus(id, st){
 }
 function battleBall(id, v){
   const b = findBattle(id); if(!b) return;
-  b.ball = parseInt(v)||0;
+  b.ball = v;
   save(); renderBattles();
 }
 function captureDC(b){
   const s = state.settings;
-  let dc = s.cdBase + b.level;
-  const parts = [`${s.cdBase} base`, `+${b.level} livello`];
-  const pct = b.pfMax>0 ? b.pf/b.pfMax : 1;
-  let tier = 0, lbl='';
-  if(pct<=0.10){ tier=s.cd10; lbl='PF ≤ 10%'; }
-  else if(pct<=0.25){ tier=s.cd25; lbl='PF ≤ 25%'; }
-  else if(pct<=0.50){ tier=s.cd50; lbl='PF ≤ 50%'; }
-  if(tier){ dc += tier; parts.push(`${tier} ${lbl}`); }
-  for(const st of b.statuses){
-    const m = (st==='Addormentato'||st==='Congelato') ? s.cdSleep : s.cdStatus;
-    dc += m; parts.push(`${m} ${st.toLowerCase()}`);
-  }
+  let dc = s.capBase;
+  const parts = [`${s.capBase} base`];
+  if(s.capLevel){ dc += b.level; parts.push(`+${b.level} livello`); }
+  if(s.capHP){ dc += b.pf; parts.push(`+${b.pf} PF rimasti`); }
   return {dc, parts};
 }
 function tryCapture(id){
   const b = findBattle(id); if(!b) return;
+  if(b.ball==='master'){
+    showModal(`<h3>◓ GOTCHA! Master Ball!</h3>
+      <p class="levelup-gain"><b>${esc(b.species)}</b> è catturato automaticamente.</p>
+      <div class="mrow"><button class="btn" onclick="closeModal(); endBattle('${id}','capture')">Concludi la cattura →</button></div>`);
+    return;
+  }
   const roll = parseInt(document.getElementById('br-'+id).value);
-  if(isNaN(roll)){ alert('Inserisci il tiro del giocatore (d20 + suoi bonus).'); return; }
+  if(isNaN(roll)){ alert('Inserisci il tiro del giocatore (d20 + competenza).'); return; }
   const {dc} = captureDC(b);
-  const total = roll + (b.ball||0);
+  const ballBonus = parseInt(b.ball)||0;
+  const total = roll + ballBonus;
+  const advHint = b.statuses.length ? `<p class="hint">Con ${b.statuses.map(s=>s.toLowerCase()).join(', ')}: il tiro andava fatto con vantaggio.</p>` : '';
   if(total >= dc){
     showModal(`<h3>◓ GOTCHA! ${esc(b.species)} è stato catturato!</h3>
-      <p class="levelup-gain">Tiro ${roll} + Ball ${fmtMod(b.ball||0)} = <b>${total}</b> contro CD ${dc}.</p>
+      <p class="levelup-gain">Tiro ${roll} + Ball ${fmtMod(ballBonus)} = <b>${total}</b> contro CD ${dc}.</p>
       <div class="mrow"><button class="btn" onclick="closeModal(); endBattle('${id}','capture')">Concludi la cattura →</button></div>`);
   } else {
     showModal(`<h3>💨 La Ball si apre!</h3>
-      <p class="levelup-gain">Tiro ${roll} + Ball ${fmtMod(b.ball||0)} = <b>${total}</b> contro CD ${dc}: non basta.</p>
-      <p class="hint">Abbassa i PF o infliggi uno stato per ridurre la CD, poi riprova.</p>
+      <p class="levelup-gain">Tiro ${roll} + Ball ${fmtMod(ballBonus)} = <b>${total}</b> contro CD ${dc}: non basta.</p>
+      ${advHint}
+      <p class="hint">Abbassa i PF del selvatico per ridurre la CD, poi riprova.</p>
       <button class="btn" onclick="closeModal()">Si continua!</button>`);
   }
 }
@@ -1463,7 +1613,7 @@ function confirmEndBattle(id, outcome){
   let html = `<h3>${outcome==='capture'?'◓ Cattura conclusa!':'⚔ Vittoria!'}</h3>`;
   if(allUps.length) html += levelUpRows(allUps);
   else html += `<p class="levelup-gain">XP distribuiti (+${xpEach} a testa).</p>`;
-  if(newPkm) html += `<p class="levelup-gain">🎒 <b>${esc(newPkm.nick)}</b> si unisce alla squadra al liv. ${newPkm.level} — completa PF base e statistiche dal dex nella sua scheda.</p>`;
+  if(newPkm) html += `<p class="levelup-gain">🎒 <b>${esc(newPkm.nick)}</b> si unisce alla squadra al liv. ${newPkm.level} con la scheda già compilata dal dex.</p>`;
   html += `<button class="btn" onclick="closeModal()">Avanti!</button>`;
   showModal(html);
 }
@@ -1481,9 +1631,10 @@ function renderBattles(){
     const {dc, parts} = captureDC(b);
     const sts = STATUSES.map(s =>
       `<span class="status-chip ${b.statuses.includes(s)?'on':''}" onclick="battleStatus('${b.id}','${s}')">${s}</span>`).join('');
+    const sIdx = SPECIES_IDX.get(b.species);
     return `<div class="battle">
       <div class="head">
-        <strong>${esc(b.species)}</strong> ${typeChips(b.types)}
+        <strong ${sIdx!=null?`style="cursor:pointer" onclick="openSheet(${sIdx})" title="apri la scheda"`:''}>${esc(b.species)}</strong> ${typeChips(b.types)}
         <span class="lvl" style="font-size:18px; margin-left:auto">Liv. ${b.level}</span>
       </div>
       <div class="vs">${t ? '🤺 sta lottando con <b>'+esc(t.name)+'</b>' : 'scontro libero'}</div>
@@ -1503,6 +1654,7 @@ function renderBattles(){
       </div>
 
       <div class="row" style="gap:5px">${sts}</div>
+      ${b.statuses.length?`<div class="hint" style="margin:0">💫 stati attivi → il tiro di cattura ha <b>vantaggio</b></div>`:''}
 
       <div class="cdbox">
         🎯 CD di cattura attuale: <b>${dc}</b>
@@ -1510,10 +1662,11 @@ function renderBattles(){
         <div class="row" style="gap:5px">
           <select onchange="battleBall('${b.id}',this.value)">
             <option value="0" ${b.ball==0?'selected':''}>Poké Ball (+0)</option>
-            <option value="2" ${b.ball==2?'selected':''}>Mega Ball (+2)</option>
-            <option value="4" ${b.ball==4?'selected':''}>Ultra Ball (+4)</option>
+            <option value="1" ${b.ball==1?'selected':''}>Mega Ball (+1)</option>
+            <option value="2" ${b.ball==2?'selected':''}>Ultra Ball (+2)</option>
+            <option value="master" ${b.ball==='master'?'selected':''}>Master Ball (✓)</option>
           </select>
-          <input type="number" id="br-${b.id}" placeholder="tiro d20+bonus" style="width:120px"/>
+          <input type="number" id="br-${b.id}" placeholder="tiro d20+comp" style="width:120px"/>
           <button class="btn small" onclick="tryCapture('${b.id}')">◓ Prova cattura!</button>
         </div>
       </div>
@@ -1527,6 +1680,20 @@ function renderBattles(){
   }).join('');
 }
 
+/* ================= STRUMENTI ================= */
+
+function renderItems(){
+  const wrap = document.getElementById('item-list');
+  if(!P5){ wrap.innerHTML = '<div class="panel"><p class="hint" style="margin:0">Serve p5e-data.js accanto a pokedex.html.</p></div>'; return; }
+  const q = document.getElementById('item-search').value.trim().toLowerCase();
+  const items = Object.entries(P5.ITEMS)
+    .filter(([n,e]) => !q || n.toLowerCase().includes(q) || String(e).toLowerCase().includes(q))
+    .sort((a,b)=>a[0].localeCompare(b[0]));
+  wrap.innerHTML = items.map(([n,e]) =>
+    `<div class="panel"><b>${esc(n)}</b><p>${esc(e)}</p></div>`).join('') ||
+    '<div class="panel"><p class="hint" style="margin:0">Nessuno strumento trovato.</p></div>';
+}
+
 /* ================= IMPOSTAZIONI / DATI ================= */
 
 function renderSettings(){
@@ -1535,12 +1702,9 @@ function renderSettings(){
   document.getElementById('set-defeat').value = s.defeatMult;
   document.getElementById('set-capture').value = s.captureMult;
   document.getElementById('set-auto').checked = s.autoLevel;
-  document.getElementById('set-cdbase').value = s.cdBase;
-  document.getElementById('set-cd50').value = s.cd50;
-  document.getElementById('set-cd25').value = s.cd25;
-  document.getElementById('set-cd10').value = s.cd10;
-  document.getElementById('set-cdstatus').value = s.cdStatus;
-  document.getElementById('set-cdsleep').value = s.cdSleep;
+  document.getElementById('set-capbase').value = s.capBase;
+  document.getElementById('set-caplevel').checked = s.capLevel;
+  document.getElementById('set-caphp').checked = s.capHP;
 }
 function saveSettings(){
   const g = id => parseFloat(document.getElementById(id).value);
@@ -1549,12 +1713,9 @@ function saveSettings(){
   s.defeatMult = isNaN(g('set-defeat'))?1:g('set-defeat');
   s.captureMult = isNaN(g('set-capture'))?1:g('set-capture');
   s.autoLevel = document.getElementById('set-auto').checked;
-  s.cdBase = isNaN(g('set-cdbase'))?10:g('set-cdbase');
-  s.cd50 = isNaN(g('set-cd50'))?-2:g('set-cd50');
-  s.cd25 = isNaN(g('set-cd25'))?-5:g('set-cd25');
-  s.cd10 = isNaN(g('set-cd10'))?-8:g('set-cd10');
-  s.cdStatus = isNaN(g('set-cdstatus'))?-2:g('set-cdstatus');
-  s.cdSleep = isNaN(g('set-cdsleep'))?-3:g('set-cdsleep');
+  s.capBase = isNaN(g('set-capbase'))?10:g('set-capbase');
+  s.capLevel = document.getElementById('set-caplevel').checked;
+  s.capHP = document.getElementById('set-caphp').checked;
   save(); renderSquad(); renderBattles();
 }
 function exportData(){
@@ -1572,6 +1733,7 @@ function importData(){
     const r = new FileReader();
     r.onload = () => {
       try{
+        JSON.parse(r.result);
         localStorage.setItem(STORE_KEY, r.result);
         state = load();
         save(); renderAll();
@@ -1602,7 +1764,7 @@ function calcPF(){
 }
 function calcEvo(){
   const l = parseInt(document.getElementById('c-evo').value)||1;
-  document.getElementById('c-evo-out').textContent = `+${2*l} PF (più gli ASI dal dex)`;
+  document.getElementById('c-evo-out').textContent = `+${2*l} PF`;
 }
 
 /* ================= TIPI ================= */
@@ -1666,13 +1828,7 @@ function renderTypes(){
 
 function renderAll(){
   renderTabs(); renderDex(); renderSquad(); renderBattleForm(); renderBattles();
-  renderSettings(); renderTypes(); calcPF(); calcEvo();
-}
-/* semina il cache specie con gli iniziali */
-for(const [name,pr] of Object.entries(PRESETS)){
-  if(!state.speciesData[name]){
-    state.speciesData[name] = {basePF:pr.basePF, minLevel:pr.minLevel, die:pr.die, cos:pr.stats.COS, ca:pr.ca};
-  }
+  renderItems(); renderSettings(); renderTypes(); calcPF(); calcEvo();
 }
 initDatalists();
 initDexFilters();
