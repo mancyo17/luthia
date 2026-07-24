@@ -1,0 +1,1682 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pokédex di Aethera</title>
+<style>
+:root{
+  --bg:#0b1214;
+  --panel:#111b1f;
+  --panel2:#0e171a;
+  --text:#e9f2f2;
+  --muted:#a9b7b7;
+  --accent:#4fd1c5;
+  --accent-dim:rgba(79,209,197,.15);
+  --line:rgba(255,255,255,.08);
+  --danger:#f56565;
+  --ok:#68d391;
+  --warn:#f6e05e;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:var(--bg); color:var(--text); line-height:1.5;
+}
+header{
+  position:sticky; top:0; z-index:10;
+  background:rgba(11,18,20,.94);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+  padding:12px 18px;
+  display:flex; align-items:center; gap:14px; justify-content:space-between; flex-wrap:wrap;
+}
+.brand{display:flex; flex-direction:column; gap:2px}
+.brand strong{font-size:17px}
+.brand span{font-size:12px; color:var(--muted)}
+nav.tabs{display:flex; gap:6px; flex-wrap:wrap}
+nav.tabs button{
+  background:rgba(255,255,255,.03); color:var(--text);
+  border:1px solid var(--line); border-radius:12px;
+  padding:8px 14px; cursor:pointer; font-size:14px;
+}
+nav.tabs button.active{background:var(--accent-dim); border-color:var(--accent); color:var(--accent)}
+main{padding:18px; max-width:1100px; margin:0 auto}
+section.tab{display:none}
+section.tab.active{display:block}
+h2{font-size:20px; margin:6px 0 4px}
+h3{font-size:16px; margin:14px 0 6px}
+.hint{font-size:12.5px; color:var(--muted); margin:2px 0 12px}
+.panel{
+  border:1px solid var(--line); border-radius:14px;
+  background:var(--panel); padding:14px; margin-bottom:14px;
+}
+.panel.sub{background:var(--panel2)}
+input,select,textarea{
+  padding:8px 10px; border:1px solid var(--line); border-radius:10px;
+  background:rgba(255,255,255,.04); color:var(--text); outline:none; font-size:14px;
+  font-family:inherit;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+input[type=number]{width:72px}
+textarea{width:100%; min-height:64px; resize:vertical}
+button.btn{
+  background:var(--accent-dim); color:var(--accent);
+  border:1px solid var(--accent); border-radius:10px;
+  padding:7px 12px; cursor:pointer; font-size:13.5px;
+}
+button.btn:hover{filter:brightness(1.2)}
+button.btn.ghost{background:transparent; border-color:var(--line); color:var(--text)}
+button.btn.danger{background:rgba(245,101,101,.12); border-color:var(--danger); color:var(--danger)}
+button.btn.small{padding:4px 9px; font-size:12.5px; border-radius:8px}
+.row{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.grid{display:grid; gap:10px}
+.type-chip{
+  display:inline-block; padding:2px 9px; border-radius:999px;
+  font-size:11.5px; font-weight:600; color:#0b1214; letter-spacing:.2px;
+}
+.rar{font-size:11px; font-weight:700; padding:1px 7px; border-radius:8px; border:1px solid var(--line); color:var(--muted)}
+.rar.C{color:#a9b7b7}
+.rar.NC{color:#68d391; border-color:rgba(104,211,145,.4)}
+.rar.R{color:#63b3ed; border-color:rgba(99,179,237,.4)}
+.rar.RR{color:#f6ad55; border-color:rgba(246,173,85,.45)}
+table{border-collapse:collapse; width:100%; font-size:13.5px}
+th,td{border-bottom:1px solid var(--line); padding:7px 8px; text-align:left; vertical-align:top}
+th{color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.4px}
+.tablewrap{overflow-x:auto}
+/* dex */
+.dex-item{
+  border:1px solid var(--line); border-radius:12px; padding:10px 12px;
+  background:rgba(255,255,255,.02); display:flex; flex-direction:column; gap:4px;
+}
+.dex-item .top{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.dex-item .top strong{font-size:15px}
+.dex-item .spots{font-size:12.5px; color:var(--muted)}
+.dex-item .spots b{color:var(--text); font-weight:600}
+.dexgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px}
+.caughtbox{display:flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); cursor:pointer; user-select:none}
+.dex-item .caughtbox{margin-left:auto}
+/* scheda pokémon */
+.pkm{
+  border:1px solid var(--line); border-radius:14px; background:var(--panel);
+  padding:14px; display:flex; flex-direction:column; gap:10px;
+}
+.pkm .head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.pkm .head input.nick{font-size:16px; font-weight:700; width:150px; background:transparent; border:1px dashed transparent; padding:2px 6px}
+.pkm .head input.nick:hover,.pkm .head input.nick:focus{border-color:var(--line)}
+.pkm .lvl{margin-left:auto; font-size:22px; font-weight:800; color:var(--accent); white-space:nowrap}
+.statrow{display:flex; gap:14px; flex-wrap:wrap; font-size:13.5px}
+.statrow .stat{display:flex; flex-direction:column; gap:1px}
+.statrow .stat b{font-size:16px}
+.statrow .stat span{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px}
+.abilities{display:grid; grid-template-columns:repeat(6,minmax(52px,1fr)); gap:6px; max-width:480px}
+.abilities .ab{
+  border:1px solid var(--line); border-radius:10px; padding:5px 4px;
+  display:flex; flex-direction:column; align-items:center; gap:2px; background:rgba(255,255,255,.02);
+}
+.abilities .ab label{font-size:10.5px; color:var(--muted); letter-spacing:.5px}
+.abilities .ab input{width:46px; text-align:center; padding:3px 2px; font-size:14px; font-weight:700}
+.abilities .ab small{font-size:11px; color:var(--accent)}
+.hpbar{height:8px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden}
+.hpbar i{display:block; height:100%; background:var(--ok); border-radius:99px}
+.xpbar{height:6px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden}
+.xpbar i{display:block; height:100%; background:var(--accent); border-radius:99px}
+.moves{display:flex; gap:6px; flex-wrap:wrap}
+.move{
+  font-size:12px; padding:3px 9px; border-radius:9px;
+  border:1px solid var(--line); background:rgba(255,255,255,.03); cursor:pointer;
+}
+.move.locked{opacity:.35}
+.move .x{cursor:pointer; margin-left:5px; color:var(--danger)}
+.defline{font-size:12px; color:var(--muted)}
+.defline .type-chip{transform:scale(.92); transform-origin:left}
+details.cfg{border-top:1px solid var(--line); padding-top:8px}
+details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
+.badges{display:flex; gap:6px; flex-wrap:wrap}
+.badge{
+  border:1px solid var(--line); border-radius:10px; padding:5px 10px;
+  font-size:12.5px; cursor:pointer; user-select:none; color:var(--muted);
+  background:rgba(255,255,255,.02);
+}
+.badge.on{border-color:var(--warn); color:var(--warn); background:rgba(246,224,94,.08)}
+.trainer-chip{
+  border:1px solid var(--line); border-radius:12px; padding:6px 12px;
+  cursor:pointer; font-size:13.5px; background:rgba(255,255,255,.02); color:var(--text);
+}
+.trainer-chip.active{border-color:var(--accent); color:var(--accent); background:var(--accent-dim)}
+/* lotte */
+.battlegrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:12px}
+.battle{
+  border:1px solid rgba(246,173,85,.35); border-radius:14px; background:var(--panel);
+  padding:14px; display:flex; flex-direction:column; gap:10px;
+}
+.battle .head{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap}
+.battle .head strong{font-size:16px}
+.battle .vs{font-size:11.5px; color:var(--muted)}
+.status-chip{
+  font-size:11.5px; padding:3px 9px; border-radius:999px; cursor:pointer; user-select:none;
+  border:1px solid var(--line); color:var(--muted); background:rgba(255,255,255,.02);
+}
+.status-chip.on{border-color:var(--danger); color:var(--danger); background:rgba(245,101,101,.1)}
+.cdbox{
+  border:1px dashed rgba(79,209,197,.4); border-radius:12px; padding:8px 10px;
+  font-size:13px;
+}
+.cdbox b{color:var(--accent); font-size:17px}
+/* tipi */
+.typegrid{display:flex; gap:6px; flex-wrap:wrap}
+.tsel{cursor:pointer; opacity:.55; border:2px solid transparent}
+.tsel.on{opacity:1; border-color:#fff}
+.effgroup{margin:6px 0}
+.effgroup .lbl{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:3px}
+/* modal */
+#modal-bg{
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.65);
+  z-index:50; align-items:center; justify-content:center; padding:18px;
+}
+#modal-bg.open{display:flex}
+#modal{
+  background:var(--panel); border:1px solid var(--accent); border-radius:16px;
+  max-width:480px; width:100%; padding:18px; max-height:82vh; overflow:auto;
+}
+#modal h3{margin-top:0}
+.levelup-gain{font-size:14px; margin:6px 0}
+.levelup-gain b{color:var(--accent)}
+.mrow{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0}
+.footer-note{font-size:11.5px; color:var(--muted); text-align:center; padding:16px 0 26px}
+@media (max-width:640px){
+  main{padding:12px}
+  .pkm .head input.nick{width:120px}
+  .abilities{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <strong>Pokédex di Aethera</strong>
+    <span>Cronache di Allenatori · Sistema Pokémon 5e</span>
+  </div>
+  <nav class="tabs" id="tabs"></nav>
+</header>
+
+<main>
+  <!-- ============ POKEDEX ============ -->
+  <section class="tab" id="tab-dex">
+    <h2>Pokédex della regione</h2>
+    <p class="hint">Tutte le specie catturabili in Aethera: dove trovarle, a che livello e con quale rarità. Segna le catture del gruppo con la spunta ◓.</p>
+    <div class="panel">
+      <div class="row">
+        <input id="dex-search" placeholder="Cerca specie…" style="flex:1; min-width:160px" oninput="renderDex()" />
+        <select id="dex-type" onchange="renderDex()"></select>
+        <select id="dex-zone" onchange="renderDex()"></select>
+        <select id="dex-rar" onchange="renderDex()">
+          <option value="">Rarità: tutte</option>
+          <option value="C">Comune</option>
+          <option value="NC">Non comune</option>
+          <option value="R">Raro</option>
+          <option value="RR">Rarissimo</option>
+        </select>
+        <label class="caughtbox"><input type="checkbox" id="dex-caught" onchange="renderDex()" /> solo catturati</label>
+      </div>
+      <p class="hint" id="dex-count" style="margin:10px 0 0"></p>
+    </div>
+    <div class="dexgrid" id="dex-list"></div>
+  </section>
+
+  <!-- ============ SQUADRE ============ -->
+  <section class="tab" id="tab-squad">
+    <h2>Schede Allenatori & Squadre</h2>
+    <p class="hint">Ogni giocatore ha la sua scheda. PF, competenza e STAB si ricalcolano da soli a ogni livello; mosse e nature si scelgono da elenchi, senza riscrivere nulla a mano.</p>
+
+    <div class="panel">
+      <div class="row" id="trainer-chips"></div>
+    </div>
+
+    <div id="trainer-view"></div>
+
+    <div class="panel sub">
+      <h3 style="margin-top:0">⚙️ Regole veloci di esperienza (della casa — modificabili)</h3>
+      <p class="hint">La guida del GM non fissa una tabella XP: questa è la regola rapida proposta. Un Pokémon guadagna XP pari al <b>livello del nemico</b> sconfitto o catturato; per salire serve <b>moltiplicatore × livello attuale</b> XP. Cambia i numeri per un ritmo diverso.</p>
+      <div class="row">
+        <label>XP per salire = <input type="number" id="set-need" min="1" step="0.5" onchange="saveSettings()"/> × livello</label>
+        <label>XP sconfitta = <input type="number" id="set-defeat" min="0" step="0.5" onchange="saveSettings()"/> × liv. nemico</label>
+        <label>XP cattura = <input type="number" id="set-capture" min="0" step="0.5" onchange="saveSettings()"/> × liv. nemico</label>
+        <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-auto" onchange="saveSettings()"/> salita di livello automatica</label>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn ghost small" onclick="exportData()">⬇ Esporta dati</button>
+        <button class="btn ghost small" onclick="importData()">⬆ Importa dati</button>
+        <button class="btn danger small" onclick="resetData()">Azzera tutto</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LOTTE ============ -->
+  <section class="tab" id="tab-battle">
+    <h2>Tavolo del GM — Lotte in contemporanea</h2>
+    <p class="hint">Apri uno scontro per ogni giocatore che incontra un selvatico: ogni carta ha PF, stati e prova di cattura indipendenti. Così nessuno resta a guardare — cinque lotte girano insieme.</p>
+
+    <div class="panel">
+      <h3 style="margin-top:0">➕ Nuovo scontro</h3>
+      <div class="row">
+        <label>Allenatore
+          <select id="nb-trainer"></select>
+        </label>
+        <label>Selvatico
+          <input id="nb-species" list="specieslist" placeholder="es. Growlithe" style="width:150px" onchange="nbSpeciesPick()"/>
+        </label>
+        <label>Tipi <input id="nb-types" placeholder="Fuo" style="width:80px"/></label>
+        <label>Livello <input type="number" id="nb-level" value="5" onchange="nbSuggestPF()"/></label>
+        <label>PF max <input type="number" id="nb-pf" placeholder="dal dex"/></label>
+        <button class="btn" onclick="newBattle()">Apri scontro</button>
+      </div>
+      <p class="hint" style="margin:8px 0 0">Se hai già usato la specie, i PF si precompilano da soli. Con la formula P5e bastano PF base, liv. min, Dado Vita e COS del dex.</p>
+    </div>
+
+    <div class="battlegrid" id="battle-list"></div>
+
+    <div class="panel sub" style="margin-top:14px">
+      <h3 style="margin-top:0">⚙️ Regola veloce di cattura (della casa — modificabile)</h3>
+      <p class="hint">CD di cattura = base + livello del selvatico + modificatori per PF bassi e stati. Il giocatore tira (d20 + i suoi bonus), la Ball aggiunge il suo bonus: se il totale raggiunge la CD, catturato! Adatta i numeri alla tua versione del dex P5e.</p>
+      <div class="row">
+        <label>CD base <input type="number" id="set-cdbase" onchange="saveSettings()"/></label>
+        <label>PF ≤ 50% <input type="number" id="set-cd50" onchange="saveSettings()"/></label>
+        <label>PF ≤ 25% <input type="number" id="set-cd25" onchange="saveSettings()"/></label>
+        <label>PF ≤ 10% <input type="number" id="set-cd10" onchange="saveSettings()"/></label>
+        <label>per stato <input type="number" id="set-cdstatus" onchange="saveSettings()"/></label>
+        <label>sonno/gelo <input type="number" id="set-cdsleep" onchange="saveSettings()"/></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CALCOLATRICE ============ -->
+  <section class="tab" id="tab-calc">
+    <h2>Calcolatrice P5e</h2>
+    <p class="hint">Le formule ufficiali della guida, pronte all'uso per qualsiasi Pokémon del dex.</p>
+
+    <div class="panel">
+      <h3 style="margin-top:0">Punti Ferita per livello</h3>
+      <p class="hint">PF al livello L = PF base (al livello minimo) + (L − liv. minimo) × (media Dado Vita + mod. COS)</p>
+      <div class="row">
+        <label>PF base <input type="number" id="c-base" value="17" oninput="calcPF()"/></label>
+        <label>Liv. minimo <input type="number" id="c-min" value="1" oninput="calcPF()"/></label>
+        <label>Dado Vita
+          <select id="c-die" onchange="calcPF()">
+            <option value="6">d6 (media 4)</option>
+            <option value="8">d8 (media 5)</option>
+            <option value="10">d10 (media 6)</option>
+            <option value="12">d12 (media 7)</option>
+          </select>
+        </label>
+        <label>Mod. COS <input type="number" id="c-con" value="1" oninput="calcPF()"/></label>
+        <label>Livello <input type="number" id="c-lvl" value="5" oninput="calcPF()"/></label>
+      </div>
+      <p style="font-size:18px; margin:12px 0 0">➜ <b id="c-out" style="color:var(--accent)"></b> <span id="c-detail" class="hint" style="display:inline"></span></p>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-top:0">Bonus di evoluzione</h3>
+      <p class="hint">Quando un Pokémon evolve, guadagna una tantum 2 × il suo livello in PF (più gli ASI).</p>
+      <div class="row">
+        <label>Livello all'evoluzione <input type="number" id="c-evo" value="4" oninput="calcEvo()"/></label>
+        <span style="font-size:16px">➜ <b id="c-evo-out" style="color:var(--accent)"></b></span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-top:0">Competenza e STAB per livello</h3>
+      <div class="tablewrap"><table>
+        <tr><th>Livello</th><td>1–2</td><td>3–4</td><td>5–8</td><td>9–12</td><td>13–16</td><td>17–20</td><td>21+ (Lega)</td></tr>
+        <tr><th>Competenza</th><td>+2</td><td>+2</td><td>+3</td><td>+4</td><td>+5</td><td>+6</td><td>+6</td></tr>
+        <tr><th>STAB</th><td>—</td><td>+1</td><td>+2</td><td>+3</td><td>+4</td><td>+5</td><td>+5</td></tr>
+      </table></div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-top:0">Progressione consigliata della campagna</h3>
+      <div class="tablewrap"><table>
+        <tr><th>Medaglie</th><th>Tappa</th><th>Livelli consigliati</th></tr>
+        <tr><td>0</td><td>Percorso 1 → Sprigonia</td><td>2–4</td></tr>
+        <tr><td>1</td><td>Crocevia + Bosco → Corterba</td><td>4–7</td></tr>
+        <tr><td>2</td><td>Distretto Folgore → Ferraluce</td><td>7–9</td></tr>
+        <tr><td>3</td><td>Cava → Ondria</td><td>9–12</td></tr>
+        <tr><td>4</td><td>Cave Ardenti + Costa → Marevolta</td><td>12–14</td></tr>
+        <tr><td>5</td><td>Torre + Palude → Velenia</td><td>14–16</td></tr>
+        <tr><td>6</td><td>Altopiano + Valico → Brinveil</td><td>16–18</td></tr>
+        <tr><td>7</td><td>Picco → Dravenna</td><td>18–20</td></tr>
+        <tr><td>8</td><td>Strada Vittoria → Torneo → Lega</td><td>20–25</td></tr>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- ============ TIPI ============ -->
+  <section class="tab" id="tab-types">
+    <h2>Tabella dei tipi</h2>
+    <p class="hint">Riferimento rapido per le lotte. Nota: vulnerabilità e resistenze ufficiali di ogni specie stanno sulla sua scheda del dex P5e — questa è la mappa classica dei tipi per orientarsi al volo.</p>
+
+    <div class="panel">
+      <div class="row" style="margin-bottom:10px">
+        <button class="btn small" id="mode-def" onclick="setTypeMode('def')">🛡 Difensore</button>
+        <button class="btn small ghost" id="mode-atk" onclick="setTypeMode('atk')">⚔ Attaccante</button>
+      </div>
+      <p class="hint" id="type-instr"></p>
+      <div class="typegrid" id="type-picker"></div>
+      <div id="type-result" style="margin-top:14px"></div>
+    </div>
+  </section>
+</main>
+
+<div id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div id="modal"></div>
+</div>
+
+<datalist id="movelist"></datalist>
+<datalist id="specieslist"></datalist>
+<datalist id="naturelist"></datalist>
+
+<p class="footer-note">Pokédex di Aethera · compagno digitale di «Cronache di Allenatori» · i dati restano salvati su questo dispositivo (usa Esporta per condividerli)</p>
+
+<script>
+/* ================= DATI DELLA REGIONE ================= */
+
+const TYPES = {
+  Nor:{n:'Normale',c:'#A8A878'}, Fuo:{n:'Fuoco',c:'#F08030'}, Acq:{n:'Acqua',c:'#6890F0'},
+  Erb:{n:'Erba',c:'#78C850'}, Ele:{n:'Elettro',c:'#F8D030'}, Ghi:{n:'Ghiaccio',c:'#98D8D8'},
+  Lot:{n:'Lotta',c:'#C03028'}, Vel:{n:'Veleno',c:'#A040A0'}, Ter:{n:'Terra',c:'#E0C068'},
+  Vol:{n:'Volante',c:'#A890F0'}, Psi:{n:'Psico',c:'#F85888'}, Col:{n:'Coleottero',c:'#A8B820'},
+  Roc:{n:'Roccia',c:'#B8A038'}, Spe:{n:'Spettro',c:'#705898'}, Dra:{n:'Drago',c:'#7038F8'},
+  Bui:{n:'Buio',c:'#705848'}, Acc:{n:'Acciaio',c:'#B8B8D0'}, Fol:{n:'Folletto',c:'#EE99AC'}
+};
+const STAT_KEYS = ['FOR','DES','COS','INT','SAG','CAR'];
+
+const ZONES = [
+  {id:'INI', name:'Doni del Professor Eidon', lv:'5', kind:'Inizio'},
+  {id:'P1',  name:'Percorso 1 — Praterie del Mattino', lv:'2–4', kind:'Percorso'},
+  {id:'CRO', name:'Sentiero del Crocevia', lv:'4–6', kind:'Di passaggio'},
+  {id:'P2',  name:'Percorso 2 — Bosco Sussurrante', lv:'4–7', kind:'Percorso'},
+  {id:'P3',  name:'Percorso 3 — Distretto Folgore', lv:'7–9', kind:'Percorso'},
+  {id:'P4',  name:'Percorso 4 — Cava Pietragrigia', lv:'9–12', kind:'Percorso'},
+  {id:'CAV', name:'Cave Ardenti', lv:'10–12', kind:'Di passaggio'},
+  {id:'P5',  name:'Percorso 5 — Costa Salmastro', lv:'12–14', kind:'Percorso'},
+  {id:'TOR', name:'Torre dei Sussurri', lv:'13–15', kind:'Di passaggio'},
+  {id:'P6',  name:'Percorso 6 — Palude Caligine', lv:'14–16', kind:'Percorso'},
+  {id:'ALT', name:'Altopiano del Vento', lv:'16–18', kind:'Di passaggio'},
+  {id:'P7',  name:'Percorso 7 — Valico Gelorespiro', lv:'16–18', kind:'Percorso'},
+  {id:'P8',  name:'Percorso 8 — Picco Squamadrago', lv:'18–20', kind:'Percorso'},
+  {id:'LAG', name:'Lago degli Specchi', lv:'5–8', kind:'Area'},
+  {id:'SAN', name:'Santuario del Bosco', lv:'6–10', kind:'Area'},
+  {id:'CRA', name:'Cratere delle Lande', lv:'10–13', kind:'Area'},
+  {id:'MAR', name:'Mare Aperto e Fondali', lv:'12–16', kind:'Area'},
+  {id:'GRO', name:'Grotta Cristallina', lv:'15–18', kind:'Area'},
+  {id:'RIS', name:'Riserva di Fogliaverde', lv:'8–15', kind:'Area'},
+  {id:'VIT', name:'Strada Vittoria', lv:'20–22', kind:'Finale'}
+];
+
+/* [zona, nome, tipi, livello, rarità] — dalle tabelle dell'erba alta della guida */
+const DEX_RAW = [
+  ['INI','Bulbasaur','Erb/Vel','5','—'],
+  ['INI','Charmander','Fuo','5','—'],
+  ['INI','Squirtle','Acq','5','—'],
+  ['INI','Pikachu','Ele','5','—'],
+  ['INI','Eevee','Nor','5','—'],
+
+  ['P1','Pidgey','Nor/Vol','2–3','C'], ['P1','Rattata','Nor','2–3','C'],
+  ['P1','Zigzagoon','Nor','3','C'], ['P1','Sentret','Nor','3','C'],
+  ['P1','Lillipup','Nor','3','C'], ['P1','Caterpie','Col','2','C'],
+  ['P1','Weedle','Col/Vel','2','C'], ['P1','Hoppip','Erb/Vol','3','NC'],
+  ['P1','Bunnelby','Nor','3','NC'], ['P1','Pidove','Nor/Vol','3','NC'],
+  ['P1','Patrat','Nor','3','C'], ['P1','Bidoof','Nor','3','C'],
+  ['P1','Spearow','Nor/Vol','4','NC'], ['P1','Starly','Nor/Vol','4','NC'],
+  ['P1','Yungoos','Nor','4','NC'], ['P1','Skitty','Nor','4','R'],
+  ['P1','Eevee','Nor','4','R'],
+
+  ['CRO','Growlithe','Fuo','4–5','C'], ['CRO','Vulpix','Fuo','4–5','C'],
+  ['CRO','Ponyta','Fuo','5','NC'], ['CRO','Mankey','Lot','4','C'],
+  ['CRO','Machop','Lot','5','NC'], ['CRO','Timburr','Lot','5','NC'],
+  ['CRO','Cleffa','Fol','4','NC'], ['CRO','Igglybuff','Nor/Fol','4','NC'],
+  ['CRO','Ralts','Psi/Fol','5','NC'], ['CRO','Abra','Psi','5','NC'],
+  ['CRO','Meditite','Lot/Psi','5','NC'], ['CRO','Munna','Psi','5','C'],
+  ['CRO','Meowth','Nor','4','C'], ['CRO','Aipom','Nor','5','C'],
+  ['CRO','Snubbull','Fol','5','NC'], ['CRO','Fletchling','Nor/Vol','4','C'],
+  ['CRO','Riolu','Lot','6','R'], ['CRO','Togepi','Fol','6','R'],
+
+  ['P2','Oddish','Erb/Vel','4–5','C'], ['P2','Bellsprout','Erb/Vel','4–5','C'],
+  ['P2','Sunkern','Erb','5','C'], ['P2','Seedot','Erb','5–6','C'],
+  ['P2','Shroomish','Erb','6','NC'], ['P2','Combee','Col/Vol','5','C'],
+  ['P2','Cherubi','Erb','5','C'], ['P2','Pichu','Ele','5','NC'],
+  ['P2','Hoothoot','Nor/Vol','6','C'], ['P2','Spinarak','Col/Vel','5','C'],
+  ['P2','Cottonee','Erb','6','NC'], ['P2','Petilil','Erb','6','NC'],
+  ['P2','Sewaddle','Col/Erb','6','NC'], ['P2','Kricketot','Col','5','C'],
+  ['P2','Foongus','Erb/Vel','6','NC'], ['P2','Pansage','Erb','7','NC'],
+  ['P2','Bonsly','Roc','6','R'], ['P2','Roselia','Erb/Vel','7','R'],
+
+  ['P3','Mareep','Ele','7–8','C'], ['P3','Blitzle','Ele','7–8','C'],
+  ['P3','Electrike','Ele','8','C'], ['P3','Magnemite','Ele/Acc','8','C'],
+  ['P3','Voltorb','Ele','8','NC'], ['P3','Pikachu','Ele','8–9','NC'],
+  ['P3','Joltik','Col/Ele','8','NC'], ['P3','Shinx','Ele','8','C'],
+  ['P3','Pachirisu','Ele','8','NC'], ['P3','Plusle','Ele','8','NC'],
+  ['P3','Minun','Ele','8','NC'], ['P3','Chinchou','Acq/Ele','8','NC'],
+  ['P3','Emolga','Ele/Vol','9','NC'], ['P3','Dedenne','Ele/Fol','9','NC'],
+  ['P3','Grubbin','Col','7','C'], ['P3','Helioptile','Ele/Nor','8','NC'],
+  ['P3','Tynamo','Ele','9','R'], ['P3','Elekid','Ele','9','R'],
+
+  ['P4','Geodude','Roc/Ter','9–10','C'], ['P4','Roggenrola','Roc','9–10','C'],
+  ['P4','Aron','Acc/Roc','10','C'], ['P4','Rhyhorn','Ter/Roc','11','C'],
+  ['P4','Nosepass','Roc','11','NC'], ['P4','Onix','Roc/Ter','11–12','NC'],
+  ['P4','Dwebble','Col/Roc','10','NC'], ['P4','Drilbur','Ter','11','NC'],
+  ['P4','Sandshrew','Ter','10','C'], ['P4','Phanpy','Ter','10','C'],
+  ['P4','Cubone','Ter','11','NC'], ['P4','Rockruff','Roc','11','NC'],
+  ['P4','Bronzor','Acc/Psi','11','NC'], ['P4','Carbink','Roc/Fol','12','NC'],
+  ['P4','Sableye','Bui/Spe','12','R'], ['P4','Bagon','Dra','12','R'],
+  ['P4','Larvitar','Roc/Ter','11','RR'],
+
+  ['CAV','Vulpix','Fuo','10','C'], ['CAV','Growlithe','Fuo','10–11','C'],
+  ['CAV','Ponyta','Fuo','11','C'], ['CAV','Numel','Fuo/Ter','11','C'],
+  ['CAV','Slugma','Fuo','10','C'], ['CAV','Houndour','Bui/Fuo','11','NC'],
+  ['CAV','Magby','Fuo','11','NC'], ['CAV','Torkoal','Fuo','12','NC'],
+  ['CAV','Darumaka','Fuo','11','NC'], ['CAV','Litleo','Fuo/Nor','11','NC'],
+  ['CAV','Makuhita','Lot','11','C'], ['CAV','Machoke','Lot','12','NC'],
+  ['CAV','Magcargo','Fuo/Roc','12','NC'], ['CAV','Salandit','Vel/Fuo','11','NC'],
+  ['CAV','Fletchinder','Fuo/Vol','12','NC'], ['CAV','Charcadet','Fuo','12','R'],
+  ['CAV','Larvesta','Col/Fuo','12','R'], ['CAV','Ponyta di Galar','Psi','12','R'],
+
+  ['P5','Wingull','Acq/Vol','12','C'], ['P5','Magikarp','Acq','12','C'],
+  ['P5','Krabby','Acq','12–13','C'], ['P5','Buizel','Acq','13','C'],
+  ['P5','Staryu','Acq','13','NC'], ['P5','Tentacool','Acq/Vel','13','C'],
+  ['P5','Finneon','Acq','13','C'], ['P5','Wailmer','Acq','14','NC'],
+  ['P5','Corphish','Acq','13','NC'], ['P5','Shellos','Acq','13','C'],
+  ['P5','Horsea','Acq','13','NC'], ['P5','Clamperl','Acq','13','NC'],
+  ['P5','Marill','Acq/Fol','13','C'], ['P5','Frillish','Acq/Spe','14','NC'],
+  ['P5','Mantyke','Acq/Vol','14','NC'], ['P5','Tirtouga','Acq/Roc','14','R'],
+  ['P5','Lapras','Acq/Ghi','14','R'], ['P5','Dratini','Dra','14','RR'],
+
+  ['TOR','Duskull','Spe','13','C'], ['TOR','Misdreavus','Spe','13–14','C'],
+  ['TOR','Shuppet','Spe','13','C'], ['TOR','Litwick','Spe/Fuo','14','NC'],
+  ['TOR','Gastly','Spe/Vel','13','C'], ['TOR','Kadabra','Psi','14','NC'],
+  ['TOR','Espurr','Psi','13','C'], ['TOR','Gothita','Psi','14','NC'],
+  ['TOR','Solosis','Psi','14','NC'], ['TOR','Natu','Psi/Vol','13','C'],
+  ['TOR','Kirlia','Psi/Fol','14','NC'], ['TOR','Clefairy','Fol','14','NC'],
+  ['TOR','Togetic','Fol/Vol','15','NC'], ['TOR','Murkrow','Bui/Vol','14','NC'],
+  ['TOR','Purrloin','Bui','13','C'], ['TOR','Sableye','Bui/Spe','15','NC'],
+  ['TOR','Mawile','Acc/Fol','15','R'], ['TOR','Mimikyu','Spe/Fol','15','R'],
+
+  ['P6','Grimer','Vel','14','C'], ['P6','Koffing','Vel','14–15','C'],
+  ['P6','Gulpin','Vel','15','C'], ['P6','Stunky','Vel/Bui','15','C'],
+  ['P6','Zubat','Vel/Vol','14','C'], ['P6','Venipede','Col/Vel','15','C'],
+  ['P6','Skorupi','Vel/Col','16','NC'], ['P6','Croagunk','Vel/Lot','16','NC'],
+  ['P6','Trubbish','Vel','16','NC'], ['P6','Tympole','Acq','15','C'],
+  ['P6','Wooper','Acq/Ter','14','C'], ['P6','Yamask','Spe','15','NC'],
+  ['P6','Salandit','Vel/Fuo','16','NC'], ['P6','Mareanie','Vel/Acq','16','NC'],
+  ['P6','Seviper','Vel','16','NC'], ['P6','Foongus','Erb/Vel','15','NC'],
+  ['P6','Gastly','Spe/Vel','16','R'], ['P6','Toxel','Ele/Vel','16','R'],
+
+  ['ALT','Machoke','Lot','16','C'], ['ALT','Sawk','Lot','17','NC'],
+  ['ALT','Throh','Lot','17','NC'], ['ALT','Gurdurr','Lot','17','NC'],
+  ['ALT','Riolu','Lot','16','NC'], ['ALT','Medicham','Lot/Psi','17','NC'],
+  ['ALT','Magmar','Fuo','17','NC'], ['ALT','Pignite','Fuo/Lot','17','NC'],
+  ['ALT','Houndoom','Bui/Fuo','18','R'], ['ALT','Tauros','Nor','17','C'],
+  ['ALT','Kangaskhan','Nor','18','NC'], ['ALT','Girafarig','Nor/Psi','16','NC'],
+  ['ALT','Staravia','Nor/Vol','16','C'], ['ALT','Skarmory','Acc/Vol','17','NC'],
+  ['ALT','Sableye','Bui/Spe','17','NC'], ['ALT','Braviary','Nor/Vol','18','R'],
+  ['ALT','Absol','Bui','18','R'], ['ALT','Lucario','Lot/Acc','18','R'],
+  ['ALT','Gardevoir','Psi/Fol','18','R'],
+
+  ['P7','Snorunt','Ghi','16','C'], ['P7','Swinub','Ghi/Ter','16–17','C'],
+  ['P7','Snover','Erb/Ghi','17','C'], ['P7','Spheal','Ghi/Acq','17','C'],
+  ['P7','Cubchoo','Ghi','17','C'], ['P7','Snom','Col/Ghi','16','C'],
+  ['P7','Bergmite','Ghi','17','NC'], ['P7','Vanillite','Ghi','18','NC'],
+  ['P7','Sneasel','Bui/Ghi','18','NC'], ['P7','Delibird','Ghi/Vol','17','NC'],
+  ['P7','Smoochum','Ghi/Psi','17','NC'], ['P7','Amaura','Roc/Ghi','18','NC'],
+  ['P7','Darumaka di Galar','Ghi','17','NC'], ['P7','Eiscue','Ghi','18','NC'],
+  ['P7','Beartic','Ghi','18','R'], ['P7','Glalie','Ghi','18','R'],
+  ['P7','Crabominable','Lot/Ghi','18','R'], ['P7','Froslass','Ghi/Spe','18','R'],
+
+  ['P8','Swablu','Nor/Vol','18','C'], ['P8','Noibat','Vol/Dra','18','C'],
+  ['P8','Trapinch','Ter','19','C'], ['P8','Goomy','Dra','19','C'],
+  ['P8','Gible','Dra/Ter','19','NC'], ['P8','Bagon','Dra','19','NC'],
+  ['P8','Vibrava','Ter/Dra','20','NC'], ['P8','Jangmo-o','Dra','19','NC'],
+  ['P8','Axew','Dra','19','NC'], ['P8','Druddigon','Dra','20','NC'],
+  ['P8','Tyrunt','Roc/Dra','19','NC'], ['P8','Deino','Bui/Dra','20','NC'],
+  ['P8','Turtonator','Fuo/Dra','20','NC'], ['P8','Dratini','Dra','20','NC'],
+  ['P8','Dragonair','Dra','20','R'], ['P8','Altaria','Dra/Vol','20','R'],
+  ['P8','Flygon','Ter/Dra','20','R'], ['P8','Gabite','Dra/Ter','21','R'],
+
+  ['LAG','Poliwag','Acq','5–6','C'], ['LAG','Lotad','Acq/Erb','5–6','C'],
+  ['LAG','Psyduck','Acq','6','C'], ['LAG','Goldeen','Acq','6','C'],
+  ['LAG','Surskit','Col/Acq','6','C'], ['LAG','Azurill','Nor/Fol','5','C'],
+  ['LAG','Ducklett','Acq/Vol','6','C'], ['LAG','Magikarp','Acq','5','C'],
+  ['LAG','Slowpoke','Acq/Psi','7','NC'], ['LAG','Barboach','Acq/Ter','7','NC'],
+  ['LAG','Chingling','Psi','7','NC'], ['LAG','Spritzee','Fol','7','NC'],
+  ['LAG','Swirlix','Fol','7','NC'], ['LAG','Wooper','Acq/Ter','6','C'],
+  ['LAG','Skiddo','Erb','7','NC'], ['LAG','Togepi','Fol','7','R'],
+  ['LAG','Luvdisc','Acq','8','R'], ['LAG','Feebas','Acq','8','RR'],
+
+  ['SAN','Paras','Col/Erb','6–7','C'], ['SAN','Venonat','Col/Vel','6–7','C'],
+  ['SAN','Ledyba','Col/Vol','6','C'], ['SAN','Scatterbug','Col','6','C'],
+  ['SAN','Burmy','Col','7','C'], ['SAN','Nincada','Col/Ter','7','NC'],
+  ['SAN','Volbeat','Col','7','NC'], ['SAN','Illumise','Col','7','NC'],
+  ['SAN','Phantump','Spe/Erb','8','NC'], ['SAN','Morelull','Erb/Fol','8','NC'],
+  ['SAN','Bounsweet','Erb','8','NC'], ['SAN','Karrablast','Col','8','NC'],
+  ['SAN','Shelmet','Col','8','NC'], ['SAN','Durant','Col/Acc','9','NC'],
+  ['SAN','Scyther','Col/Vol','9','R'], ['SAN','Pinsir','Col','9','R'],
+  ['SAN','Applin','Erb/Dra','9','R'], ['SAN','Heracross','Col/Lot','10','RR'],
+
+  ['CRA','Sandile','Ter/Bui','10–11','C'], ['CRA','Cacnea','Erb','10–11','C'],
+  ['CRA','Hippopotas','Ter','11','C'], ['CRA','Diglett','Ter','10','C'],
+  ['CRA','Baltoy','Ter/Psi','11','C'], ['CRA','Maractus','Erb','11','NC'],
+  ['CRA','Vullaby','Bui/Vol','11','NC'], ['CRA','Rufflet','Nor/Vol','11','NC'],
+  ['CRA','Golett','Ter/Spe','12','NC'], ['CRA','Heatmor','Fuo','12','NC'],
+  ['CRA','Stunfisk','Ter/Ele','12','NC'], ['CRA','Gligar','Ter/Vol','12','NC'],
+  ['CRA','Trapinch','Ter','11','NC'], ['CRA','Zangoose','Nor','12','R'],
+  ['CRA','Sigilyph','Psi/Vol','13','R'], ['CRA','Krokorok','Ter/Bui','13','R'],
+  ['CRA','Beldum','Acc/Psi','12','RR'],
+
+  ['MAR','Carvanha','Acq/Bui','12–13','C'], ['MAR','Remoraid','Acq','12–13','C'],
+  ['MAR','Shellder','Acq','13','C'], ['MAR','Tentacool','Acq/Vel','12','C'],
+  ['MAR','Corsola','Acq/Roc','13','NC'], ['MAR','Basculin','Acq','13','NC'],
+  ['MAR','Qwilfish','Acq/Vel','13','NC'], ['MAR','Chinchou','Acq/Ele','14','NC'],
+  ['MAR','Skrelp','Vel/Acq','14','NC'], ['MAR','Clauncher','Acq','14','NC'],
+  ['MAR','Seadra','Acq','15','NC'], ['MAR','Mantine','Acq/Vol','14','NC'],
+  ['MAR','Wailmer','Acq','13','C'], ['MAR','Sharpedo','Acq/Bui','15','R'],
+  ['MAR','Jellicent','Acq/Spe','15','R'], ['MAR','Dhelmise','Spe/Erb','16','R'],
+  ['MAR','Wailord','Acq','16','R'], ['MAR','Lapras','Acq/Ghi','16','RR'],
+
+  ['GRO','Snorunt','Ghi','15–16','C'], ['GRO','Spheal','Ghi/Acq','15–16','C'],
+  ['GRO','Bergmite','Ghi','16','C'], ['GRO','Cubchoo','Ghi','16','C'],
+  ['GRO','Vanillite','Ghi','16','C'], ['GRO','Snom','Col/Ghi','15','C'],
+  ['GRO','Sandshrew di Alola','Ghi/Acc','16','NC'], ['GRO','Vulpix di Alola','Ghi','17','NC'],
+  ['GRO','Sneasel','Bui/Ghi','17','NC'], ['GRO','Jynx','Ghi/Psi','17','NC'],
+  ['GRO','Piloswine','Ghi/Ter','17','NC'], ['GRO','Amaura','Roc/Ghi','17','NC'],
+  ['GRO','Eiscue','Ghi','18','NC'], ['GRO','Cryogonal','Ghi','18','R'],
+  ['GRO','Frosmoth','Ghi/Col','18','R'], ['GRO','Walrein','Ghi/Acq','18','R'],
+  ['GRO','Beartic','Ghi','18','R'], ['GRO','Aurorus','Roc/Ghi','18','RR'],
+
+  ['RIS','Tauros','Nor','8–10','C'], ['RIS','Miltank','Nor','8–10','C'],
+  ['RIS','Girafarig','Nor/Psi','10','NC'], ['RIS','Stantler','Nor','10','NC'],
+  ['RIS','Dunsparce','Nor','10','NC'], ['RIS','Bouffalant','Nor','12','NC'],
+  ['RIS','Audino','Nor','11','NC'], ['RIS','Exeggcute','Erb/Psi','11','NC'],
+  ['RIS',"Farfetch'd",'Nor/Vol','11','NC'], ['RIS','Lickitung','Nor','12','NC'],
+  ['RIS','Eevee','Nor','12','R'], ['RIS','Chansey','Nor','13','R'],
+  ['RIS','Kangaskhan','Nor','13','R'], ['RIS','Smeargle','Nor','12','R'],
+  ['RIS','Munchlax','Nor','13','R'], ['RIS','Porygon','Nor','14','R'],
+  ['RIS','Ditto','Nor','14–15','RR'],
+
+  ['VIT','Golbat','Vel/Vol','20','C'], ['VIT','Graveler','Roc/Ter','20','C'],
+  ['VIT','Sandslash','Ter','21','C'], ['VIT','Marowak','Ter','21','NC'],
+  ['VIT','Machoke','Lot','21','NC'], ['VIT','Haunter','Spe/Vel','21','NC'],
+  ['VIT','Lairon','Acc/Roc','21','NC'], ['VIT','Rhydon','Ter/Roc','22','NC'],
+  ['VIT','Metang','Acc/Psi','22','NC'], ['VIT','Hakamo-o','Dra/Lot','22','NC'],
+  ['VIT','Gabite','Dra/Ter','21','NC'], ['VIT','Crobat','Vel/Vol','22','NC'],
+  ['VIT','Dragonair','Dra','22','R'], ['VIT','Sliggoo','Dra','22','R'],
+  ['VIT','Zweilous','Bui/Dra','22','R'], ['VIT','Absol','Bui','22','R'],
+  ['VIT','Weavile','Bui/Ghi','22','R'], ['VIT','Pupitar','Roc/Ter','22','RR']
+];
+
+/* Schede complete verbatim dalla guida (dex P5e standard) */
+const PRESETS = {
+  'Bulbasaur':{ca:13, basePF:17, minLevel:1, die:6,
+    stats:{FOR:13,DES:12,COS:12,INT:6,SAG:10,CAR:10}, ts:'Forza', speed:'9 m',
+    vul:'Fuoco, Volante, Ghiaccio, Psico', res:'Elettro, Folletto, Lotta, Erba, Acqua',
+    ability:'Erbafolta: raddoppia lo STAB sotto il 25% dei PF.',
+    evo:'Ivysaur (dal liv. 4)',
+    moves:[[1,'Azione'],[1,'Ruggito'],[2,'Frustata'],[2,'Parassiseme'],
+      [4,'Velenpolvere'],[4,'Sonnifero'],[4,'Riduttore'],[4,'Foglielama'],
+      [7,'Profumino'],[7,'Crescita'],[7,'Sdoppiatore'],
+      [10,'Seme Diabolico'],[10,'Sintesi'],[13,'Bomba Seme']]},
+  'Charmander':{ca:13, basePF:16, minLevel:1, die:6,
+    stats:{FOR:12,DES:14,COS:11,INT:6,SAG:10,CAR:10}, ts:'Destrezza', speed:'9 m',
+    vul:'Terra, Roccia, Acqua', res:'Coleottero, Folletto, Fuoco, Erba, Ghiaccio, Acciaio',
+    ability:'Brace: raddoppia lo STAB sotto il 25% dei PF.',
+    evo:'Charmeleon (dal liv. 4)',
+    moves:[[1,'Ruggito'],[1,'Graffio'],[2,'Braci'],[2,'Cortina Fumogena'],
+      [4,'Ira di Drago'],[4,'Visotruce'],[7,'Morso di Fuoco'],[7,'Lacerazione'],
+      [10,'Pirosfera'],[10,'Lanciafiamme'],[13,'Turbofuoco'],[13,'Marchio Rovente']]},
+  'Squirtle':{ca:14, basePF:18, minLevel:1, die:6,
+    stats:{FOR:12,DES:11,COS:14,INT:6,SAG:10,CAR:10}, ts:'Costituzione', speed:'9 m, nuoto 6 m',
+    vul:'Elettro, Erba', res:'Fuoco, Ghiaccio, Acciaio, Acqua',
+    ability:'Torrente: raddoppia lo STAB sotto il 25% dei PF.',
+    evo:'Wartortle (dal liv. 4)',
+    moves:[[1,'Azione'],[1,'Colpocoda'],[2,'Pistolacqua'],[2,'Ritirata'],
+      [4,'Bolla'],[4,'Morso'],[4,'Rapigiro'],[7,'Protezione'],[7,'Idropulsar'],
+      [10,'Acquacoda'],[10,'Capocciata'],[10,'Ferroscudo'],
+      [13,'Pioggiadanza'],[13,'Idropompa']]}
+};
+
+/* Nature (classiche, mappate sulle caratteristiche: Attacco→FOR, Velocità→DES, Difesa→COS, Att.Sp.→INT, Dif.Sp.→SAG) */
+const NATURES = {
+  'Ardita':'equilibrata','Docile':'equilibrata','Seria':'equilibrata','Ritrosa':'equilibrata','Furba':'equilibrata',
+  'Schiva':'+FOR −COS','Audace':'+FOR −DES','Decisa':'+FOR −INT','Birbona':'+FOR −SAG',
+  'Sicura':'+COS −FOR','Placida':'+COS −DES','Scaltra':'+COS −INT','Fiacca':'+COS −SAG',
+  'Timida':'+DES −FOR','Frettolosa':'+DES −COS','Allegra':'+DES −INT','Ingenua':'+DES −SAG',
+  'Modesta':'+INT −FOR','Mite':'+INT −COS','Quieta':'+INT −DES','Ardente':'+INT −SAG',
+  'Calma':'+SAG −FOR','Gentile':'+SAG −COS','Vigile':'+SAG −DES','Cauta':'+SAG −INT'
+};
+
+/* Libreria mosse (nomi italiani) per la scelta rapida — puoi comunque scrivere qualsiasi nome */
+const MOVES = ('Azione|Attacco Rapido|Graffio|Lacerazione|Taglio|Morso|Sgranocchio|Riduttore|Corposcontro|Schianto|Comete|' +
+'Ruggito|Stridio|Canto|Ultrasuono|Supersuono|Visotruce|Fascino|Iperraggio|Gigaimpatto|Metronomo|Riposo|Sostituto|' +
+'Doppioteam|Focalenergia|Incornata|Perforcorno|Furia|Turbine|Legatutto|Costrizione|Cozzata|Bottintesta|Capocciata|' +
+'Autodistruzione|Esplosione|Uovobomba|Buonlatte|Trasformazione|Schizzo|Ira|Facciata|Ritorno|Aiuto|Baraonda|Localizza|' +
+'Danzaspada|Agilità|Fortezza|Colpocoda|Frustata|Leccata|Protezione|Ripeti|Sdoppiatore|Riduttore|Rapigiro|' +
+'Braci|Lanciafiamme|Fuocobomba|Turbofuoco|Ondacalda|Pirosfera|Ruotafuoco|Fuocopugno|Morso di Fuoco|Rogodente|' +
+'Marchio Rovente|Nitrocarica|Vampata|Eruzione|Giornodisole|Fuocofatuo|Cortina Fumogena|' +
+'Pistolacqua|Idropompa|Surf|Cascata|Bollaraggio|Bolla|Idropulsar|Acquacoda|Acquagetto|Pioggiadanza|Ritirata|' +
+'Liquidazione|Mulinello|Salamoia|' +
+'Foglielama|Petalodanza|Parassiseme|Assorbimento|Megassorbimento|Gigassorbimento|Bomba Seme|Foglia Magica|' +
+'Solarraggio|Solarlama|Energipalla|Sonnifero|Spora|Paralizzante|Sintesi|Crescita|Radicamento|Cottonspora|' +
+'Verdebufera|Vigorfrusta|Profumino|Seme Diabolico|' +
+'Tuonoshock|Tuononda|Fulmine|Tuono|Scintilla|Locomovolt|Tuonopugno|Carica|Elettrotela|Scarica|' +
+'Geloraggio|Bora|Vento Gelato|Polneve|Gelopugno|Gelodente|Grandine|Slavina|' +
+'Doppiocalcio|Colpokarate|Sottomissione|Breccia|Superzampata|Pugnodinamico|Zuffa|Palmoforza|Aurasfera|' +
+'Contrattacco|Movimento Sismico|Vendetta|Calciobasso|Calcinvolo|' +
+'Velentacca|Smog|Fangosberla|Fangobomba|Velenobomba|Codavelenosa|Gas Velenoso|Tossina|Acido|Bombacida|' +
+'Velenoshock|Fangonda|Velenocroce|Velenpolvere|' +
+'Terremoto|Fossa|Magnitudo|Sabbiattacco|Terrempesta|Fangata|Ossoclava|Ossomerang|Geoforza|' +
+'Beccata|Attacco d\'Ala|Aeroassalto|Aerasoio|Eterelama|Volo|Raffica|Acrobazia|Baldeali|' +
+'Confusione|Psichico|Psicoraggio|Ipnosi|Telecinesi|Riflesso|Schermoluce|Amnesia|Barriera|Recupero|' +
+'Teletrasporto|Mangiasogni|Psiconda|Psicotaglio|Cozzata Zen|Calmamente|Extrasenso|Divinazione|' +
+'Millebave|Ragnatela|Segnoraggio|Forbice X|Tagliofuria|Sanguisuga|Ronzio|Missilspillo|' +
+'Sassata|Frana|Pietrataglio|Rotolamento|Gemmoforza|Cadutamassi|' +
+'Ombra Notturna|Palla Ombra|Ombrartigli|Maledizione|Rancore|Dispetto|Furtivombra|' +
+'Ira di Drago|Dragospiro|Dragartigli|Dragobolide|Dragodanza|Oltraggio|Dragopulsar|' +
+'Finta|Sbigoattacco|Furto|Provocazione|Nottesberla|Buiopulsar|' +
+'Codacciaio|Cannonflash|Ferroscudo|Metaltestata|Meteorpugno|Metalartigli|Alacciaio|' +
+'Vento di Fata|Forzaluna|Baciamore|Dolcebacio|Incantavoce|Carineria|Occhioniteneri')
+.split('|').filter((v,i,a)=>v && a.indexOf(v)===i).sort();
+
+/* Efficacia dei tipi (attaccante → difensore): mappa classica */
+const EFF_SUPER = {
+  Nor:[], Fuo:['Erb','Ghi','Col','Acc'], Acq:['Fuo','Ter','Roc'],
+  Erb:['Acq','Ter','Roc'], Ele:['Acq','Vol'], Ghi:['Erb','Ter','Vol','Dra'],
+  Lot:['Nor','Ghi','Roc','Bui','Acc'], Vel:['Erb','Fol'],
+  Ter:['Fuo','Ele','Vel','Roc','Acc'], Vol:['Erb','Lot','Col'],
+  Psi:['Lot','Vel'], Col:['Erb','Psi','Bui'], Roc:['Fuo','Ghi','Vol','Col'],
+  Spe:['Psi','Spe'], Dra:['Dra'], Bui:['Psi','Spe'],
+  Acc:['Ghi','Roc','Fol'], Fol:['Lot','Dra','Bui']
+};
+const EFF_HALF = {
+  Nor:['Roc','Acc'], Fuo:['Fuo','Acq','Roc','Dra'], Acq:['Acq','Erb','Dra'],
+  Erb:['Fuo','Erb','Vel','Vol','Col','Dra','Acc'], Ele:['Erb','Ele','Dra'],
+  Ghi:['Fuo','Acq','Ghi','Acc'], Lot:['Vel','Vol','Psi','Col','Fol'],
+  Vel:['Vel','Ter','Roc','Spe'], Ter:['Erb','Col'], Vol:['Ele','Roc','Acc'],
+  Psi:['Psi','Acc'], Col:['Fuo','Lot','Vel','Vol','Spe','Acc','Fol'],
+  Roc:['Lot','Ter','Acc'], Spe:['Bui'], Dra:['Acc'],
+  Bui:['Lot','Bui','Fol'], Acc:['Fuo','Acq','Ele','Acc'], Fol:['Fuo','Vel','Acc']
+};
+const EFF_ZERO = {
+  Nor:['Spe'], Ele:['Ter'], Lot:['Spe'], Vel:['Acc'],
+  Ter:['Vol'], Psi:['Bui'], Spe:['Nor'], Dra:['Fol']
+};
+
+const BADGE_NAMES = ['Sentiero','Fioritura','Scintilla','Bastione','Marea','Tossina','Brina','Scaglia'];
+const BADGE_LV = ['2–4','4–7','7–9','9–12','12–14','14–16','16–18','18–20','20–25'];
+const DIE_AVG = {6:4, 8:5, 10:6, 12:7};
+const STATUSES = ['Avvelenato','Paralizzato','Addormentato','Congelato','Scottato','Confuso'];
+
+/* ================= FORMULE P5e ================= */
+
+function mod(v){ return Math.floor(((v||10)-10)/2); }
+function fmtMod(m){ return (m>=0?'+':'')+m; }
+function compBonus(l){ return l>=17?6 : l>=13?5 : l>=9?4 : l>=5?3 : 2; }
+function stabBonus(l){ return l>=17?5 : l>=13?4 : l>=9?3 : l>=5?2 : l>=3?1 : 0; }
+function conMod(p){ return p.stats ? mod(p.stats.COS) : (p.con||0); }
+function maxPF(p){
+  return p.basePF + (p.level - p.minLevel) * (DIE_AVG[p.die] + conMod(p)) + (p.evoBonus||0);
+}
+
+/* ================= STATO ================= */
+
+const STORE_KEY = 'aethera-pokedex-v1';
+let state = load();
+
+function defaultSettings(){
+  return {needMult:2, defeatMult:1, captureMult:1, autoLevel:true,
+    cdBase:10, cd50:-2, cd25:-5, cd10:-8, cdStatus:-2, cdSleep:-3};
+}
+function defaultState(){
+  return {caught:{}, trainers:[], activeTrainer:null, battles:[], speciesData:{}, settings:defaultSettings()};
+}
+function load(){
+  let s = defaultState();
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){
+      const saved = JSON.parse(raw);
+      s = Object.assign(defaultState(), saved);
+      s.settings = Object.assign(defaultSettings(), saved.settings||{});
+    }
+  }catch(e){}
+  /* migrazione schede vecchie */
+  for(const t of s.trainers){
+    t.notes = t.notes || '';
+    for(const p of t.team){
+      if(!p.stats) p.stats = {FOR:10,DES:10,COS:10+2*(p.con||0),INT:10,SAG:10,CAR:10};
+      p.nature = p.nature || '';
+      p.ts = p.ts || ''; p.speed = p.speed || ''; p.vul = p.vul || ''; p.res = p.res || ''; p.ability = p.ability || '';
+    }
+  }
+  return s;
+}
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+let uid = () => Math.random().toString(36).slice(2,9);
+
+/* Memoria dei dati base per specie: la seconda volta si precompila tutto */
+function rememberSpecies(p){
+  if(!p.species) return;
+  state.speciesData[p.species] = {
+    basePF:p.basePF, minLevel:p.minLevel, die:p.die, cos:p.stats?p.stats.COS:10, ca:p.ca
+  };
+}
+function speciesPFat(name, lvl){
+  const d = state.speciesData[name];
+  if(!d) return null;
+  return d.basePF + (lvl - d.minLevel) * (DIE_AVG[d.die] + mod(d.cos));
+}
+for(const [name,pr] of Object.entries(PRESETS)){
+  /* semi il cache con gli iniziali */
+}
+
+/* ================= UTIL UI ================= */
+
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function jsArg(s){ return String(s??'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function typeChips(types){
+  return String(types||'').split('/').map(t => {
+    t = t.trim(); const T = TYPES[t]; if(!T) return '';
+    return `<span class="type-chip" style="background:${T.c}">${T.n}</span>`;
+  }).join(' ');
+}
+function showModal(html){
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); }
+
+/* ================= TABS ================= */
+
+const TABS = [
+  ['dex','📖 Pokédex'],['squad','⚔️ Squadre'],['battle','⚡ Lotte'],['calc','🧮 Calcoli'],['types','🛡️ Tipi']
+];
+let activeTab = 'dex';
+function renderTabs(){
+  document.getElementById('tabs').innerHTML = TABS.map(([id,label]) =>
+    `<button class="${activeTab===id?'active':''}" onclick="setTab('${id}')">${label}</button>`).join('');
+  document.querySelectorAll('section.tab').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-'+activeTab).classList.add('active');
+}
+function setTab(id){ activeTab = id; renderTabs(); }
+
+/* ================= POKÉDEX ================= */
+
+const SPECIES = (() => {
+  const map = new Map();
+  for(const [z,name,types,lv,rar] of DEX_RAW){
+    if(!map.has(name)) map.set(name, {name, types, spots:[]});
+    map.get(name).spots.push({zone:z, lv, rar});
+  }
+  return [...map.values()].sort((a,b)=>a.name.localeCompare(b.name));
+})();
+
+function initDatalists(){
+  document.getElementById('movelist').innerHTML = MOVES.map(m=>`<option value="${esc(m)}">`).join('');
+  document.getElementById('specieslist').innerHTML = SPECIES.map(s=>`<option value="${esc(s.name)}">`).join('');
+  document.getElementById('naturelist').innerHTML = Object.keys(NATURES).map(n=>`<option value="${n}">`).join('');
+}
+function initDexFilters(){
+  const tsel = document.getElementById('dex-type');
+  tsel.innerHTML = '<option value="">Tipo: tutti</option>' +
+    Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
+  const zsel = document.getElementById('dex-zone');
+  zsel.innerHTML = '<option value="">Zona: tutte</option>' +
+    ZONES.map(z=>`<option value="${z.id}">${z.name}</option>`).join('');
+}
+
+function renderDex(){
+  const q = document.getElementById('dex-search').value.trim().toLowerCase();
+  const ft = document.getElementById('dex-type').value;
+  const fz = document.getElementById('dex-zone').value;
+  const fr = document.getElementById('dex-rar').value;
+  const onlyCaught = document.getElementById('dex-caught').checked;
+
+  const list = SPECIES.filter(s => {
+    if(q && !s.name.toLowerCase().includes(q)) return false;
+    if(ft && !s.types.split('/').includes(ft)) return false;
+    if(fz && !s.spots.some(sp=>sp.zone===fz)) return false;
+    if(fr && !s.spots.some(sp=>sp.rar===fr)) return false;
+    if(onlyCaught && !state.caught[s.name]) return false;
+    return true;
+  });
+
+  const caughtCount = SPECIES.filter(s=>state.caught[s.name]).length;
+  document.getElementById('dex-count').textContent =
+    `${list.length} specie mostrate · ${SPECIES.length} nella regione · ${caughtCount} catturate dal gruppo`;
+
+  document.getElementById('dex-list').innerHTML = list.map(s => {
+    const zoneName = id => { const z = ZONES.find(z=>z.id===id); return z ? z.name.replace(/ — .*/,'') : id; };
+    const spots = s.spots.map(sp =>
+      `<div>· <b>${esc(zoneName(sp.zone))}</b> — liv. ${sp.lv} <span class="rar ${sp.rar}">${sp.rar}</span></div>`).join('');
+    const isCaught = !!state.caught[s.name];
+    const preset = PRESETS[s.name] ? ' <span class="rar" style="color:var(--accent); border-color:var(--accent)">scheda inclusa</span>' : '';
+    return `<div class="dex-item">
+      <div class="top">
+        <strong>${esc(s.name)}</strong> ${typeChips(s.types)}${preset}
+        <label class="caughtbox" title="segna come catturato dal gruppo">
+          <input type="checkbox" ${isCaught?'checked':''} onchange="toggleCaught('${jsArg(s.name)}')"/> ◓
+        </label>
+      </div>
+      <div class="spots">${spots}</div>
+      <div><button class="btn small ghost" onclick="addFromDex('${jsArg(s.name)}')">+ Aggiungi a una squadra</button></div>
+    </div>`;
+  }).join('');
+}
+function toggleCaught(name){
+  if(state.caught[name]) delete state.caught[name]; else state.caught[name] = true;
+  save(); renderDex();
+}
+function addFromDex(name){
+  if(state.trainers.length===0){
+    alert('Prima crea un allenatore nella scheda «Squadre».');
+    setTab('squad'); return;
+  }
+  const t = getActiveTrainer() || state.trainers[0];
+  const sp = SPECIES.find(s=>s.name===name);
+  addPokemon(t, name, sp ? sp.types : '', null);
+  setTab('squad');
+}
+
+/* ================= SQUADRE ================= */
+
+function getActiveTrainer(){
+  return state.trainers.find(t=>t.id===state.activeTrainer) || state.trainers[0] || null;
+}
+function newTrainer(){
+  const name = prompt('Nome dell’allenatore o allenatrice:');
+  if(!name) return;
+  const t = {id:uid(), name, level:1, badges:[false,false,false,false,false,false,false,false], notes:'', team:[]};
+  state.trainers.push(t); state.activeTrainer = t.id;
+  save(); renderSquad(); renderBattleForm();
+}
+function removeTrainer(id){
+  const t = state.trainers.find(t=>t.id===id);
+  if(!t) return;
+  if(!confirm(`Eliminare ${t.name} e tutta la sua squadra?`)) return;
+  state.trainers = state.trainers.filter(x=>x.id!==id);
+  if(state.activeTrainer===id) state.activeTrainer = state.trainers[0]?.id || null;
+  save(); renderSquad(); renderBattleForm();
+}
+function setActiveTrainer(id){ state.activeTrainer = id; save(); renderSquad(); }
+
+function addPokemon(trainer, species, types, level){
+  const preset = PRESETS[species];
+  const cache = state.speciesData[species];
+  const sp = SPECIES.find(s=>s.name===species);
+  const p = {
+    id:uid(), nick:species||'Nuovo', species:species||'', types:types||(sp?sp.types:''),
+    level: level ?? (preset ? 5 : 1),
+    minLevel: preset ? preset.minLevel : (cache ? cache.minLevel : 1),
+    basePF: preset ? preset.basePF : (cache ? cache.basePF : 10),
+    die: preset ? preset.die : (cache ? cache.die : 6),
+    ca: preset ? preset.ca : (cache ? cache.ca : null),
+    stats: preset ? Object.assign({},preset.stats) : {FOR:10,DES:10,COS:(cache?cache.cos:10),INT:10,SAG:10,CAR:10},
+    nature:'', ts: preset ? preset.ts : '', speed: preset ? preset.speed : '',
+    vul: preset ? preset.vul : '', res: preset ? preset.res : '',
+    ability: preset ? preset.ability : '',
+    evoBonus:0, xp:0, curPF:null,
+    moves: preset ? preset.moves.map(([lv,n])=>({lv,name:n})) : []
+  };
+  p.curPF = maxPF(p);
+  rememberSpecies(p);
+  trainer.team.push(p);
+  save(); renderSquad();
+  return p;
+}
+
+function findPkm(pid){
+  for(const t of state.trainers){
+    const p = t.team.find(p=>p.id===pid);
+    if(p) return [t,p];
+  }
+  return [null,null];
+}
+
+function pkmField(pid, field, value, isNum){
+  const [,p] = findPkm(pid); if(!p) return;
+  const before = maxPF(p);
+  p[field] = isNum ? (parseFloat(value)||0) : value;
+  const after = maxPF(p);
+  if(p.curPF!=null && after!==before) p.curPF = Math.max(0, p.curPF + (after-before));
+  rememberSpecies(p);
+  save(); renderSquad();
+}
+function pkmStat(pid, key, value){
+  const [,p] = findPkm(pid); if(!p) return;
+  const before = maxPF(p);
+  p.stats[key] = parseInt(value)||10;
+  const after = maxPF(p);
+  if(p.curPF!=null && after!==before) p.curPF = Math.max(0, p.curPF + (after-before));
+  rememberSpecies(p);
+  save(); renderSquad();
+}
+function pkmHP(pid, delta){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.curPF = Math.min(maxPF(p), Math.max(0,(p.curPF??maxPF(p)) + delta));
+  save(); renderSquad();
+}
+function pkmSetHP(pid, v){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.curPF = Math.min(maxPF(p), Math.max(0, parseInt(v)||0));
+  save(); renderSquad();
+}
+function removePkm(pid){
+  const [t,p] = findPkm(pid); if(!p) return;
+  if(!confirm(`Rimuovere ${p.nick} dalla squadra di ${t.name}?`)) return;
+  t.team = t.team.filter(x=>x.id!==pid);
+  save(); renderSquad();
+}
+
+/* --- mosse: scelta rapida da elenco --- */
+
+function openMoveModal(pid, idx){
+  const [,p] = findPkm(pid); if(!p) return;
+  const m = idx!=null ? p.moves[idx] : {name:'', lv:p.level, detail:''};
+  showModal(`<h3>${idx!=null?'Modifica mossa':'Nuova mossa'}</h3>
+    <div class="mrow"><label>Nome<br/><input id="mm-name" list="movelist" value="${esc(m.name)}" style="width:220px" placeholder="scrivi o scegli…"/></label></div>
+    <div class="mrow"><label>Dal livello<br/><input id="mm-lv" type="number" min="1" value="${m.lv}"/></label>
+      <label>Dettagli (danno, portata…)<br/><input id="mm-detail" value="${esc(m.detail||'')}" style="width:200px" placeholder="es. 2d6+STAB, 18 m"/></label></div>
+    <div class="mrow">
+      <button class="btn" onclick="saveMoveModal('${pid}',${idx!=null?idx:'null'})">Salva</button>
+      <button class="btn ghost" onclick="closeModal()">Annulla</button>
+    </div>`);
+  setTimeout(()=>document.getElementById('mm-name').focus(),50);
+}
+function saveMoveModal(pid, idx){
+  const [,p] = findPkm(pid); if(!p) return;
+  const name = document.getElementById('mm-name').value.trim();
+  if(!name){ alert('Serve il nome della mossa.'); return; }
+  const lv = Math.max(1, parseInt(document.getElementById('mm-lv').value)||1);
+  const detail = document.getElementById('mm-detail').value.trim();
+  if(idx!=null) p.moves[idx] = {name, lv, detail};
+  else p.moves.push({name, lv, detail});
+  p.moves.sort((a,b)=>a.lv-b.lv);
+  save(); closeModal(); renderSquad();
+}
+function delMove(pid, idx, ev){
+  if(ev) ev.stopPropagation();
+  const [,p] = findPkm(pid); if(!p) return;
+  p.moves.splice(idx,1); save(); renderSquad();
+}
+
+/* --- livelli, XP, evoluzioni --- */
+
+function levelUp(pid, silent){
+  const [,p] = findPkm(pid); if(!p) return null;
+  const gain = DIE_AVG[p.die] + conMod(p);
+  const oldComp = compBonus(p.level), oldStab = stabBonus(p.level);
+  p.level += 1;
+  if(p.curPF!=null) p.curPF += gain;
+  const newMoves = p.moves.filter(m=>m.lv===p.level).map(m=>m.name);
+  const info = {level:p.level, gain, pf:maxPF(p),
+    compUp: compBonus(p.level)>oldComp ? compBonus(p.level) : null,
+    stabUp: stabBonus(p.level)>oldStab ? stabBonus(p.level) : null,
+    newMoves, nick:p.nick};
+  save();
+  if(!silent){ renderSquad(); showLevelUpModal(p,[info]); }
+  return info;
+}
+function xpNeed(p){ return Math.max(1, Math.ceil(state.settings.needMult * p.level)); }
+function applyXP(p, amount){
+  p.xp += amount;
+  const ups = [];
+  if(state.settings.autoLevel){
+    while(p.xp >= xpNeed(p)){
+      p.xp -= xpNeed(p);
+      ups.push(levelUp(p.id, true));
+    }
+  }
+  return ups;
+}
+function grantXP(pid, mode){
+  const [,p] = findPkm(pid); if(!p) return;
+  const el = document.getElementById('foe-'+pid);
+  const foeLv = parseInt(el && el.value) || 0;
+  if(foeLv<=0){ alert('Inserisci il livello del Pokémon nemico.'); return; }
+  const mult = mode==='capture' ? state.settings.captureMult : state.settings.defeatMult;
+  const amount = Math.max(1, Math.round(foeLv * mult));
+  const ups = applyXP(p, amount);
+  save(); renderSquad();
+  if(ups.length) showLevelUpModal(p, ups, amount, mode);
+  else toastXP(p, amount, mode);
+}
+function toastXP(p, amount, mode){
+  showModal(`<h3>${mode==='capture'?'◓ Cattura registrata':'⚔ Vittoria registrata'}</h3>
+    <p class="levelup-gain"><b>${esc(p.nick)}</b> guadagna <b>+${amount} XP</b>.</p>
+    <p class="hint">XP: ${p.xp} / ${xpNeed(p)} per il livello ${p.level+1}.</p>
+    <button class="btn" onclick="closeModal()">OK</button>`);
+}
+function levelUpRows(ups){
+  return ups.map(u => {
+    let extra = '';
+    if(u.compUp) extra += `<div class="levelup-gain">📈 Competenza sale a <b>+${u.compUp}</b></div>`;
+    if(u.stabUp) extra += `<div class="levelup-gain">💥 STAB sale a <b>+${u.stabUp}</b></div>`;
+    if(u.newMoves.length) extra += `<div class="levelup-gain">✨ Nuove mosse: <b>${u.newMoves.map(esc).join(', ')}</b></div>`;
+    return `<div style="border-bottom:1px solid var(--line); padding:6px 0">
+      <div class="levelup-gain">⬆ <b>${esc(u.nick)}</b> sale al <b>livello ${u.level}</b>! (+${u.gain} PF → ${u.pf} PF)</div>${extra}</div>`;
+  }).join('');
+}
+function showLevelUpModal(p, ups, xpGained, mode){
+  const head = xpGained ? `<p class="hint">${mode==='capture'?'Cattura':'Vittoria'}: +${xpGained} XP</p>` : '';
+  const evoNote = PRESETS[p.species] && PRESETS[p.species].evo
+    ? `<p class="hint">Evoluzione: ${esc(PRESETS[p.species].evo)} — usa «Evolvi» quando accade.</p>` : '';
+  showModal(`<h3>🎉 Livello superato!</h3>${head}${levelUpRows(ups)}${evoNote}
+    <p class="hint">XP attuali: ${p.xp} / ${xpNeed(p)}</p>
+    <button class="btn" onclick="closeModal()">Fantastico</button>`);
+}
+function evolvePkm(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const suggestion = PRESETS[p.species] && PRESETS[p.species].evo ? PRESETS[p.species].evo.replace(/ \(.*\)/,'') : '';
+  const newName = prompt('In cosa evolve? (nome della nuova specie)', suggestion);
+  if(!newName) return;
+  const bonus = 2 * p.level;
+  p.evoBonus = (p.evoBonus||0) + bonus;
+  const wasNickSpecies = p.nick === p.species;
+  p.species = newName;
+  if(wasNickSpecies) p.nick = newName;
+  const sp = SPECIES.find(s=>s.name===newName);
+  if(sp) p.types = sp.types;
+  if(p.curPF!=null) p.curPF += bonus;
+  save(); renderSquad();
+  showModal(`<h3>🌟 Evoluzione!</h3>
+    <p class="levelup-gain"><b>${esc(p.nick)}</b> è evoluto in <b>${esc(newName)}</b>!</p>
+    <p class="levelup-gain">💗 PF una tantum: <b>+${bonus}</b> (2 × liv. ${p.level}) → ora ${maxPF(p)} PF</p>
+    <p class="hint">Ricorda dal dex P5e: assegna gli <b>ASI</b> (punti caratteristica) e aggiorna CA, statistiche e mosse della nuova forma.</p>
+    <button class="btn" onclick="closeModal()">OK</button>`);
+}
+
+/* --- difese automatiche dai tipi --- */
+
+function effMult(atk, defTypes){
+  let m = 1;
+  for(const d of defTypes){
+    if((EFF_ZERO[atk]||[]).includes(d)) m *= 0;
+    else if((EFF_SUPER[atk]||[]).includes(d)) m *= 2;
+    else if((EFF_HALF[atk]||[]).includes(d)) m *= 0.5;
+  }
+  return m;
+}
+function autoDefense(types){
+  const defT = String(types||'').split('/').map(s=>s.trim()).filter(t=>TYPES[t]);
+  if(!defT.length) return null;
+  const vul=[], res=[], imm=[];
+  for(const atk of Object.keys(TYPES)){
+    const m = effMult(atk, defT);
+    if(m===0) imm.push(TYPES[atk].n);
+    else if(m>=2) vul.push(TYPES[atk].n);
+    else if(m<1) res.push(TYPES[atk].n);
+  }
+  return {vul, res, imm};
+}
+
+/* --- render squadre --- */
+
+function renderSquad(){
+  const chips = state.trainers.map(t =>
+    `<button class="trainer-chip ${getActiveTrainer() && getActiveTrainer().id===t.id ? 'active':''}"
+      onclick="setActiveTrainer('${t.id}')">${esc(t.name)} <span style="opacity:.6">· ${t.team.length}</span></button>`).join('');
+  document.getElementById('trainer-chips').innerHTML =
+    chips + `<button class="btn small" onclick="newTrainer()">+ Nuovo allenatore</button>`;
+
+  const t = getActiveTrainer();
+  const view = document.getElementById('trainer-view');
+  if(!t){
+    view.innerHTML = `<div class="panel"><p class="hint" style="margin:0">Nessun allenatore ancora. Creane uno per iniziare — poi aggiungi i Pokémon dal Pokédex o con il pulsante qui sotto.</p></div>`;
+    return;
+  }
+
+  const badgeCount = t.badges.filter(Boolean).length;
+  const badges = BADGE_NAMES.map((b,i) =>
+    `<span class="badge ${t.badges[i]?'on':''}" onclick="toggleBadge('${t.id}',${i})" title="Medaglia ${b}">${t.badges[i]?'●':'○'} ${b}</span>`).join('');
+
+  const team = t.team.map(p => renderPkm(p)).join('');
+
+  view.innerHTML = `
+    <div class="panel">
+      <div class="row">
+        <input value="${esc(t.name)}" onchange="renameTrainer('${t.id}',this.value)" style="font-weight:700; font-size:15px; width:170px"/>
+        <label>Livello allenatore <input type="number" min="1" max="25" value="${t.level}" onchange="trainerLevel('${t.id}',this.value)"/></label>
+        <span class="hint" style="margin:0">livelli consigliati con ${badgeCount} medagli${badgeCount===1?'a':'e'}: <b style="color:var(--accent)">${BADGE_LV[badgeCount]}</b></span>
+        <button class="btn danger small" style="margin-left:auto" onclick="removeTrainer('${t.id}')">Elimina</button>
+      </div>
+      <div class="badges" style="margin-top:10px">${badges}</div>
+      <details style="margin-top:10px">
+        <summary class="hint" style="cursor:pointer; display:inline">🎒 Zaino & appunti</summary>
+        <textarea placeholder="Pozioni, Poké Ball, MT, soldi, appunti…" onchange="trainerNotes('${t.id}',this.value)">${esc(t.notes)}</textarea>
+      </details>
+    </div>
+    <div class="grid">${team}</div>
+    <div class="row" style="margin:12px 0">
+      <button class="btn" onclick="addBlankPkm('${t.id}')">+ Aggiungi Pokémon</button>
+      <span class="hint" style="margin:0">oppure aggiungilo direttamente dal Pokédex</span>
+    </div>`;
+}
+
+function renderPkm(p){
+  const mx = maxPF(p);
+  const cur = p.curPF ?? mx;
+  const hpPct = mx>0 ? Math.round(100*cur/mx) : 0;
+  const hpColor = hpPct>50 ? 'var(--ok)' : hpPct>25 ? 'var(--warn)' : 'var(--danger)';
+  const need = xpNeed(p);
+  const xpPct = Math.min(100, Math.round(100*p.xp/need));
+  const comp = compBonus(p.level), stab = stabBonus(p.level);
+
+  const abilities = STAT_KEYS.map(k =>
+    `<div class="ab"><label>${k}</label>
+      <input type="number" value="${p.stats[k]}" onchange="pkmStat('${p.id}','${k}',this.value)"/>
+      <small>${fmtMod(mod(p.stats[k]))}</small></div>`).join('');
+
+  const natureInfo = p.nature && NATURES[p.nature] ? NATURES[p.nature] : '';
+
+  const moves = p.moves.map((m,i) => {
+    const locked = m.lv > p.level;
+    const det = m.detail ? ` — ${m.detail}` : '';
+    return `<span class="move ${locked?'locked':''}" title="dal livello ${m.lv}${esc(det)}" onclick="openMoveModal('${p.id}',${i})">${esc(m.name)} <small style="opacity:.6">liv.${m.lv}</small><span class="x" onclick="delMove('${p.id}',${i},event)">×</span></span>`;
+  }).join('');
+
+  /* difese: quelle della scheda se compilate, altrimenti auto dai tipi */
+  let defHTML = '';
+  if(p.vul || p.res){
+    defHTML = `${p.vul?`<div class="defline">⚠ Vulnerabilità: ${esc(p.vul)}</div>`:''}
+               ${p.res?`<div class="defline">🛡 Resistenze: ${esc(p.res)}</div>`:''}`;
+  } else {
+    const ad = autoDefense(p.types);
+    if(ad) defHTML = `${ad.vul.length?`<div class="defline">⚠ Vulnerabile (auto dai tipi): ${ad.vul.join(', ')}</div>`:''}
+                      ${ad.res.length?`<div class="defline">🛡 Resiste (auto): ${ad.res.join(', ')}</div>`:''}
+                      ${ad.imm.length?`<div class="defline">✋ Immune (auto): ${ad.imm.join(', ')}</div>`:''}`;
+  }
+
+  const atkFor = mod(p.stats.FOR)+comp, atkDes = mod(p.stats.DES)+comp;
+
+  return `<div class="pkm">
+    <div class="head">
+      <input class="nick" value="${esc(p.nick)}" onchange="pkmField('${p.id}','nick',this.value)"/>
+      <span class="hint" style="margin:0">${esc(p.species && p.species!==p.nick ? p.species : '')}</span>
+      ${typeChips(p.types)}
+      <span class="lvl">Liv. ${p.level}</span>
+    </div>
+
+    <div class="statrow">
+      <div class="stat"><b>${mx}</b><span>PF max</span></div>
+      <div class="stat"><b>${p.ca ?? '—'}</b><span>CA</span></div>
+      <div class="stat"><b>+${comp}</b><span>Competenza</span></div>
+      <div class="stat"><b>${stab>0?'+'+stab:'—'}</b><span>STAB</span></div>
+      <div class="stat"><b>${fmtMod(atkFor)} / ${fmtMod(atkDes)}</b><span>Attacco FOR / DES</span></div>
+    </div>
+
+    <div class="row">
+      <div class="abilities">${abilities}</div>
+      <label style="font-size:12.5px; color:var(--muted)">Natura<br/>
+        <input list="naturelist" value="${esc(p.nature)}" style="width:110px" onchange="pkmField('${p.id}','nature',this.value)"/>
+        ${natureInfo?`<small style="color:var(--accent)">${natureInfo}</small>`:''}
+      </label>
+    </div>
+
+    ${p.ability?`<div class="defline">✨ ${esc(p.ability)}</div>`:''}
+    ${defHTML}
+
+    <div>
+      <div class="row" style="justify-content:space-between; font-size:12.5px; color:var(--muted)">
+        <span>PF attuali</span>
+        <span class="row" style="gap:4px">
+          <button class="btn small ghost" onclick="pkmHP('${p.id}',-5)">−5</button>
+          <button class="btn small ghost" onclick="pkmHP('${p.id}',-1)">−1</button>
+          <input type="number" style="width:64px" value="${cur}" onchange="pkmSetHP('${p.id}',this.value)"/>
+          <button class="btn small ghost" onclick="pkmHP('${p.id}',1)">+1</button>
+          <button class="btn small ghost" onclick="pkmHP('${p.id}',5)">+5</button>
+          <button class="btn small ghost" title="cura completa" onclick="pkmSetHP('${p.id}',${mx})">♥ max</button>
+        </span>
+      </div>
+      <div class="hpbar" style="margin-top:4px"><i style="width:${hpPct}%; background:${hpColor}"></i></div>
+    </div>
+
+    <div>
+      <div class="row" style="justify-content:space-between; font-size:12.5px; color:var(--muted)">
+        <span>XP: ${p.xp} / ${need} → liv. ${p.level+1}</span>
+        <span class="row" style="gap:4px">
+          <input type="number" id="foe-${p.id}" placeholder="Lv nemico" style="width:88px"/>
+          <button class="btn small" onclick="grantXP('${p.id}','defeat')" title="Pokémon nemico sconfitto">⚔ Sconfitto</button>
+          <button class="btn small" onclick="grantXP('${p.id}','capture')" title="Pokémon catturato">◓ Catturato</button>
+        </span>
+      </div>
+      <div class="xpbar" style="margin-top:4px"><i style="width:${xpPct}%"></i></div>
+    </div>
+
+    <div>
+      <div class="row" style="justify-content:space-between">
+        <span style="font-size:12.5px; color:var(--muted)">Mosse — tocca per modificare${p.moves.length? '' : ' (scegli dall’elenco, niente da riscrivere)'}</span>
+        <button class="btn small ghost" onclick="openMoveModal('${p.id}',null)">+ mossa</button>
+      </div>
+      <div class="moves" style="margin-top:5px">${moves}</div>
+    </div>
+
+    <div class="row">
+      <button class="btn small" onclick="levelUp('${p.id}')">⬆ +1 livello</button>
+      <button class="btn small" onclick="evolvePkm('${p.id}')">🌟 Evolvi</button>
+      <button class="btn danger small" style="margin-left:auto" onclick="removePkm('${p.id}')">Rimuovi</button>
+    </div>
+
+    <details class="cfg">
+      <summary>Dati base della scheda (dal dex P5e)</summary>
+      <div class="row" style="margin-top:8px">
+        <label>Specie <input value="${esc(p.species)}" list="specieslist" style="width:130px" onchange="pkmField('${p.id}','species',this.value)"/></label>
+        <label>Tipi <input value="${esc(p.types)}" style="width:90px" placeholder="Erb/Vel" onchange="pkmField('${p.id}','types',this.value)"/></label>
+        <label>PF base <input type="number" value="${p.basePF}" onchange="pkmField('${p.id}','basePF',this.value,1)"/></label>
+        <label>Liv. min <input type="number" value="${p.minLevel}" onchange="pkmField('${p.id}','minLevel',this.value,1)"/></label>
+        <label>Dado Vita
+          <select onchange="pkmField('${p.id}','die',this.value,1)">
+            ${[6,8,10,12].map(d=>`<option value="${d}" ${p.die===d?'selected':''}>d${d}</option>`).join('')}
+          </select></label>
+        <label>CA <input type="number" value="${p.ca??''}" onchange="pkmField('${p.id}','ca',this.value,1)"/></label>
+        <label>Livello <input type="number" value="${p.level}" onchange="pkmField('${p.id}','level',this.value,1)"/></label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label>Velocità <input value="${esc(p.speed)}" style="width:110px" placeholder="9 m" onchange="pkmField('${p.id}','speed',this.value)"/></label>
+        <label>Tiri salvezza <input value="${esc(p.ts)}" style="width:130px" placeholder="Forza" onchange="pkmField('${p.id}','ts',this.value)"/></label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <label style="flex:1">Vulnerabilità (vuoto = auto dai tipi)<br/><input value="${esc(p.vul)}" style="width:100%" onchange="pkmField('${p.id}','vul',this.value)"/></label>
+      </div>
+      <div class="row">
+        <label style="flex:1">Resistenze (vuoto = auto dai tipi)<br/><input value="${esc(p.res)}" style="width:100%" onchange="pkmField('${p.id}','res',this.value)"/></label>
+      </div>
+      <div class="row">
+        <label style="flex:1">Abilità speciale<br/><input value="${esc(p.ability)}" style="width:100%" placeholder="es. Erbafolta: raddoppia lo STAB sotto il 25% dei PF" onchange="pkmField('${p.id}','ability',this.value)"/></label>
+      </div>
+      <p class="hint" style="margin:8px 0 0">Bonus evoluzioni: +${p.evoBonus||0} PF · PF max = ${p.basePF} + (${p.level} − ${p.minLevel}) × (${DIE_AVG[p.die]} + ${conMod(p)}) + ${p.evoBonus||0} = <b>${mx}</b></p>
+    </details>
+  </div>`;
+}
+
+function addBlankPkm(tid){
+  const t = state.trainers.find(t=>t.id===tid); if(!t) return;
+  showModal(`<h3>Nuovo Pokémon</h3>
+    <div class="mrow"><label>Specie<br/><input id="np-species" list="specieslist" style="width:200px" placeholder="es. Growlithe"/></label>
+      <label>Livello<br/><input id="np-level" type="number" min="1" value="5"/></label></div>
+    <p class="hint">Se la specie è già stata usata, PF base e Dado Vita si ricordano da soli. Gli iniziali hanno la scheda completa inclusa.</p>
+    <div class="mrow">
+      <button class="btn" onclick="confirmBlankPkm('${tid}')">Aggiungi</button>
+      <button class="btn ghost" onclick="closeModal()">Annulla</button>
+    </div>`);
+  setTimeout(()=>document.getElementById('np-species').focus(),50);
+}
+function confirmBlankPkm(tid){
+  const t = state.trainers.find(t=>t.id===tid); if(!t) return;
+  const name = document.getElementById('np-species').value.trim();
+  const lvl = Math.max(1, parseInt(document.getElementById('np-level').value)||1);
+  if(!name){ alert('Serve il nome della specie.'); return; }
+  const sp = SPECIES.find(s=>s.name.toLowerCase()===name.toLowerCase());
+  closeModal();
+  addPokemon(t, sp ? sp.name : name, sp ? sp.types : '', lvl);
+}
+function renameTrainer(id, v){ const t=state.trainers.find(t=>t.id===id); if(t&&v){t.name=v; save(); renderSquad(); renderBattleForm();} }
+function trainerLevel(id, v){ const t=state.trainers.find(t=>t.id===id); if(t){t.level=Math.max(1,parseInt(v)||1); save(); renderSquad();} }
+function trainerNotes(id, v){ const t=state.trainers.find(t=>t.id===id); if(t){t.notes=v; save();} }
+function toggleBadge(id, i){ const t=state.trainers.find(t=>t.id===id); if(t){t.badges[i]=!t.badges[i]; save(); renderSquad();} }
+
+/* ================= LOTTE IN CONTEMPORANEA ================= */
+
+function renderBattleForm(){
+  const sel = document.getElementById('nb-trainer');
+  sel.innerHTML = '<option value="">— nessuno / PNG —</option>' +
+    state.trainers.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  const act = getActiveTrainer();
+  if(act) sel.value = act.id;
+}
+function nbSpeciesPick(){
+  const name = document.getElementById('nb-species').value.trim();
+  const sp = SPECIES.find(s=>s.name.toLowerCase()===name.toLowerCase());
+  if(sp){
+    document.getElementById('nb-types').value = sp.types;
+    const m = sp.spots[0].lv.match(/\d+/);
+    if(m) document.getElementById('nb-level').value = m[0];
+  }
+  nbSuggestPF();
+}
+function nbSuggestPF(){
+  const name = document.getElementById('nb-species').value.trim();
+  const lvl = parseInt(document.getElementById('nb-level').value)||1;
+  const pf = speciesPFat(name, lvl) ?? (PRESETS[name] ? PRESETS[name].basePF + (lvl-PRESETS[name].minLevel)*(DIE_AVG[PRESETS[name].die]+mod(PRESETS[name].stats.COS)) : null);
+  if(pf!=null) document.getElementById('nb-pf').value = pf;
+}
+function newBattle(){
+  const species = document.getElementById('nb-species').value.trim();
+  if(!species){ alert('Che Pokémon selvatico appare?'); return; }
+  const types = document.getElementById('nb-types').value.trim();
+  const level = Math.max(1, parseInt(document.getElementById('nb-level').value)||1);
+  const pfMax = Math.max(1, parseInt(document.getElementById('nb-pf').value)||0);
+  if(!pfMax){ alert('Inserisci i PF max del selvatico (dal dex, o con la Calcolatrice).'); return; }
+  const b = {id:uid(), trainerId:document.getElementById('nb-trainer').value||'',
+    species, types, level, pfMax, pf:pfMax, statuses:[], ball:0, note:''};
+  state.battles.push(b);
+  document.getElementById('nb-species').value=''; document.getElementById('nb-types').value='';
+  document.getElementById('nb-pf').value='';
+  save(); renderBattles();
+}
+function findBattle(id){ return state.battles.find(b=>b.id===id); }
+function battleDamage(id, dmg){
+  const b = findBattle(id); if(!b) return;
+  if(dmg==null){
+    const el = document.getElementById('bd-'+id);
+    dmg = parseInt(el && el.value)||0;
+  }
+  b.pf = Math.min(b.pfMax, Math.max(0, b.pf - dmg));
+  save(); renderBattles();
+}
+function battleStatus(id, st){
+  const b = findBattle(id); if(!b) return;
+  if(b.statuses.includes(st)) b.statuses = b.statuses.filter(s=>s!==st);
+  else b.statuses.push(st);
+  save(); renderBattles();
+}
+function battleBall(id, v){
+  const b = findBattle(id); if(!b) return;
+  b.ball = parseInt(v)||0;
+  save(); renderBattles();
+}
+function captureDC(b){
+  const s = state.settings;
+  let dc = s.cdBase + b.level;
+  const parts = [`${s.cdBase} base`, `+${b.level} livello`];
+  const pct = b.pfMax>0 ? b.pf/b.pfMax : 1;
+  let tier = 0, lbl='';
+  if(pct<=0.10){ tier=s.cd10; lbl='PF ≤ 10%'; }
+  else if(pct<=0.25){ tier=s.cd25; lbl='PF ≤ 25%'; }
+  else if(pct<=0.50){ tier=s.cd50; lbl='PF ≤ 50%'; }
+  if(tier){ dc += tier; parts.push(`${tier} ${lbl}`); }
+  for(const st of b.statuses){
+    const m = (st==='Addormentato'||st==='Congelato') ? s.cdSleep : s.cdStatus;
+    dc += m; parts.push(`${m} ${st.toLowerCase()}`);
+  }
+  return {dc, parts};
+}
+function tryCapture(id){
+  const b = findBattle(id); if(!b) return;
+  const roll = parseInt(document.getElementById('br-'+id).value);
+  if(isNaN(roll)){ alert('Inserisci il tiro del giocatore (d20 + suoi bonus).'); return; }
+  const {dc} = captureDC(b);
+  const total = roll + (b.ball||0);
+  if(total >= dc){
+    showModal(`<h3>◓ GOTCHA! ${esc(b.species)} è stato catturato!</h3>
+      <p class="levelup-gain">Tiro ${roll} + Ball ${fmtMod(b.ball||0)} = <b>${total}</b> contro CD ${dc}.</p>
+      <div class="mrow"><button class="btn" onclick="closeModal(); endBattle('${id}','capture')">Concludi la cattura →</button></div>`);
+  } else {
+    showModal(`<h3>💨 La Ball si apre!</h3>
+      <p class="levelup-gain">Tiro ${roll} + Ball ${fmtMod(b.ball||0)} = <b>${total}</b> contro CD ${dc}: non basta.</p>
+      <p class="hint">Abbassa i PF o infliggi uno stato per ridurre la CD, poi riprova.</p>
+      <button class="btn" onclick="closeModal()">Si continua!</button>`);
+  }
+}
+function endBattle(id, outcome){
+  const b = findBattle(id); if(!b) return;
+  if(outcome==='fled'){
+    state.battles = state.battles.filter(x=>x.id!==id);
+    save(); renderBattles(); return;
+  }
+  const t = state.trainers.find(t=>t.id===b.trainerId);
+  const mult = outcome==='capture' ? state.settings.captureMult : state.settings.defeatMult;
+  const xpEach = Math.max(1, Math.round(b.level * mult));
+  const partList = t ? t.team.map(p =>
+    `<label class="caughtbox" style="font-size:13px"><input type="checkbox" class="xp-part" value="${p.id}" checked/> ${esc(p.nick)} (liv. ${p.level})</label>`).join('') : '';
+  const inDex = SPECIES.some(s=>s.name===b.species);
+  showModal(`<h3>${outcome==='capture' ? '◓ Cattura!' : '⚔ Selvatico sconfitto!'}</h3>
+    <p class="levelup-gain"><b>${esc(b.species)}</b> liv. ${b.level} — <b>+${xpEach} XP</b> a ogni partecipante.</p>
+    ${t ? `<div class="mrow" style="flex-direction:column; align-items:flex-start">${partList}</div>` : '<p class="hint">Nessun allenatore collegato: niente XP automatici.</p>'}
+    ${outcome==='capture' && inDex ? `<label class="caughtbox" style="font-size:13px"><input type="checkbox" id="cap-dex" checked/> segna ${esc(b.species)} nel Pokédex</label>` : ''}
+    ${outcome==='capture' && t ? `<label class="caughtbox" style="font-size:13px"><input type="checkbox" id="cap-team" checked/> aggiungi ${esc(b.species)} (liv. ${b.level}) alla squadra di ${esc(t.name)}</label>` : ''}
+    <div class="mrow">
+      <button class="btn" onclick="confirmEndBattle('${id}','${outcome}')">Conferma</button>
+      <button class="btn ghost" onclick="closeModal()">Annulla</button>
+    </div>`);
+}
+function confirmEndBattle(id, outcome){
+  const b = findBattle(id); if(!b) return;
+  const t = state.trainers.find(t=>t.id===b.trainerId);
+  const mult = outcome==='capture' ? state.settings.captureMult : state.settings.defeatMult;
+  const xpEach = Math.max(1, Math.round(b.level * mult));
+  let allUps = [];
+  if(t){
+    const ids = [...document.querySelectorAll('.xp-part:checked')].map(el=>el.value);
+    for(const pid of ids){
+      const p = t.team.find(p=>p.id===pid);
+      if(p) allUps = allUps.concat(applyXP(p, xpEach));
+    }
+  }
+  const capDex = document.getElementById('cap-dex');
+  if(capDex && capDex.checked) state.caught[b.species] = true;
+  let newPkm = null;
+  const capTeam = document.getElementById('cap-team');
+  if(capTeam && capTeam.checked && t){
+    newPkm = addPokemon(t, b.species, b.types, b.level);
+  }
+  state.battles = state.battles.filter(x=>x.id!==id);
+  save(); renderAll();
+  let html = `<h3>${outcome==='capture'?'◓ Cattura conclusa!':'⚔ Vittoria!'}</h3>`;
+  if(allUps.length) html += levelUpRows(allUps);
+  else html += `<p class="levelup-gain">XP distribuiti (+${xpEach} a testa).</p>`;
+  if(newPkm) html += `<p class="levelup-gain">🎒 <b>${esc(newPkm.nick)}</b> si unisce alla squadra al liv. ${newPkm.level} — completa PF base e statistiche dal dex nella sua scheda.</p>`;
+  html += `<button class="btn" onclick="closeModal()">Avanti!</button>`;
+  showModal(html);
+}
+
+function renderBattles(){
+  const wrap = document.getElementById('battle-list');
+  if(!state.battles.length){
+    wrap.innerHTML = `<div class="panel" style="grid-column:1/-1"><p class="hint" style="margin:0">Nessuno scontro aperto. Quando un giocatore incontra un selvatico, apri una carta qui: puoi tenerne aperte quante vuoi, una per giocatore.</p></div>`;
+    return;
+  }
+  wrap.innerHTML = state.battles.map(b => {
+    const t = state.trainers.find(t=>t.id===b.trainerId);
+    const pct = b.pfMax>0 ? Math.round(100*b.pf/b.pfMax) : 0;
+    const hpColor = pct>50 ? 'var(--ok)' : pct>25 ? 'var(--warn)' : 'var(--danger)';
+    const {dc, parts} = captureDC(b);
+    const sts = STATUSES.map(s =>
+      `<span class="status-chip ${b.statuses.includes(s)?'on':''}" onclick="battleStatus('${b.id}','${s}')">${s}</span>`).join('');
+    return `<div class="battle">
+      <div class="head">
+        <strong>${esc(b.species)}</strong> ${typeChips(b.types)}
+        <span class="lvl" style="font-size:18px; margin-left:auto">Liv. ${b.level}</span>
+      </div>
+      <div class="vs">${t ? '🤺 sta lottando con <b>'+esc(t.name)+'</b>' : 'scontro libero'}</div>
+
+      <div>
+        <div class="row" style="justify-content:space-between; font-size:12.5px; color:var(--muted)">
+          <span>PF ${b.pf} / ${b.pfMax} (${pct}%)</span>
+          <span class="row" style="gap:4px">
+            <button class="btn small ghost" onclick="battleDamage('${b.id}',1)">−1</button>
+            <button class="btn small ghost" onclick="battleDamage('${b.id}',5)">−5</button>
+            <button class="btn small ghost" onclick="battleDamage('${b.id}',10)">−10</button>
+            <input type="number" id="bd-${b.id}" placeholder="danno" style="width:70px"/>
+            <button class="btn small" onclick="battleDamage('${b.id}',null)">Colpito!</button>
+          </span>
+        </div>
+        <div class="hpbar" style="margin-top:4px"><i style="width:${pct}%; background:${hpColor}"></i></div>
+      </div>
+
+      <div class="row" style="gap:5px">${sts}</div>
+
+      <div class="cdbox">
+        🎯 CD di cattura attuale: <b>${dc}</b>
+        <span class="hint" style="display:block; margin:2px 0 6px">${parts.join(' · ')}</span>
+        <div class="row" style="gap:5px">
+          <select onchange="battleBall('${b.id}',this.value)">
+            <option value="0" ${b.ball==0?'selected':''}>Poké Ball (+0)</option>
+            <option value="2" ${b.ball==2?'selected':''}>Mega Ball (+2)</option>
+            <option value="4" ${b.ball==4?'selected':''}>Ultra Ball (+4)</option>
+          </select>
+          <input type="number" id="br-${b.id}" placeholder="tiro d20+bonus" style="width:120px"/>
+          <button class="btn small" onclick="tryCapture('${b.id}')">◓ Prova cattura!</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn small" onclick="endBattle('${b.id}','defeat')">⚔ Sconfitto</button>
+        <button class="btn small" onclick="endBattle('${b.id}','capture')">◓ Catturato</button>
+        <button class="btn ghost small" onclick="endBattle('${b.id}','fled')">💨 Fuggito / annulla</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ================= IMPOSTAZIONI / DATI ================= */
+
+function renderSettings(){
+  const s = state.settings;
+  document.getElementById('set-need').value = s.needMult;
+  document.getElementById('set-defeat').value = s.defeatMult;
+  document.getElementById('set-capture').value = s.captureMult;
+  document.getElementById('set-auto').checked = s.autoLevel;
+  document.getElementById('set-cdbase').value = s.cdBase;
+  document.getElementById('set-cd50').value = s.cd50;
+  document.getElementById('set-cd25').value = s.cd25;
+  document.getElementById('set-cd10').value = s.cd10;
+  document.getElementById('set-cdstatus').value = s.cdStatus;
+  document.getElementById('set-cdsleep').value = s.cdSleep;
+}
+function saveSettings(){
+  const g = id => parseFloat(document.getElementById(id).value);
+  const s = state.settings;
+  s.needMult = g('set-need')||2;
+  s.defeatMult = isNaN(g('set-defeat'))?1:g('set-defeat');
+  s.captureMult = isNaN(g('set-capture'))?1:g('set-capture');
+  s.autoLevel = document.getElementById('set-auto').checked;
+  s.cdBase = isNaN(g('set-cdbase'))?10:g('set-cdbase');
+  s.cd50 = isNaN(g('set-cd50'))?-2:g('set-cd50');
+  s.cd25 = isNaN(g('set-cd25'))?-5:g('set-cd25');
+  s.cd10 = isNaN(g('set-cd10'))?-8:g('set-cd10');
+  s.cdStatus = isNaN(g('set-cdstatus'))?-2:g('set-cdstatus');
+  s.cdSleep = isNaN(g('set-cdsleep'))?-3:g('set-cdsleep');
+  save(); renderSquad(); renderBattles();
+}
+function exportData(){
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'aethera-pokedex-dati.json';
+  a.click();
+}
+function importData(){
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = () => {
+    const f = inp.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try{
+        localStorage.setItem(STORE_KEY, r.result);
+        state = load();
+        save(); renderAll();
+        alert('Dati importati!');
+      }catch(e){ alert('File non valido.'); }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+}
+function resetData(){
+  if(!confirm('Cancellare TUTTI i dati (squadre, catture, lotte, impostazioni)?')) return;
+  state = defaultState(); save(); renderAll();
+}
+
+/* ================= CALCOLATRICE ================= */
+
+function calcPF(){
+  const base = parseInt(document.getElementById('c-base').value)||0;
+  const min = parseInt(document.getElementById('c-min').value)||1;
+  const die = parseInt(document.getElementById('c-die').value)||6;
+  const con = parseInt(document.getElementById('c-con').value)||0;
+  const lvl = parseInt(document.getElementById('c-lvl').value)||min;
+  const pf = base + (lvl-min)*(DIE_AVG[die]+con);
+  document.getElementById('c-out').textContent = pf + ' PF al livello ' + lvl;
+  document.getElementById('c-detail').textContent =
+    ` — ${base} + (${lvl} − ${min}) × (${DIE_AVG[die]} + ${con}) · Competenza +${compBonus(lvl)} · STAB ${stabBonus(lvl)>0?'+'+stabBonus(lvl):'—'}`;
+}
+function calcEvo(){
+  const l = parseInt(document.getElementById('c-evo').value)||1;
+  document.getElementById('c-evo-out').textContent = `+${2*l} PF (più gli ASI dal dex)`;
+}
+
+/* ================= TIPI ================= */
+
+let typeMode = 'def';
+let typeSel = [];
+function setTypeMode(m){
+  typeMode = m; typeSel = [];
+  document.getElementById('mode-def').className = 'btn small' + (m==='def'?'':' ghost');
+  document.getElementById('mode-atk').className = 'btn small' + (m==='atk'?'':' ghost');
+  renderTypes();
+}
+function toggleType(t){
+  if(typeSel.includes(t)) typeSel = typeSel.filter(x=>x!==t);
+  else {
+    if(typeMode==='atk') typeSel = [t];
+    else { typeSel.push(t); if(typeSel.length>2) typeSel.shift(); }
+  }
+  renderTypes();
+}
+function renderTypes(){
+  document.getElementById('type-instr').textContent = typeMode==='def'
+    ? 'Scegli 1–2 tipi del Pokémon che DIFENDE: vedi subito da cosa è vulnerabile e a cosa resiste.'
+    : 'Scegli il tipo della mossa che ATTACCA: vedi contro chi è super efficace e contro chi no.';
+  document.getElementById('type-picker').innerHTML = Object.entries(TYPES).map(([k,v]) =>
+    `<span class="type-chip tsel ${typeSel.includes(k)?'on':''}" style="background:${v.c}" onclick="toggleType('${k}')">${v.n}</span>`).join('');
+
+  const out = document.getElementById('type-result');
+  if(typeSel.length===0){ out.innerHTML = ''; return; }
+
+  const chip = k => `<span class="type-chip" style="background:${TYPES[k].c}">${TYPES[k].n}</span>`;
+  if(typeMode==='def'){
+    const groups = {4:[],2:[],0.5:[],0.25:[],0:[]};
+    for(const atk of Object.keys(TYPES)){
+      const m = effMult(atk, typeSel);
+      if(m!==1 && groups[m]!==undefined) groups[m].push(atk);
+    }
+    const g = (lbl, arr, note) => arr.length
+      ? `<div class="effgroup"><div class="lbl">${lbl} <span style="text-transform:none">${note}</span></div>${arr.map(chip).join(' ')}</div>` : '';
+    out.innerHTML =
+      `<h3 style="margin-top:0">Difensore: ${typeSel.map(chip).join(' ')}</h3>` +
+      g('Doppia vulnerabilità (×4)', groups[4], '— colpito durissimo') +
+      g('Vulnerabile (×2)', groups[2], '— danno doppio') +
+      g('Resistente (×½)', groups[0.5], '— danno dimezzato') +
+      g('Molto resistente (×¼)', groups[0.25], '') +
+      g('Immune (×0)', groups[0], '— nessun danno') +
+      (Object.values(groups).every(a=>!a.length) ? '<p class="hint">Nessuna interazione particolare.</p>' : '');
+  } else {
+    const atk = typeSel[0];
+    const g = (lbl, arr) => (arr&&arr.length)
+      ? `<div class="effgroup"><div class="lbl">${lbl}</div>${arr.map(chip).join(' ')}</div>` : '';
+    out.innerHTML =
+      `<h3 style="margin-top:0">Mossa di tipo ${chip(atk)}</h3>` +
+      g('Super efficace contro (×2)', EFF_SUPER[atk]) +
+      g('Poco efficace contro (×½)', EFF_HALF[atk]) +
+      g('Nessun effetto su (×0)', EFF_ZERO[atk]);
+  }
+}
+
+/* ================= AVVIO ================= */
+
+function renderAll(){
+  renderTabs(); renderDex(); renderSquad(); renderBattleForm(); renderBattles();
+  renderSettings(); renderTypes(); calcPF(); calcEvo();
+}
+/* semina il cache specie con gli iniziali */
+for(const [name,pr] of Object.entries(PRESETS)){
+  if(!state.speciesData[name]){
+    state.speciesData[name] = {basePF:pr.basePF, minLevel:pr.minLevel, die:pr.die, cos:pr.stats.COS, ca:pr.ca};
+  }
+}
+initDatalists();
+initDexFilters();
+renderAll();
+</script>
+</body>
+</html>
