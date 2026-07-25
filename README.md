@@ -8,11 +8,15 @@ manuale
 senza installare nulla; i salvataggi restano sul dispositivo di ognuno (con
 Esporta/Importa per condividerli).
 
-- **Schede Pokémon** (schermata iniziale): ogni giocatore crea la sua scheda allenatore e
-  le schede dei suoi Pokémon in stile scheda del personaggio; scegli la specie e si
-  compila da sola dal dex; nature ufficiali P5e applicate in automatico, mosse con
-  dettagli e danni scalati al livello, PF/competenza/STAB ricalcolati a ogni livello,
-  evoluzioni che aggiornano la scheda.
+- **Schede Pokémon** (schermata iniziale): una galleria di schede, una per giocatore,
+  ognuna indipendente ed esportabile come file a sé. Dentro la scheda: squadra in stile
+  scheda del personaggio (scegli la specie e si compila da sola dal dex), nature ufficiali
+  P5e applicate in automatico, mosse con dettagli e danni scalati al livello,
+  PF/competenza/STAB ricalcolati a ogni livello, evoluzioni che aggiornano la scheda.
+- **Statistiche del giocatore**: record vittorie/sconfitte con percentuale, Pokémon
+  catturati, medaglie, Pokémon più usato, iniziale, mossa preferita, XP guadagnati,
+  avversario ricorrente e composizione della squadra per tipo. Si aggiornano da sole
+  con le lotte, le catture e l'esperienza.
 - **Pokédex**: le 896 specie del dex P5e con scheda completa (CA, PF, statistiche, tiri
   salvezza, abilità, mosse per livello, evoluzioni, MT) — senza indicazioni su dove
   trovarle in Aethera, per non fare spoiler ai giocatori.

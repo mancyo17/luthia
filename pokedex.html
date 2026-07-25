@@ -151,6 +151,54 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
   cursor:pointer; font-size:13.5px; background:rgba(255,255,255,.02); color:var(--text);
 }
 .trainer-chip.active{border-color:var(--accent); color:var(--accent); background:var(--accent-dim)}
+/* schede dei giocatori (galleria) */
+.profiles{display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:12px}
+.profile{
+  border:1px solid var(--line); border-radius:16px; background:var(--panel);
+  padding:16px; display:flex; flex-direction:column; gap:9px;
+  transition:transform .08s ease, border-color .08s ease;
+}
+.profile:hover{transform:translateY(-2px); border-color:rgba(79,209,197,.5)}
+.profile .pname{font-size:19px; font-weight:800; cursor:pointer}
+.profile .pname:hover{color:var(--accent)}
+.profile .pmeta{font-size:12.5px; color:var(--muted)}
+.profile .pstats{display:flex; gap:14px; flex-wrap:wrap}
+.profile .pstats div{display:flex; flex-direction:column}
+.profile .pstats b{font-size:17px; font-weight:700}
+.profile .pstats span{font-size:11px; color:var(--muted)}
+.profile .pteam{display:flex; gap:5px; flex-wrap:wrap}
+.mini{
+  font-size:11px; padding:2px 8px; border-radius:8px;
+  border:1px solid var(--line); color:var(--muted); background:rgba(255,255,255,.02);
+}
+.newprofile{
+  border:1px dashed var(--line); border-radius:16px; background:transparent;
+  padding:16px; display:flex; align-items:center; justify-content:center; gap:8px;
+  color:var(--muted); cursor:pointer; font-size:14px; min-height:140px;
+}
+.newprofile:hover{border-color:var(--accent); color:var(--accent)}
+/* statistiche */
+.kpi{display:grid; grid-template-columns:repeat(auto-fit,minmax(124px,1fr)); gap:10px}
+.tile{
+  border:1px solid var(--line); border-radius:12px;
+  background:rgba(255,255,255,.02); padding:10px 12px;
+}
+.tile .lbl{font-size:11.5px; color:var(--muted); letter-spacing:.2px}
+.tile .val{font-size:23px; font-weight:700; line-height:1.15; margin-top:3px; overflow-wrap:anywhere}
+.tile .val.sm{font-size:17px; line-height:1.25}
+.tile .val small{font-size:13px; font-weight:600; color:var(--muted)}
+.tile .sub{font-size:11.5px; color:var(--muted); margin-top:2px}
+.tile.wide{grid-column:span 2}
+.record{display:flex; align-items:baseline; gap:4px}
+.record .w{color:var(--ok)}
+.record .l{color:var(--danger)}
+.record .sep{color:var(--muted); font-weight:400}
+.meter{height:10px; border-radius:99px; background:rgba(79,209,197,.16); overflow:hidden; margin-top:7px}
+.meter i{display:block; height:100%; background:var(--accent); border-radius:99px}
+.typebar{display:flex; gap:2px; height:14px; border-radius:99px; overflow:hidden; margin:4px 0 8px}
+.typebar span{display:block; min-width:3px}
+.statgroup{margin-top:14px}
+.statgroup h4{margin:0 0 7px; font-size:13px; color:var(--muted); font-weight:600; letter-spacing:.3px; text-transform:uppercase}
 /* lotte */
 .battlegrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:12px}
 .battle{
@@ -238,16 +286,12 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 
   <!-- ============ SQUADRE ============ -->
   <section class="tab" id="tab-squad">
-    <h2>Le mie schede Pokémon</h2>
-    <p class="hint">Qui ogni giocatore tiene la sua scheda allenatore e le schede dei suoi Pokémon, come una scheda del personaggio: crea la tua, aggiungi i Pokémon (la scheda si compila da sola dal dex) e segna mosse, PF, strumenti ed esperienza. I salvataggi restano sul tuo dispositivo.</p>
+    <h2 id="squad-title">Schede dei giocatori</h2>
+    <p class="hint" id="squad-intro">Ogni giocatore ha la sua scheda separata, come un file a parte: aprila per gestire la squadra e vedere le sue statistiche. Puoi esportare la singola scheda e passarla a chi vuoi.</p>
 
-    <div class="panel">
-      <div class="row" id="trainer-chips"></div>
-    </div>
+    <div id="squad-view"></div>
 
-    <div id="trainer-view"></div>
-
-    <div class="panel sub">
+    <div class="panel sub" id="global-settings">
       <h3 style="margin-top:0">⚙️ Regole veloci di esperienza (della casa — modificabili)</h3>
       <p class="hint">Regola rapida per velocizzare: un Pokémon guadagna XP pari al <b>livello del nemico</b> sconfitto o catturato; per salire serve <b>moltiplicatore × livello attuale</b> XP. (Il PHB usa una tabella XP classica molto più lenta: se preferisci quella, gestisci l'esperienza a mano e usa solo «+1 livello».)</p>
       <div class="row">
@@ -735,6 +779,25 @@ function defaultSettings(){
 function defaultState(){
   return {caught:{}, trainers:[], activeTrainer:null, battles:[], settings:defaultSettings()};
 }
+function defaultTrainerStats(){
+  return {wins:0, losses:0, captures:0, battles:0, xpTotal:0, levelUps:0, moves:{}, foes:{}};
+}
+function migrateTrainer(t){
+  t.notes = t.notes || '';
+  t.created = t.created || Date.now();
+  t.stats = Object.assign(defaultTrainerStats(), t.stats||{});
+  t.stats.moves = t.stats.moves || {};
+  t.stats.foes = t.stats.foes || {};
+  for(const p of t.team){
+    if(!p.stats) p.stats = {FOR:10,DES:10,COS:10+2*(p.con||0),INT:10,SAG:10,CAR:10};
+    p.nature = p.nature || ''; p.item = p.item || '';
+    p.ts = p.ts || ''; p.speed = p.speed || ''; p.vul = p.vul || ''; p.res = p.res || '';
+    p.ability = p.ability || ''; p.abNames = p.abNames || [];
+    p.uses = p.uses || 0;
+  }
+  if(!t.starter && t.team.length) t.starter = t.team[0].id;
+  return t;
+}
 function load(){
   let s = defaultState();
   try{
@@ -745,15 +808,7 @@ function load(){
       s.settings = Object.assign(defaultSettings(), saved.settings||{});
     }
   }catch(e){}
-  for(const t of s.trainers){
-    t.notes = t.notes || '';
-    for(const p of t.team){
-      if(!p.stats) p.stats = {FOR:10,DES:10,COS:10+2*(p.con||0),INT:10,SAG:10,CAR:10};
-      p.nature = p.nature || ''; p.item = p.item || '';
-      p.ts = p.ts || ''; p.speed = p.speed || ''; p.vul = p.vul || ''; p.res = p.res || '';
-      p.ability = p.ability || ''; p.abNames = p.abNames || [];
-    }
-  }
+  s.trainers.forEach(migrateTrainer);
   return s;
 }
 function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
@@ -885,19 +940,34 @@ function toggleCaught(i){
 }
 function addFromDex(i){
   if(state.trainers.length===0){
-    alert('Prima crea la tua scheda allenatore nella sezione «Schede Pokémon».');
+    alert('Prima crea la scheda di un giocatore nella sezione «Schede Pokémon».');
     setTab('squad'); return;
   }
-  const t = getActiveTrainer() || state.trainers[0];
   const s = SPECIES[i];
-  setTab('squad');
+  const act = getActiveTrainer() || state.trainers[0];
+  const sel = state.trainers.length > 1
+    ? `<label>Alla scheda di<br/><select id="np-trainer">${state.trainers.map(t =>
+        `<option value="${t.id}" ${t.id===act.id?'selected':''}>${esc(t.name)}</option>`).join('')}</select></label>`
+    : `<input type="hidden" id="np-trainer" value="${act.id}"/>`;
   showModal(`<h3>Aggiungi ${esc(s.name)}</h3>
-    <div class="mrow"><label>A quale livello?<br/><input id="np-level" type="number" min="1" value="5"/></label></div>
+    <div class="mrow">${sel}
+      <label>A quale livello?<br/><input id="np-level" type="number" min="1" value="5"/></label></div>
     <p class="hint">La scheda si compila da sola dal dex: statistiche, CA, PF e mosse ai giusti livelli.</p>
     <div class="mrow">
-      <button class="btn" onclick="closeModal(); addPokemon(getActiveTrainer(), '${esc(s.name).replace(/'/g,"\\'")}', '${s.types}', Math.max(1,parseInt(document.getElementById('np-level').value)||5))">Aggiungi</button>
+      <button class="btn" onclick="confirmAddFromDex(${i})">Aggiungi</button>
       <button class="btn ghost" onclick="closeModal()">Annulla</button>
     </div>`);
+}
+function confirmAddFromDex(i){
+  const s = SPECIES[i];
+  const tid = document.getElementById('np-trainer').value;
+  const t = state.trainers.find(x=>x.id===tid) || getActiveTrainer() || state.trainers[0];
+  if(!t) return;
+  const lvl = Math.max(1, parseInt(document.getElementById('np-level').value)||5);
+  closeModal();
+  state.activeTrainer = t.id;
+  addPokemon(t, s.name, s.types, lvl);
+  setTab('squad');
 }
 
 /* --- scheda completa dal dex --- */
@@ -947,9 +1017,15 @@ function openAbil(name){
   const desc = (P5 && P5.ABIL[name]) || 'Descrizione non nel dataset.';
   showModal(`<h3>✨ ${esc(name)}</h3><p style="font-size:14px">${esc(desc)}</p><button class="btn" onclick="closeModal()">OK</button>`);
 }
-function openMoveInfo(name, level){
+function openMoveInfo(name, level, pid){
   const md = findMoveData(name);
-  if(!md){ showModal(`<h3>${esc(name)}</h3><p class="hint">Mossa non nel dataset (nome personalizzato della guida o della campagna).</p><button class="btn" onclick="closeModal()">OK</button>`); return; }
+  const useBtn = pid
+    ? `<button class="btn" onclick="useMove('${pid}','${esc(name).replace(/'/g,"\\'")}')">⚔ L'ho usata!</button>` : '';
+  if(!md){
+    showModal(`<h3>${esc(name)}</h3><p class="hint">Mossa non nel dataset (nome personalizzato della guida o della campagna).</p>
+      <div class="mrow">${useBtn}<button class="btn ghost" onclick="closeModal()">OK</button></div>`);
+    return;
+  }
   let dmg = '';
   if(md.dmg){
     const tiers = Object.keys(md.dmg).map(Number).sort((a,b)=>a-b);
@@ -957,33 +1033,84 @@ function openMoveInfo(name, level){
     dmg = `<p class="levelup-gain">🎲 Danno${level?` (liv. ${level})`:''}: <b>${esc(md.dmg[cur])}</b></p>` +
       `<p class="hint">${tiers.map(t=>`liv. ${t}: ${esc(md.dmg[t])}`).join(' · ')}</p>`;
   }
+  let count = '';
+  if(pid){
+    const [t] = findPkm(pid);
+    const n = t && t.stats.moves ? (t.stats.moves[name]||0) : 0;
+    if(n) count = `<p class="hint">L'hai usata ${n} ${n===1?'volta':'volte'} finora.</p>`;
+  }
   showModal(`<h3>${esc(name)} ${typeChips([md.t])}</h3>
     <p class="hint" style="margin:0">${esc(md.time||'')} · gittata: ${esc(md.rng||'—')} · PP ${md.pp||'—'} · durata: ${esc(md.dur||'—')}${md.save?` · TS ${esc(md.save)}`:''}${md.pow&&md.pow.length?` · potenza: ${md.pow.join('/')}`:''}</p>
     ${dmg}
     <p style="font-size:14px">${esc(md.desc||'')}</p>
     ${md.sc?`<p class="hint">${esc(md.sc)}</p>`:''}
-    <button class="btn" onclick="closeModal()">OK</button>`);
+    ${count}
+    <div class="mrow">${useBtn}<button class="btn ghost" onclick="closeModal()">Chiudi</button></div>`);
+}
+function useMove(pid, name){
+  const [t,p] = findPkm(pid); if(!t||!p) return;
+  t.stats.moves[name] = (t.stats.moves[name]||0) + 1;
+  save(); closeModal(); renderSquad();
 }
 
 /* ================= SQUADRE ================= */
 
 function getActiveTrainer(){
-  return state.trainers.find(t=>t.id===state.activeTrainer) || state.trainers[0] || null;
+  return state.trainers.find(t=>t.id===state.activeTrainer) || null;
 }
 function newTrainer(){
   const name = prompt('Nome dell’allenatore o allenatrice:');
   if(!name) return;
-  const t = {id:uid(), name, level:1, badges:[false,false,false,false,false,false,false,false], notes:'', team:[]};
+  const t = migrateTrainer({id:uid(), name, level:1,
+    badges:[false,false,false,false,false,false,false,false], notes:'', team:[]});
   state.trainers.push(t); state.activeTrainer = t.id;
   save(); renderSquad(); renderBattleForm();
 }
+function closeTrainer(){ state.activeTrainer = null; save(); renderSquad(); }
 function removeTrainer(id){
   const t = state.trainers.find(t=>t.id===id);
   if(!t) return;
-  if(!confirm(`Eliminare ${t.name} e tutta la sua squadra?`)) return;
+  if(!confirm(`Eliminare la scheda di ${t.name} e tutta la sua squadra?\n\nSuggerimento: puoi prima esportarla con ⬇ per conservarne una copia.`)) return;
   state.trainers = state.trainers.filter(x=>x.id!==id);
-  if(state.activeTrainer===id) state.activeTrainer = state.trainers[0]?.id || null;
+  if(state.activeTrainer===id) state.activeTrainer = null;
   save(); renderSquad(); renderBattleForm();
+}
+function exportTrainer(id){
+  const t = state.trainers.find(x=>x.id===id); if(!t) return;
+  const payload = {kind:'aethera-trainer', version:1, exported:new Date().toISOString(), trainer:t};
+  const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'scheda-' + String(t.name).toLowerCase().replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'') + '.json';
+  a.click();
+}
+function importTrainer(){
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = () => {
+    const f = inp.files[0]; if(!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try{
+        const d = JSON.parse(r.result);
+        const t = d && d.kind==='aethera-trainer' ? d.trainer : (d && d.name && d.team ? d : null);
+        if(!t) throw new Error('formato');
+        t.id = uid();
+        const idmap = {};
+        for(const p of (t.team||[])){ const old=p.id; p.id = uid(); idmap[old]=p.id; }
+        if(t.starter && idmap[t.starter]) t.starter = idmap[t.starter];
+        let name = t.name || 'Allenatore';
+        if(state.trainers.some(x=>x.name===name)) name += ' (importato)';
+        t.name = name;
+        state.trainers.push(migrateTrainer(t));
+        state.activeTrainer = t.id;
+        save(); renderAll();
+        alert(`Scheda di ${t.name} importata!`);
+      }catch(e){ alert('Questo file non è la scheda di un giocatore.'); }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
 }
 function setActiveTrainer(id){ state.activeTrainer = id; save(); renderSquad(); }
 
@@ -1020,7 +1147,9 @@ function addPokemon(trainer, species, types, level){
   };
   if(p.level < p.minLevel) p.level = p.minLevel;
   p.curPF = maxPF(p);
+  p.uses = 0;
   trainer.team.push(p);
+  if(!trainer.starter) trainer.starter = p.id;
   save(); renderSquad();
   return p;
 }
@@ -1063,6 +1192,12 @@ function removePkm(pid){
   const [t,p] = findPkm(pid); if(!p) return;
   if(!confirm(`Rimuovere ${p.nick} dalla squadra di ${t.name}?`)) return;
   t.team = t.team.filter(x=>x.id!==pid);
+  if(t.starter===pid) t.starter = t.team[0]?.id || null;
+  save(); renderSquad();
+}
+function setStarter(pid){
+  const [t,p] = findPkm(pid); if(!p) return;
+  t.starter = (t.starter===pid) ? null : pid;
   save(); renderSquad();
 }
 
@@ -1120,6 +1255,9 @@ function levelUp(pid, silent){
 function xpNeed(p){ return Math.max(1, Math.ceil(state.settings.needMult * p.level)); }
 function applyXP(p, amount){
   p.xp += amount;
+  p.uses = (p.uses||0) + 1;
+  const [t] = findPkm(p.id);
+  if(t) t.stats.xpTotal += amount;
   const ups = [];
   if(state.settings.autoLevel){
     while(p.xp >= xpNeed(p)){
@@ -1127,6 +1265,7 @@ function applyXP(p, amount){
       ups.push(levelUp(p.id, true));
     }
   }
+  if(t) t.stats.levelUps += ups.length;
   return ups;
 }
 function grantXP(pid, mode){
@@ -1240,19 +1379,177 @@ function autoDefense(types){
 
 /* --- render squadre --- */
 
-function renderSquad(){
-  const chips = state.trainers.map(t =>
-    `<button class="trainer-chip ${getActiveTrainer() && getActiveTrainer().id===t.id ? 'active':''}"
-      onclick="setActiveTrainer('${t.id}')">${esc(t.name)} <span style="opacity:.6">· ${t.team.length}</span></button>`).join('');
-  document.getElementById('trainer-chips').innerHTML =
-    chips + `<button class="btn small" onclick="newTrainer()">+ Nuovo allenatore</button>`;
+/* --- statistiche del giocatore --- */
 
+function trainerStats(t){
+  const s = t.stats || defaultTrainerStats();
+  const team = t.team || [];
+  const done = s.wins + s.losses;
+  const winRate = done ? Math.round(100*s.wins/done) : null;
+
+  const starter = team.find(p=>p.id===t.starter) || null;
+
+  let topPkm = null;
+  for(const p of team) if(!topPkm || (p.uses||0) > (topPkm.uses||0) ||
+    ((p.uses||0)===(topPkm.uses||0) && p.level > topPkm.level)) topPkm = p;
+  if(topPkm && !(topPkm.uses||0) && team.length) topPkm = team.reduce((a,b)=>b.level>a.level?b:a, team[0]);
+
+  /* tipi: ogni Pokémon pesa per le sue partecipazioni (minimo 1) */
+  const typeCount = {};
+  for(const p of team){
+    const w = 1 + (p.uses||0);
+    for(const ty of String(p.types||'').split('/').map(x=>x.trim()).filter(x=>TYPES[x]))
+      typeCount[ty] = (typeCount[ty]||0) + w;
+  }
+  const types = Object.entries(typeCount).sort((a,b)=>b[1]-a[1]);
+
+  const moves = Object.entries(s.moves||{}).sort((a,b)=>b[1]-a[1]);
+  const foes = Object.entries(s.foes||{}).sort((a,b)=>b[1]-a[1]);
+
+  const lvls = team.map(p=>p.level);
+  const avgLv = lvls.length ? Math.round(10*lvls.reduce((a,b)=>a+b,0)/lvls.length)/10 : 0;
+  const species = new Set(team.map(p=>p.species).filter(Boolean));
+
+  return {s, team, winRate, starter, topPkm, types, moves, foes, avgLv, species,
+    badges: (t.badges||[]).filter(Boolean).length};
+}
+
+function renderStats(t){
+  const st = trainerStats(t);
+  const s = st.s;
+
+  const tile = (lbl, val, sub) => {
+    const long = typeof val === 'string' && val.replace(/<[^>]*>/g,'').length > 9;
+    return `<div class="tile"><div class="lbl">${lbl}</div><div class="val${long?' sm':''}">${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
+  };
+
+  const recordTile = `<div class="tile">
+    <div class="lbl">Record lotte</div>
+    <div class="val record"><span class="w">${s.wins}</span><span class="sep">–</span><span class="l">${s.losses}</span></div>
+    ${st.winRate!=null
+      ? `<div class="meter" title="${st.winRate}% di vittorie"><i style="width:${st.winRate}%"></i></div>
+         <div class="sub">${s.wins} ${s.wins===1?'vittoria':'vittorie'} · ${s.losses} ${s.losses===1?'sconfitta':'sconfitte'} — ${st.winRate}%</div>`
+      : `<div class="sub">nessuna lotta registrata</div>`}
+  </div>`;
+
+  const totType = st.types.reduce((a,[,n])=>a+n,0);
+  const shown = st.types.slice(0,6);
+  const typeBar = totType ? `
+    <div class="typebar" role="img" aria-label="composizione della squadra per tipo">
+      ${shown.map(([ty,n])=>`<span style="background:${TYPES[ty].c}; flex:${n}" title="${TYPES[ty].n}: ${n}"></span>`).join('')}
+    </div>
+    <div class="typelegend badges">${shown.map(([ty,n])=>
+      `<span class="type-chip" style="background:${TYPES[ty].c}">${TYPES[ty].n} ${n}</span>`).join(' ')}</div>`
+    : `<p class="hint" style="margin:0">Aggiungi Pokémon alla squadra per vedere i tuoi tipi.</p>`;
+
+  const favMove = st.moves.length
+    ? tile('Mossa preferita', esc(st.moves[0][0]), `usata ${st.moves[0][1]} ${st.moves[0][1]===1?'volta':'volte'}`)
+    : tile('Mossa preferita', '—', 'segna le mosse che usi in lotta');
+
+  const topPkm = st.topPkm
+    ? tile('Pokémon più usato', esc(st.topPkm.nick), `${st.topPkm.uses||0} lotte · liv. ${st.topPkm.level}`)
+    : tile('Pokémon più usato', '—', 'squadra vuota');
+
+  const starter = st.starter
+    ? tile('Iniziale', esc(st.starter.nick), esc(st.starter.species||'') + ` · liv. ${st.starter.level}`)
+    : tile('Iniziale', '—', 'il primo Pokémon della squadra');
+
+  const topFoe = st.foes.length
+    ? tile('Avversario ricorrente', esc(st.foes[0][0]), `${st.foes[0][1]} incontri`)
+    : '';
+
+  return `<div class="panel">
+    <h3 style="margin-top:0">📊 Statistiche di ${esc(t.name)}</h3>
+    <div class="kpi">
+      ${recordTile}
+      ${tile('Pokémon catturati', s.captures, `${st.species.size} specie in squadra`)}
+      ${tile('Medaglie', `${st.badges}<small> / 8</small>`, BADGE_LV[st.badges] ? `livelli consigliati ${BADGE_LV[st.badges]}` : '')}
+      ${tile('Squadra', st.team.length, st.avgLv ? `livello medio ${String(st.avgLv).replace('.',',')}` : 'nessun Pokémon')}
+      ${topPkm}
+      ${starter}
+      ${favMove}
+      ${tile('XP guadagnati', s.xpTotal, `${s.levelUps} passaggi di livello`)}
+      ${topFoe}
+    </div>
+
+    <div class="statgroup">
+      <h4>Tipi della squadra</h4>
+      ${typeBar}
+    </div>
+
+    <div class="statgroup">
+      <h4>Registra una lotta</h4>
+      <div class="row">
+        <button class="btn small" onclick="recordBattle('${t.id}','win')">🏆 Vittoria</button>
+        <button class="btn small ghost" onclick="recordBattle('${t.id}','loss')">💀 Sconfitta</button>
+        <span class="hint" style="margin:0">per palestre, rivali e lotte fuori dal tavolo del GM (i selvatici si registrano da soli)</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function recordBattle(tid, kind){
+  const t = state.trainers.find(x=>x.id===tid); if(!t) return;
+  if(kind==='win') t.stats.wins++; else t.stats.losses++;
+  t.stats.battles++;
+  save(); renderSquad();
+}
+
+/* --- galleria delle schede --- */
+
+function renderProfiles(){
+  const cards = state.trainers.map(t => {
+    const st = trainerStats(t);
+    const team = t.team.slice(0,6).map(p =>
+      `<span class="mini">${esc(p.nick)} <span style="opacity:.6">liv.${p.level}</span></span>`).join('') ||
+      `<span class="mini">squadra vuota</span>`;
+    return `<div class="profile">
+      <div class="pname" onclick="setActiveTrainer('${t.id}')">${esc(t.name)}</div>
+      <div class="pmeta">Allenatore liv. ${t.level} · ${st.badges}/8 medaglie</div>
+      <div class="pstats">
+        <div><b class="record" title="${st.s.wins} vittorie, ${st.s.losses} sconfitte"><span class="w">${st.s.wins}</span><span class="sep">–</span><span class="l">${st.s.losses}</span></b><span>Vinte–Perse</span></div>
+        <div><b>${st.s.captures}</b><span>Catture</span></div>
+        <div><b>${t.team.length}</b><span>Squadra</span></div>
+      </div>
+      <div class="pteam">${team}</div>
+      <div class="row" style="margin-top:auto">
+        <button class="btn small" onclick="setActiveTrainer('${t.id}')">Apri scheda →</button>
+        <button class="btn ghost small" title="Esporta questa scheda" onclick="exportTrainer('${t.id}')">⬇</button>
+        <button class="btn danger small" style="margin-left:auto" onclick="removeTrainer('${t.id}')">Elimina</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="profiles">
+      ${cards}
+      <div class="newprofile" onclick="newTrainer()">＋ Nuova scheda giocatore</div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn ghost small" onclick="importTrainer()">⬆ Importa la scheda di un giocatore</button>
+      <span class="hint" style="margin:0">${state.trainers.length
+        ? 'Ogni scheda è indipendente: esportala per passarla a un altro dispositivo.'
+        : 'Crea una scheda per ogni giocatore del gruppo.'}</span>
+    </div>`;
+}
+
+function renderSquad(){
+  const view = document.getElementById('squad-view');
   const t = getActiveTrainer();
-  const view = document.getElementById('trainer-view');
+  const title = document.getElementById('squad-title');
+  const intro = document.getElementById('squad-intro');
+  const gset = document.getElementById('global-settings');
+
   if(!t){
-    view.innerHTML = `<div class="panel"><p class="hint" style="margin:0">Ancora nessuna scheda. Premi «+ Nuovo allenatore» e scrivi il tuo nome: da lì potrai aggiungere i tuoi Pokémon (dal Pokédex o col pulsante) e la loro scheda si compilerà da sola.</p></div>`;
+    title.textContent = 'Schede dei giocatori';
+    intro.textContent = 'Ogni giocatore ha la sua scheda separata, come un file a parte: aprila per gestire la squadra e vedere le sue statistiche. Puoi esportare la singola scheda e passarla a chi vuoi.';
+    if(gset) gset.style.display = '';
+    view.innerHTML = renderProfiles();
     return;
   }
+
+  if(gset) gset.style.display = 'none';
+  title.textContent = `Scheda di ${t.name}`;
+  intro.textContent = 'Squadra, mosse ed esperienza di questo giocatore. Le statistiche si aggiornano da sole con le lotte e le catture.';
 
   const badgeCount = t.badges.filter(Boolean).length;
   const badges = BADGE_NAMES.map((b,i) =>
@@ -1261,6 +1558,10 @@ function renderSquad(){
   const team = t.team.map(p => renderPkm(p)).join('');
 
   view.innerHTML = `
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn ghost small" onclick="closeTrainer()">← Tutte le schede</button>
+      <button class="btn ghost small" onclick="exportTrainer('${t.id}')">⬇ Esporta questa scheda</button>
+    </div>
     <div class="panel">
       <div class="row">
         <input value="${esc(t.name)}" onchange="renameTrainer('${t.id}',this.value)" style="font-weight:700; font-size:15px; width:170px"/>
@@ -1274,6 +1575,7 @@ function renderSquad(){
         <textarea placeholder="Poké Ball, pozioni, MT, soldi, appunti…" onchange="trainerNotes('${t.id}',this.value)">${esc(t.notes)}</textarea>
       </details>
     </div>
+    ${renderStats(t)}
     <div class="grid">${team}</div>
     <div class="row" style="margin:12px 0">
       <button class="btn" onclick="addBlankPkm('${t.id}')">+ Aggiungi Pokémon</button>
@@ -1282,6 +1584,8 @@ function renderSquad(){
 }
 
 function renderPkm(p){
+  const [t0] = findPkm(p.id);
+  const isStarter = t0 && t0.starter === p.id;
   const mx = maxPF(p);
   const cur = p.curPF ?? mx;
   const hpPct = mx>0 ? Math.round(100*cur/mx) : 0;
@@ -1307,7 +1611,8 @@ function renderPkm(p){
     const locked = m.lv > p.level;
     const md = findMoveData(m.name);
     const col = md && TYPES[md.t] ? TYPES[md.t].c : 'transparent';
-    return `<span class="move ${locked?'locked':''}" style="border-left:3px solid ${col}" title="dal livello ${m.lv} — clic per dettagli" onclick="openMoveInfo('${esc(m.name).replace(/'/g,"\\'")}',${p.level})">${esc(m.name)} <small style="opacity:.6">liv.${m.lv}</small><span class="x" title="rimuovi" onclick="delMove('${p.id}',${i},event)">×</span></span>`;
+    const used = (t0 && t0.stats.moves[m.name]) || 0;
+    return `<span class="move ${locked?'locked':''}" style="border-left:3px solid ${col}" title="dal livello ${m.lv} — clic per dettagli" onclick="openMoveInfo('${esc(m.name).replace(/'/g,"\\'")}',${p.level},'${p.id}')">${esc(m.name)} <small style="opacity:.6">liv.${m.lv}${used?` · ×${used}`:''}</small><span class="x" title="rimuovi" onclick="delMove('${p.id}',${i},event)">×</span></span>`;
   }).join('');
 
   const abChips = (p.abNames||[]).map(a=>`<span class="abil-chip" onclick="openAbil('${esc(a).replace(/'/g,"\\'")}')">${esc(a)}</span>`).join(' ');
@@ -1331,6 +1636,7 @@ function renderPkm(p){
   return `<div class="pkm">
     <div class="head">
       <input class="nick" value="${esc(p.nick)}" onchange="pkmField('${p.id}','nick',this.value)"/>
+      ${isStarter?`<span class="mini" style="color:var(--warn); border-color:rgba(246,224,94,.4)" title="Pokémon iniziale">⭐ iniziale</span>`:''}
       <span class="hint" style="margin:0">${esc(p.species && p.species!==p.nick ? p.species : '')}</span>
       ${typeChips(p.types)}
       <span class="lvl">Liv. ${p.level}</span>
@@ -1402,6 +1708,7 @@ function renderPkm(p){
     <div class="row">
       <button class="btn small" onclick="levelUp('${p.id}')">⬆ +1 livello</button>
       <button class="btn small" onclick="evolvePkm('${p.id}')">🌟 Evolvi</button>
+      <button class="btn ghost small" title="${isStarter?'Non è più il tuo iniziale':'Segna come Pokémon iniziale'}" onclick="setStarter('${p.id}')">${isStarter?'⭐':'☆'}</button>
       ${sIdx!=null && SPECIES[sIdx].p5 ? `<button class="btn small ghost" onclick="openSheet(${sIdx})">📜 Scheda dex</button>` : ''}
       <button class="btn danger small" style="margin-left:auto" onclick="removePkm('${p.id}')">Rimuovi</button>
     </div>
@@ -1567,6 +1874,17 @@ function endBattle(id, outcome){
     state.battles = state.battles.filter(x=>x.id!==id);
     save(); renderBattles(); return;
   }
+  if(outcome==='loss'){
+    const tl = state.trainers.find(t=>t.id===b.trainerId);
+    if(tl){ tl.stats.losses++; tl.stats.battles++; tl.stats.foes[b.species] = (tl.stats.foes[b.species]||0)+1; }
+    state.battles = state.battles.filter(x=>x.id!==id);
+    save(); renderAll();
+    showModal(`<h3>💀 Sconfitta</h3>
+      <p class="levelup-gain">${esc(b.species)} liv. ${b.level} ha avuto la meglio${tl?` su <b>${esc(tl.name)}</b>`:''}.</p>
+      <p class="hint">La sconfitta è finita nel record del giocatore. Cura la squadra e riprova!</p>
+      <button class="btn" onclick="closeModal()">OK</button>`);
+    return;
+  }
   const t = state.trainers.find(t=>t.id===b.trainerId);
   const mult = outcome==='capture' ? state.settings.captureMult : state.settings.defeatMult;
   const xpEach = Math.max(1, Math.round(b.level * mult));
@@ -1595,6 +1913,11 @@ function confirmEndBattle(id, outcome){
       const p = t.team.find(p=>p.id===pid);
       if(p) allUps = allUps.concat(applyXP(p, xpEach));
     }
+  }
+  if(t){
+    t.stats.battles++;
+    if(outcome==='capture') t.stats.captures++; else t.stats.wins++;
+    t.stats.foes[b.species] = (t.stats.foes[b.species]||0) + 1;
   }
   const capDex = document.getElementById('cap-dex');
   if(capDex && capDex.checked) state.caught[b.species] = true;
@@ -1669,7 +1992,8 @@ function renderBattles(){
       <div class="row">
         <button class="btn small" onclick="endBattle('${b.id}','defeat')">⚔ Sconfitto</button>
         <button class="btn small" onclick="endBattle('${b.id}','capture')">◓ Catturato</button>
-        <button class="btn ghost small" onclick="endBattle('${b.id}','fled')">💨 Fuggito / annulla</button>
+        <button class="btn ghost small" title="il giocatore ha perso la lotta" onclick="endBattle('${b.id}','loss')">💀 Ho perso</button>
+        <button class="btn ghost small" onclick="endBattle('${b.id}','fled')">💨 Fuggito</button>
       </div>
     </div>`;
   }).join('');
