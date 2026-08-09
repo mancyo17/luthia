@@ -145,6 +145,29 @@ th{color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase
 .hpbar i{display:block; height:100%; background:var(--ok); border-radius:99px}
 .xpbar{height:6px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden}
 .xpbar i{display:block; height:100%; background:var(--accent); border-radius:99px}
+/* i 4 slot delle mosse */
+.slots{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:7px; margin-top:6px}
+.slot{
+  border:1px solid var(--line); border-radius:11px; padding:8px 10px;
+  background:rgba(255,255,255,.03); display:flex; flex-direction:column; gap:3px;
+}
+.slot b{font-size:13.5px}
+.slot .x{margin-left:auto; cursor:pointer; color:var(--muted); font-size:14px}
+.slot .x:hover{color:var(--accent)}
+.slot-meta{font-size:11.5px; color:var(--muted)}
+.slot.empty{
+  border-style:dashed; align-items:center; justify-content:center; cursor:pointer;
+  color:var(--muted); font-size:12.5px; min-height:52px; text-align:center;
+}
+.slot.empty:hover{border-color:var(--accent); color:var(--accent)}
+.pickgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:8px}
+.pick{
+  border:1px solid var(--line); border-radius:11px; padding:8px 10px;
+  background:rgba(255,255,255,.02); cursor:pointer;
+}
+.pick:hover{border-color:var(--accent)}
+.pick.taken{opacity:.45; cursor:not-allowed}
+.pick.taken:hover{border-color:var(--line)}
 .moves{display:flex; gap:6px; flex-wrap:wrap}
 .move{
   font-size:12px; padding:3px 9px; border-radius:9px;
@@ -510,6 +533,10 @@ window.P5E = {"POKEMON":{"Abomasnow":{"n":460,"t":["Erb","Ghi"],"sr":10.0,"ac":1
   if(!window.P5E) return;
   const P = window.P5E;
 
+
+  /* MT: numero → mossa (dai datafiles P5e) */
+  P.TM = {"1": "Cuordileone", "2": "Dragartigli", "3": "Psicoshock", "4": "Calmamente", "5": "Boato", "6": "Tossina", "7": "Grandine", "8": "Granfisico", "9": "Velenoshock", "10": "Introforza", "11": "Giornodisole", "12": "Provocazione", "13": "Geloraggio", "14": "Bora", "15": "Iperraggio", "16": "Schermoluce", "17": "Protezione", "18": "Pioggiadanza", "19": "Trespolo", "20": "Salvaguardia", "21": "Frustrazione", "22": "Solarraggio", "23": "Abbattimento", "24": "Fulmine", "25": "Tuono", "26": "Terremoto", "27": "Ritorno", "28": "Sanguisuga", "29": "Psichico", "30": "Palla Ombra", "31": "Breccia", "32": "Doppioteam", "33": "Riflesso", "34": "Fangonda", "35": "Lanciafiamme", "36": "Fangobomba", "37": "Terrempesta", "38": "Fuocobomba", "39": "Rocciotomba", "40": "Aeroasso", "41": "Attaccalite", "42": "Facciata", "43": "Nitrocarica", "44": "Riposo", "45": "Attrazione", "46": "Furto", "47": "Calciobasso", "48": "Coro", "49": "Echeggiavoce", "50": "Vampata", "51": "Alacciaio", "52": "Focalcolpo", "53": "Energipalla", "54": "Falsofinale", "55": "Idrovampata", "56": "Lancio", "57": "Raggioscossa", "58": "Cadutalibera", "59": "Vorticolpo", "60": "Posticipo", "61": "Fuocofatuo", "62": "Acrobazia", "63": "Divieto", "64": "Esplosione", "65": "Ombrartigli", "66": "Ripicca", "67": "Sagacolpo", "68": "Gigaimpatto", "69": "Lucidatura", "70": "Velaurora", "71": "Pietrataglio", "72": "Invertivolt", "73": "Tuononda", "74": "Vortexpalla", "75": "Danzaspada", "76": "Volo", "77": "Psicamisù", "78": "Battiterra", "79": "Alitogelido", "80": "Frana", "81": "Forbice X", "82": "Codadrago", "83": "Assillo", "84": "Velenpuntura", "85": "Mangiasogni", "86": "Laccioerboso", "87": "Bullo", "88": "Sonnolalia", "89": "Retromarcia", "90": "Sostituto", "91": "Cannonflash", "92": "Distortozona", "93": "Sprizzalampo", "94": "Surf", "95": "Urlorabbia", "96": "Naturforza", "97": "Neropulsar", "98": "Cascata", "99": "Magibrillio", "100": "Confidenza"};
+
   /* abilità non presenti nel dex standard */
   Object.assign(P.ABIL, {
     'Testa di Ghiaccio':'La testa di ghiaccio assorbe interamente il primo attacco in mischia che colpisce questo Pokémon. Si riforma dopo un riposo breve o all\'inizio di una grandinata.',
@@ -628,6 +655,10 @@ window.P5E = {"POKEMON":{"Abomasnow":{"n":460,"t":["Erb","Ghi"],"sr":10.0,"ac":1
       mv:{s:['Ombra Notturna','Rafforzatore'],l:{10:['Palla Ombra','Idropulsar'],
         14:['Maledizione','Sciagura'],18:['Spettrotuffo']},tm:[]}}
   };
+
+
+  /* --- linee di gen 8/9 aggiunte in un secondo momento --- */
+  Object.assign(S, {"Grookey": {"n": 810, "t": ["Erb"], "sr": 0.5, "ac": 13, "hp": 17, "die": 6, "min": 1, "attr": {"FOR": 13, "DES": 13, "COS": 12, "INT": 8, "SAG": 10, "CAR": 12}, "ts": ["Forza"], "sk": ["Atletica"], "spd": "9 m", "size": "Piccolo", "ab": ["Erbaiuto"], "hab": "Erbogenesi", "mv": {"s": ["Graffio", "Ruggito"], "l": {"2": ["Frustata", "Rapigiro"], "6": ["Foglielama", "Bottintesta"], "10": ["Fendifoglia", "Schianto"], "14": ["Energipalla"], "18": ["Verdebufera"]}, "tm": []}, "ev": {"into": ["Thwackey"], "lv": 7, "pts": 10, "st": 1, "tot": 3}}, "Thwackey": {"n": 811, "t": ["Erb"], "sr": 3, "ac": 14, "hp": 35, "die": 8, "min": 3, "attr": {"FOR": 16, "DES": 15, "COS": 14, "INT": 8, "SAG": 11, "CAR": 13}, "ts": ["Forza"], "sk": ["Atletica", "Intrattenere"], "spd": "10,5 m", "size": "Medio", "ab": ["Erbaiuto"], "hab": "Erbogenesi", "mv": {"s": ["Frustata", "Rapigiro"], "l": {"6": ["Fendifoglia", "Bottintesta"], "10": ["Energipalla", "Schianto"], "14": ["Verdebufera"], "18": ["Mazzuolegno"]}, "tm": []}, "ev": {"into": ["Rillaboom"], "lv": 10, "pts": 12, "st": 1, "tot": 3}}, "Rillaboom": {"n": 812, "t": ["Erb"], "sr": 11, "ac": 16, "hp": 87, "die": 12, "min": 8, "attr": {"FOR": 19, "DES": 14, "COS": 17, "INT": 10, "SAG": 12, "CAR": 14}, "ts": ["Forza", "Costituzione"], "sk": ["Atletica", "Intrattenere"], "spd": "10,5 m", "size": "Grande", "ab": ["Erbaiuto"], "hab": "Erbogenesi", "mv": {"s": ["Fendifoglia", "Schianto"], "l": {"10": ["Energipalla", "Mazzuolegno"], "14": ["Verdebufera", "Terremoto"], "18": ["Radicalbero", "Gigaimpatto"]}, "tm": []}}, "Scorbunny": {"n": 813, "t": ["Fuo"], "sr": 0.5, "ac": 14, "hp": 16, "die": 6, "min": 1, "attr": {"FOR": 12, "DES": 16, "COS": 11, "INT": 8, "SAG": 10, "CAR": 12}, "ts": ["Destrezza"], "sk": ["Acrobazia"], "spd": "12 m", "size": "Piccolo", "ab": ["Aiutofuoco"], "hab": "Fuocardore", "mv": {"s": ["Azione", "Ruggito"], "l": {"2": ["Braci", "Attacco Rapido"], "6": ["Ruotafuoco", "Doppiocalcio"], "10": ["Nitrocarica", "Calcinvolo"], "14": ["Lanciafiamme"], "18": ["Fuococarica"]}, "tm": []}, "ev": {"into": ["Raboot"], "lv": 7, "pts": 10, "st": 1, "tot": 3}}, "Raboot": {"n": 814, "t": ["Fuo"], "sr": 4, "ac": 15, "hp": 34, "die": 8, "min": 3, "attr": {"FOR": 15, "DES": 18, "COS": 13, "INT": 8, "SAG": 11, "CAR": 12}, "ts": ["Destrezza"], "sk": ["Acrobazia", "Atletica"], "spd": "13,5 m", "size": "Medio", "ab": ["Aiutofuoco"], "hab": "Fuocardore", "mv": {"s": ["Braci", "Attacco Rapido"], "l": {"6": ["Ruotafuoco", "Doppiocalcio"], "10": ["Nitrocarica", "Calcinvolo"], "14": ["Lanciafiamme"], "18": ["Fuococarica"]}, "tm": []}, "ev": {"into": ["Cinderace"], "lv": 10, "pts": 12, "st": 1, "tot": 3}}, "Cinderace": {"n": 815, "t": ["Fuo"], "sr": 11, "ac": 18, "hp": 84, "die": 10, "min": 8, "attr": {"FOR": 17, "DES": 20, "COS": 15, "INT": 10, "SAG": 12, "CAR": 14}, "ts": ["Destrezza", "Forza"], "sk": ["Acrobazia", "Atletica"], "spd": "15 m", "size": "Medio", "ab": ["Aiutofuoco"], "hab": "Fuocardore", "mv": {"s": ["Nitrocarica", "Attacco Rapido"], "l": {"10": ["Lanciafiamme", "Calcinvolo"], "14": ["Fuococarica", "Zuffa"], "18": ["Vampata", "Gigaimpatto"]}, "tm": []}}, "Sobble": {"n": 816, "t": ["Acq"], "sr": 0.5, "ac": 13, "hp": 16, "die": 6, "min": 1, "attr": {"FOR": 10, "DES": 15, "COS": 11, "INT": 10, "SAG": 12, "CAR": 12}, "ts": ["Destrezza"], "sk": ["Furtività"], "spd": "9 m, nuoto 9 m", "size": "Piccolo", "ab": ["Acquaiuto"], "hab": "Idrovoce", "mv": {"s": ["Azione", "Colpocoda"], "l": {"2": ["Pistolacqua", "Furtivombra"], "6": ["Bollaraggio", "Finta"], "10": ["Idropulsar", "Acquagetto"], "14": ["Idropompa"], "18": ["Idrobreccia"]}, "tm": []}, "ev": {"into": ["Drizzile"], "lv": 7, "pts": 10, "st": 1, "tot": 3}}, "Drizzile": {"n": 817, "t": ["Acq"], "sr": 3, "ac": 15, "hp": 34, "die": 8, "min": 3, "attr": {"FOR": 12, "DES": 17, "COS": 13, "INT": 12, "SAG": 13, "CAR": 13}, "ts": ["Destrezza"], "sk": ["Furtività", "Inganno"], "spd": "10,5 m, nuoto 10,5 m", "size": "Medio", "ab": ["Acquaiuto"], "hab": "Idrovoce", "mv": {"s": ["Pistolacqua", "Furtivombra"], "l": {"6": ["Bollaraggio", "Finta"], "10": ["Idropulsar", "Acquagetto"], "14": ["Idropompa"], "18": ["Idrobreccia"]}, "tm": []}, "ev": {"into": ["Inteleon"], "lv": 10, "pts": 12, "st": 1, "tot": 3}}, "Inteleon": {"n": 818, "t": ["Acq"], "sr": 11, "ac": 18, "hp": 82, "die": 10, "min": 8, "attr": {"FOR": 13, "DES": 20, "COS": 14, "INT": 15, "SAG": 14, "CAR": 14}, "ts": ["Destrezza", "Intelligenza"], "sk": ["Furtività", "Percezione"], "spd": "12 m, nuoto 13,5 m", "size": "Medio", "ab": ["Acquaiuto"], "hab": "Cecchino", "mv": {"s": ["Idropulsar", "Acquagetto"], "l": {"10": ["Idropompa", "Idrobreccia"], "14": ["Neropulsar", "Acqualame"], "18": ["Idrocannone", "Iperraggio"]}, "tm": []}}, "Sprigatito": {"n": 906, "t": ["Erb"], "sr": 0.5, "ac": 14, "hp": 16, "die": 6, "min": 1, "attr": {"FOR": 11, "DES": 16, "COS": 11, "INT": 10, "SAG": 12, "CAR": 14}, "ts": ["Destrezza"], "sk": ["Acrobazia", "Furtività"], "spd": "10,5 m", "size": "Piccolo", "ab": ["Erbaiuto"], "hab": "Mangiaerba", "mv": {"s": ["Graffio", "Fascino"], "l": {"2": ["Foglielama", "Attacco Rapido"], "6": ["Fogliamagica", "Finta"], "10": ["Fendifoglia", "Lacerazione"], "14": ["Energipalla"], "18": ["Verdebufera"]}, "tm": []}, "ev": {"into": ["Floragato"], "lv": 7, "pts": 10, "st": 1, "tot": 3}}, "Floragato": {"n": 907, "t": ["Erb"], "sr": 3, "ac": 15, "hp": 34, "die": 8, "min": 3, "attr": {"FOR": 14, "DES": 18, "COS": 13, "INT": 11, "SAG": 12, "CAR": 15}, "ts": ["Destrezza"], "sk": ["Acrobazia", "Furtività"], "spd": "12 m", "size": "Medio", "ab": ["Erbaiuto"], "hab": "Mangiaerba", "mv": {"s": ["Foglielama", "Attacco Rapido"], "l": {"6": ["Fogliamagica", "Finta"], "10": ["Fendifoglia", "Lacerazione"], "14": ["Energipalla"], "18": ["Verdebufera"]}, "tm": []}, "ev": {"into": ["Meowscarada"], "lv": 10, "pts": 12, "st": 1, "tot": 3}}, "Meowscarada": {"n": 908, "t": ["Erb", "Bui"], "sr": 11, "ac": 18, "hp": 82, "die": 10, "min": 8, "attr": {"FOR": 16, "DES": 20, "COS": 14, "INT": 13, "SAG": 13, "CAR": 17}, "ts": ["Destrezza", "Carisma"], "sk": ["Acrobazia", "Furtività", "Inganno"], "spd": "13,5 m", "size": "Medio", "ab": ["Erbaiuto"], "hab": "Prestigiatore", "mv": {"s": ["Fendifoglia", "Lacerazione"], "l": {"10": ["Energipalla", "Nottesferza"], "14": ["Verdebufera", "Neropulsar"], "18": ["Radicalbero", "Furtombra"]}, "tm": []}}, "Fuecoco": {"n": 909, "t": ["Fuo"], "sr": 0.5, "ac": 13, "hp": 18, "die": 6, "min": 1, "attr": {"FOR": 13, "DES": 10, "COS": 15, "INT": 10, "SAG": 11, "CAR": 14}, "ts": ["Costituzione"], "sk": ["Intrattenere"], "spd": "7,5 m", "size": "Piccolo", "ab": ["Aiutofuoco"], "hab": "Antiproiettile", "mv": {"s": ["Azione", "Ruggito"], "l": {"2": ["Braci", "Morso"], "6": ["Pirosfera", "Sgranocchio"], "10": ["Lanciafiamme", "Corposcontro"], "14": ["Vampata"], "18": ["Fuocobomba"]}, "tm": []}, "ev": {"into": ["Crocalor"], "lv": 7, "pts": 10, "st": 1, "tot": 3}}, "Crocalor": {"n": 910, "t": ["Fuo"], "sr": 3, "ac": 14, "hp": 36, "die": 10, "min": 3, "attr": {"FOR": 15, "DES": 11, "COS": 17, "INT": 12, "SAG": 12, "CAR": 16}, "ts": ["Costituzione"], "sk": ["Intrattenere", "Intimidire"], "spd": "9 m", "size": "Medio", "ab": ["Aiutofuoco"], "hab": "Antiproiettile", "mv": {"s": ["Braci", "Morso"], "l": {"6": ["Pirosfera", "Sgranocchio"], "10": ["Lanciafiamme", "Corposcontro"], "14": ["Vampata"], "18": ["Fuocobomba"]}, "tm": []}, "ev": {"into": ["Skeledirge"], "lv": 10, "pts": 12, "st": 1, "tot": 3}}, "Skeledirge": {"n": 911, "t": ["Fuo", "Spe"], "sr": 11, "ac": 17, "hp": 90, "die": 12, "min": 8, "attr": {"FOR": 17, "DES": 11, "COS": 19, "INT": 13, "SAG": 14, "CAR": 18}, "ts": ["Costituzione", "Carisma"], "sk": ["Intrattenere", "Intimidire"], "spd": "9 m", "size": "Grande", "ab": ["Aiutofuoco"], "hab": "Antiproiettile", "mv": {"s": ["Lanciafiamme", "Ombra Notturna"], "l": {"10": ["Vampata", "Palla Ombra"], "14": ["Fuocobomba", "Sciagura"], "18": ["Incendio", "Spettrotuffo"]}, "tm": []}}, "Quaxly": {"n": 912, "t": ["Acq"], "sr": 0.5, "ac": 13, "hp": 17, "die": 6, "min": 1, "attr": {"FOR": 12, "DES": 15, "COS": 12, "INT": 9, "SAG": 11, "CAR": 14}, "ts": ["Destrezza"], "sk": ["Intrattenere", "Acrobazia"], "spd": "9 m, nuoto 9 m", "size": "Piccolo", "ab": ["Acquaiuto"], "hab": "Sincrodanza", "mv": {"s": ["Azione", "Fascino"], "l": {"2": ["Pistolacqua", "Beccata"], "6": ["Bollaraggio", "Attacco d'Ala"], "10": ["Idropulsar", "Aeroasso"], "14": ["Acquacoda"], "18": ["Idrobreccia"]}, "tm": []}, "ev": {"into": ["Quaxwell"], "lv": 7, "pts": 10, "st": 1, "tot": 3}}, "Quaxwell": {"n": 913, "t": ["Acq"], "sr": 4, "ac": 15, "hp": 35, "die": 8, "min": 3, "attr": {"FOR": 15, "DES": 17, "COS": 14, "INT": 10, "SAG": 12, "CAR": 15}, "ts": ["Destrezza"], "sk": ["Intrattenere", "Acrobazia"], "spd": "10,5 m, nuoto 12 m", "size": "Medio", "ab": ["Acquaiuto"], "hab": "Sincrodanza", "mv": {"s": ["Pistolacqua", "Beccata"], "l": {"6": ["Bollaraggio", "Attacco d'Ala"], "10": ["Idropulsar", "Aeroasso"], "14": ["Acquacoda"], "18": ["Idrobreccia"]}, "tm": []}, "ev": {"into": ["Quaquaval"], "lv": 10, "pts": 12, "st": 1, "tot": 3}}, "Quaquaval": {"n": 914, "t": ["Acq", "Lot"], "sr": 11, "ac": 17, "hp": 84, "die": 10, "min": 8, "attr": {"FOR": 19, "DES": 18, "COS": 15, "INT": 11, "SAG": 13, "CAR": 17}, "ts": ["Forza", "Destrezza"], "sk": ["Intrattenere", "Acrobazia", "Atletica"], "spd": "12 m, nuoto 13,5 m", "size": "Grande", "ab": ["Acquaiuto"], "hab": "Sincrodanza", "mv": {"s": ["Idropulsar", "Aeroasso"], "l": {"10": ["Acquacoda", "Calciobasso"], "14": ["Idrobreccia", "Zuffa"], "18": ["Idrocannone", "Baldeali"]}, "tm": []}}, "Dreepy": {"n": 885, "t": ["Dra", "Spe"], "sr": 0.5, "ac": 13, "hp": 16, "die": 6, "min": 1, "attr": {"FOR": 9, "DES": 14, "COS": 10, "INT": 10, "SAG": 12, "CAR": 10}, "ts": ["Destrezza"], "sk": ["Furtività"], "spd": "7,5 m", "size": "Minuscolo", "ab": ["Fantasmanto"], "hab": "Fuocodentro", "mv": {"s": ["Attacco Rapido", "Furtivombra"], "l": {"2": ["Dragospiro", "Ombra Notturna"], "6": ["Dragartigli", "Palla Ombra"], "10": ["Dragopulsar"], "14": ["Spettrotuffo"], "18": ["Oltraggio"]}, "tm": []}, "ev": {"into": ["Drakloak"], "lv": 8, "pts": 10, "st": 1, "tot": 3}}, "Drakloak": {"n": 886, "t": ["Dra", "Spe"], "sr": 3, "ac": 15, "hp": 34, "die": 8, "min": 3, "attr": {"FOR": 13, "DES": 18, "COS": 13, "INT": 13, "SAG": 13, "CAR": 12}, "ts": ["Destrezza"], "sk": ["Furtività", "Percezione"], "spd": "12 m, volo 12 m", "size": "Medio", "ab": ["Fantasmanto"], "hab": "Fuocodentro", "mv": {"s": ["Dragospiro", "Furtivombra"], "l": {"6": ["Dragartigli", "Palla Ombra"], "10": ["Dragopulsar", "Psicoraggio"], "14": ["Spettrotuffo"], "18": ["Oltraggio"]}, "tm": []}, "ev": {"into": ["Dragapult"], "lv": 12, "pts": 12, "st": 1, "tot": 3}}, "Dragapult": {"n": 887, "t": ["Dra", "Spe"], "sr": 12, "ac": 18, "hp": 84, "die": 10, "min": 8, "attr": {"FOR": 17, "DES": 22, "COS": 15, "INT": 15, "SAG": 14, "CAR": 13}, "ts": ["Destrezza", "Saggezza"], "sk": ["Furtività", "Percezione", "Acrobazia"], "spd": "15 m, volo 15 m", "size": "Grande", "ab": ["Fantasmanto"], "hab": "Cecchino", "mv": {"s": ["Dragartigli", "Furtivombra"], "l": {"10": ["Dragopulsar", "Palla Ombra"], "14": ["Spettrotuffo", "Extrarapido"], "18": ["Oltraggio", "Dragobolide"]}, "tm": []}}, "Frigibax": {"n": 996, "t": ["Dra", "Ghi"], "sr": 0.5, "ac": 13, "hp": 17, "die": 6, "min": 1, "attr": {"FOR": 14, "DES": 11, "COS": 13, "INT": 8, "SAG": 10, "CAR": 10}, "ts": ["Costituzione"], "sk": ["Sopravvivenza"], "spd": "9 m", "size": "Piccolo", "ab": ["Antifuoco"], "hab": "Corpogelo", "mv": {"s": ["Azione", "Fulmisguardo"], "l": {"2": ["Dragospiro", "Polneve"], "6": ["Dragartigli", "Gelodente"], "10": ["Geloraggio"], "14": ["Dragopulsar"], "18": ["Bora"]}, "tm": []}, "ev": {"into": ["Arctibax"], "lv": 8, "pts": 10, "st": 1, "tot": 3}}, "Arctibax": {"n": 997, "t": ["Dra", "Ghi"], "sr": 3, "ac": 14, "hp": 36, "die": 8, "min": 3, "attr": {"FOR": 17, "DES": 12, "COS": 16, "INT": 9, "SAG": 11, "CAR": 11}, "ts": ["Costituzione", "Forza"], "sk": ["Sopravvivenza", "Atletica"], "spd": "10,5 m", "size": "Medio", "ab": ["Antifuoco"], "hab": "Corpogelo", "mv": {"s": ["Dragospiro", "Polneve"], "l": {"6": ["Dragartigli", "Gelodente"], "10": ["Geloraggio", "Capocciata"], "14": ["Dragopulsar"], "18": ["Bora"]}, "tm": []}, "ev": {"into": ["Baxcalibur"], "lv": 12, "pts": 12, "st": 1, "tot": 3}}, "Baxcalibur": {"n": 998, "t": ["Dra", "Ghi"], "sr": 11, "ac": 17, "hp": 90, "die": 12, "min": 8, "attr": {"FOR": 21, "DES": 13, "COS": 19, "INT": 10, "SAG": 12, "CAR": 12}, "ts": ["Forza", "Costituzione"], "sk": ["Atletica", "Sopravvivenza"], "spd": "12 m", "size": "Grande", "ab": ["Antifuoco"], "hab": "Corpogelo", "mv": {"s": ["Dragartigli", "Gelodente"], "l": {"10": ["Geloraggio", "Dragopulsar"], "14": ["Bora", "Sdoppiatore"], "18": ["Oltraggio", "Purogelo"]}, "tm": []}}, "Rookidee": {"n": 821, "t": ["Vol"], "sr": 0.5, "ac": 13, "hp": 16, "die": 6, "min": 1, "attr": {"FOR": 11, "DES": 15, "COS": 11, "INT": 8, "SAG": 12, "CAR": 10}, "ts": ["Destrezza"], "sk": ["Percezione"], "spd": "6 m, volo 10,5 m", "size": "Minuscolo", "ab": ["Sguardofermo"], "hab": "Beccoforte", "mv": {"s": ["Beccata", "Fulmisguardo"], "l": {"2": ["Attacco d'Ala", "Raffica"], "6": ["Aeroasso", "Furia"], "10": ["Baldeali"], "14": ["Aerasoio"], "18": ["Baldeali"]}, "tm": []}, "ev": {"into": ["Corvisquire"], "lv": 7, "pts": 9, "st": 1, "tot": 3}}, "Corvisquire": {"n": 822, "t": ["Vol"], "sr": 3, "ac": 15, "hp": 34, "die": 8, "min": 3, "attr": {"FOR": 14, "DES": 17, "COS": 13, "INT": 10, "SAG": 13, "CAR": 11}, "ts": ["Destrezza"], "sk": ["Percezione", "Acrobazia"], "spd": "7,5 m, volo 13,5 m", "size": "Medio", "ab": ["Sguardofermo"], "hab": "Beccoforte", "mv": {"s": ["Attacco d'Ala", "Raffica"], "l": {"6": ["Aeroasso", "Furia"], "10": ["Aerasoio", "Sgomento"], "14": ["Baldeali"], "18": ["Tifone"]}, "tm": []}, "ev": {"into": ["Corviknight"], "lv": 11, "pts": 12, "st": 1, "tot": 3}}, "Corviknight": {"n": 823, "t": ["Vol", "Acc"], "sr": 11, "ac": 17, "hp": 88, "die": 12, "min": 8, "attr": {"FOR": 18, "DES": 15, "COS": 18, "INT": 11, "SAG": 14, "CAR": 12}, "ts": ["Forza", "Costituzione"], "sk": ["Percezione", "Intimidire"], "spd": "9 m, volo 15 m", "size": "Grande", "ab": ["Pressione"], "hab": "Fumochiaro", "mv": {"s": ["Aerasoio", "Ferrartigli"], "l": {"10": ["Alacciaio", "Baldeali"], "14": ["Metaltestata", "Tifone"], "18": ["Cannonflash", "Baldeali"]}, "tm": []}}, "Impidimp": {"n": 859, "t": ["Bui", "Fol"], "sr": 0.5, "ac": 13, "hp": 16, "die": 6, "min": 1, "attr": {"FOR": 11, "DES": 13, "COS": 11, "INT": 12, "SAG": 10, "CAR": 15}, "ts": ["Carisma"], "sk": ["Inganno", "Furtività"], "spd": "9 m", "size": "Piccolo", "ab": ["Burla"], "hab": "Fugascudo", "mv": {"s": ["Azione", "Provocazione"], "l": {"2": ["Finta", "Vento di Fata"], "6": ["Nottesferza", "Carineria"], "10": ["Neropulsar", "Magibrillio"], "14": ["Sgranocchio"], "18": ["Forzaluna"]}, "tm": []}, "ev": {"into": ["Morgrem"], "lv": 8, "pts": 10, "st": 1, "tot": 3}}, "Morgrem": {"n": 860, "t": ["Bui", "Fol"], "sr": 3, "ac": 14, "hp": 34, "die": 8, "min": 3, "attr": {"FOR": 14, "DES": 15, "COS": 13, "INT": 13, "SAG": 11, "CAR": 16}, "ts": ["Carisma"], "sk": ["Inganno", "Furtività"], "spd": "10,5 m", "size": "Medio", "ab": ["Burla"], "hab": "Fugascudo", "mv": {"s": ["Finta", "Vento di Fata"], "l": {"6": ["Nottesferza", "Carineria"], "10": ["Neropulsar", "Magibrillio"], "14": ["Sgranocchio"], "18": ["Forzaluna"]}, "tm": []}, "ev": {"into": ["Grimmsnarl"], "lv": 12, "pts": 12, "st": 1, "tot": 3}}, "Grimmsnarl": {"n": 861, "t": ["Bui", "Fol"], "sr": 11, "ac": 16, "hp": 87, "die": 12, "min": 8, "attr": {"FOR": 19, "DES": 15, "COS": 17, "INT": 13, "SAG": 12, "CAR": 18}, "ts": ["Forza", "Carisma"], "sk": ["Atletica", "Inganno", "Intimidire"], "spd": "12 m", "size": "Grande", "ab": ["Burla"], "hab": "Fugascudo", "mv": {"s": ["Nottesferza", "Carineria"], "l": {"10": ["Neropulsar", "Magibrillio"], "14": ["Sgranocchio", "Forzaluna"], "18": ["Zuffa", "Urlorabbia"]}, "tm": []}}});
 
   /* dimensioni per la scheda (altezza in dm, peso in hg, come nel dex) */
   const EX = {848:[4,110],849:[16,400],872:[3,38],873:[13,420],840:[2,5],841:[3,10],842:[4,130],
@@ -1171,6 +1202,7 @@ function migrateTrainer(t){
     p.ts = p.ts || ''; p.speed = p.speed || ''; p.vul = p.vul || ''; p.res = p.res || '';
     p.ability = p.ability || ''; p.abNames = p.abNames || [];
     p.uses = p.uses || 0;
+    if(!Array.isArray(p.slots)) p.slots = autoSlots(p);
   }
   if(!t.starter && t.team.length) t.starter = t.team[0].id;
   return t;
@@ -1641,6 +1673,7 @@ function addPokemon(trainer, species, types, level){
   if(p.level < p.minLevel) p.level = p.minLevel;
   p.curPF = maxPF(p);
   p.uses = 0;
+  p.slots = autoSlots(p);
   trainer.team.push(p);
   if(!trainer.starter) trainer.starter = p.id;
   save(); renderSquad();
@@ -1692,6 +1725,148 @@ function setStarter(pid){
   const [t,p] = findPkm(pid); if(!p) return;
   t.starter = (t.starter===pid) ? null : pid;
   save(); renderSquad();
+}
+
+/* --- i 4 slot delle mosse (come nei giochi) --- */
+
+const MAX_SLOTS = 4;
+
+function learnedMoves(p){
+  return (p.moves||[]).filter(m => m.lv <= p.level).map(m => m.name);
+}
+function tmMoves(p){
+  const d = p5data(p.species);
+  if(!d || !P5 || !P5.TM) return [];
+  return [...new Set((d.mv.tm||[]).map(n => P5.TM[n]).filter(Boolean))];
+}
+function autoSlots(p){
+  const known = (p.moves||[]).filter(m => m.lv <= p.level)
+    .sort((a,b) => a.lv - b.lv).map(m => m.name);
+  return [...new Set(known)].slice(-MAX_SLOTS);
+}
+
+function openSlotPicker(pid, idx){
+  const [,p] = findPkm(pid); if(!p) return;
+  const cur = (p.slots||[])[idx];
+  const inUse = new Set((p.slots||[]).filter((m,i)=>i!==idx && m));
+  const chip = (name, extra) => {
+    const md = findMoveData(name);
+    const col = md && TYPES[md.t] ? TYPES[md.t].c : 'var(--line)';
+    const taken = inUse.has(name);
+    return `<div class="pick ${taken?'taken':''}" style="border-left:4px solid ${col}"
+      ${taken?'title="è già in un altro slot"':`onclick="setSlot('${pid}',${idx},'${esc(name).replace(/'/g,"\\'")}')"`}>
+      <div class="row" style="gap:6px"><b>${esc(name)}</b>
+        ${md?`<span class="type-chip" style="background:${TYPES[md.t].c}">${TYPES[md.t].n}</span>`:''}
+        ${taken?'<span class="mini">già in uso</span>':''}${extra||''}</div>
+      ${md?`<div class="slot-meta">${md.dmg?'🎲 '+esc(Object.values(md.dmg)[0])+' · ':''}PP ${md.pp||'—'} · ${esc(String(md.desc||'').slice(0,70))}…</div>`:''}
+    </div>`;
+  };
+
+  const learned = learnedMoves(p).filter(m => m !== cur);
+  const tms = tmMoves(p).filter(m => !learned.includes(m) && m !== cur);
+  const future = (p.moves||[]).filter(m => m.lv > p.level);
+
+  showModal(`<div class="sheet">
+    <h3>Slot ${idx+1} di ${esc(p.nick)}</h3>
+    ${cur?`<p class="hint" style="margin:0">Ora c'è <b>${esc(cur)}</b>: scegli la mossa che la sostituisce.</p>`
+         :`<p class="hint" style="margin:0">Scegli fra le mosse che ${esc(p.nick)} può usare.</p>`}
+    <h4 style="margin:12px 0 6px; font-size:12px; color:var(--muted); letter-spacing:.4px">MOSSE GIÀ IMPARATE</h4>
+    <div class="pickgrid">${learned.map(m=>chip(m)).join('') ||
+      '<p class="hint" style="margin:0">Nessuna ancora: ne imparerà salendo di livello.</p>'}</div>
+    ${tms.length?`<h4 style="margin:14px 0 6px; font-size:12px; color:var(--muted); letter-spacing:.4px">INSEGNABILI CON UNA MT</h4>
+      <div class="pickgrid">${tms.map(m=>chip(m,'<span class="mini">MT</span>')).join('')}</div>`:''}
+    ${future.length?`<p class="hint" style="margin-top:12px">Imparerà salendo di livello: ${
+      future.slice(0,8).map(m=>`${esc(m.name)} (liv. ${m.lv})`).join(' · ')}${future.length>8?'…':''}</p>`:''}
+    <div class="mrow">
+      ${cur?`<button class="btn danger" onclick="clearSlot('${pid}',${idx})">Svuota lo slot</button>`:''}
+      <button class="btn ghost" onclick="openCustomMove('${pid}',${idx})">✏️ Mossa personalizzata</button>
+      <button class="btn ghost" onclick="closeModal()">Annulla</button>
+    </div>
+  </div>`);
+}
+
+function setSlot(pid, idx, name){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.slots = p.slots || [];
+  while(p.slots.length <= idx) p.slots.push(null);
+  p.slots[idx] = name;
+  p.slots = p.slots.slice(0, MAX_SLOTS);
+  if(!(p.moves||[]).some(m => m.name === name)) p.moves.push({name, lv:p.level, tm:true});
+  save(); closeModal(); renderSquad();
+}
+function clearSlot(pid, idx){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.slots[idx] = null;
+  while(p.slots.length && !p.slots[p.slots.length-1]) p.slots.pop();
+  save(); closeModal(); renderSquad();
+}
+function openCustomMove(pid, idx){
+  showModal(`<h3>Mossa personalizzata</h3>
+    <p class="hint">Per le mosse della tua campagna che non stanno nel dex: il GM può assegnarne una qualsiasi.</p>
+    <div class="mrow"><input id="cm-name" list="movelist" style="width:230px" placeholder="nome della mossa"/></div>
+    <div class="mrow">
+      <button class="btn" onclick="confirmCustomMove('${pid}',${idx})">Metti nello slot</button>
+      <button class="btn ghost" onclick="openSlotPicker('${pid}',${idx})">← Indietro</button>
+    </div>`);
+  setTimeout(()=>document.getElementById('cm-name').focus(),50);
+}
+function confirmCustomMove(pid, idx){
+  const n = document.getElementById('cm-name').value.trim();
+  if(n) setSlot(pid, idx, n);
+}
+
+function openTMTeach(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const tms = tmMoves(p);
+  if(!tms.length){
+    showModal(`<h3>📀 Nessuna MT compatibile</h3>
+      <p class="hint">Il dex non elenca MT per ${esc(p.species||p.nick)} (capita con le specie aggiunte a mano). Puoi comunque mettere qualsiasi mossa in uno slot con «✏️ Mossa personalizzata».</p>
+      <button class="btn" onclick="closeModal()">OK</button>`);
+    return;
+  }
+  const inUse = new Set(p.slots||[]);
+  showModal(`<div class="sheet">
+    <h3>📀 MT compatibili con ${esc(p.nick)}</h3>
+    <p class="hint">La mossa va in uno slot libero; se sono pieni ti chiedo quale sostituire.</p>
+    <div class="pickgrid">${tms.map(m => {
+      const md = findMoveData(m);
+      const col = md && TYPES[md.t] ? TYPES[md.t].c : 'var(--line)';
+      return `<div class="pick ${inUse.has(m)?'taken':''}" style="border-left:4px solid ${col}"
+        ${inUse.has(m)?'title="già in uso"':`onclick="teachTM('${pid}','${esc(m).replace(/'/g,"\\'")}')"`}>
+        <div class="row" style="gap:6px"><b>${esc(m)}</b>
+          ${md?`<span class="type-chip" style="background:${TYPES[md.t].c}">${TYPES[md.t].n}</span>`:''}
+          ${inUse.has(m)?'<span class="mini">in uso</span>':''}</div>
+      </div>`;
+    }).join('')}</div>
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Chiudi</button></div>
+  </div>`);
+}
+function teachTM(pid, name){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.slots = p.slots || [];
+  const free = p.slots.findIndex(x => !x);
+  if(free >= 0) return setSlot(pid, free, name);
+  if(p.slots.length < MAX_SLOTS) return setSlot(pid, p.slots.length, name);
+  askReplaceMove(pid, name);
+}
+
+function askReplaceMove(pid, name){
+  const [,p] = findPkm(pid); if(!p) return;
+  showModal(`<div class="sheet">
+    <h3>✨ ${esc(p.nick)} vuole imparare ${esc(name)}!</h3>
+    <p class="hint">Ha già 4 mosse in uso: quale lascia? (Resta comunque nell'elenco di quelle che sa fare.)</p>
+    <div class="pickgrid">${(p.slots||[]).map((m,i) => {
+      const md = findMoveData(m);
+      const col = md && TYPES[md.t] ? TYPES[md.t].c : 'var(--line)';
+      return `<div class="pick" style="border-left:4px solid ${col}"
+        onclick="setSlot('${pid}',${i},'${esc(name).replace(/'/g,"\\'")}')">
+        <div class="row" style="gap:6px"><b>${esc(m)}</b>
+          ${md?`<span class="type-chip" style="background:${TYPES[md.t].c}">${TYPES[md.t].n}</span>`:''}
+          <span class="mini" style="margin-left:auto">sostituisci</span></div>
+      </div>`;
+    }).join('')}</div>
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Non impararla ora</button></div>
+  </div>`);
 }
 
 /* --- mosse --- */
@@ -1793,9 +1968,26 @@ function levelUpRows(ups){
 }
 function showLevelUpModal(p, ups, xpGained, mode){
   const head = xpGained ? `<p class="hint">${mode==='capture'?'Cattura':'Vittoria'}: +${xpGained} XP</p>` : '';
+  const learned = [...new Set(ups.flatMap(u => u.newMoves||[]))]
+    .filter(m => !(p.slots||[]).includes(m));
+  const learnBtns = learned.length
+    ? `<p class="hint" style="margin-top:10px">Mettile in uso (ha ${MAX_SLOTS} slot):</p>
+       <div class="mrow">${learned.map(m =>
+         `<button class="btn" onclick="learnNewMove('${p.id}','${esc(m).replace(/'/g,"\\'")}')">✨ Impara ${esc(m)}</button>`).join('')}</div>`
+    : '';
   showModal(`<h3>🎉 Livello superato!</h3>${head}${levelUpRows(ups)}
     <p class="hint">XP attuali: ${p.xp} / ${xpNeed(p)}</p>
-    <button class="btn" onclick="closeModal()">Fantastico</button>`);
+    ${learnBtns}
+    <button class="btn ghost" onclick="closeModal()">${learned.length?'Più tardi':'Fantastico'}</button>`);
+}
+/* mette la mossa appena imparata in uno slot libero, o chiede quale sostituire */
+function learnNewMove(pid, name){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.slots = p.slots || [];
+  const free = p.slots.findIndex(x => !x);
+  if(free >= 0) return setSlot(pid, free, name);
+  if(p.slots.length < MAX_SLOTS) return setSlot(pid, p.slots.length, name);
+  askReplaceMove(pid, name);
 }
 
 function evolvePkm(pid){
@@ -1999,7 +2191,7 @@ function shareCode(t){
     bag:t.bag,
     team:t.team.map(p=>({nick:p.nick, species:p.species, types:p.types, level:p.level,
       pf:p.curPF, pfMax:maxPF(p), item:p.item, nature:p.nature, uses:p.uses||0,
-      moves:p.moves.filter(m=>m.lv<=p.level).map(m=>m.name)}))
+      moves:(p.slots||[]).filter(Boolean)}))
   };
   return 'AETHERA1:' + btoa(unescape(encodeURIComponent(JSON.stringify(light))));
 }
@@ -2244,12 +2436,37 @@ function renderPkm(p){
   const natEff = NATURES[p.nature];
   const natLabel = natEff ? Object.entries(natEff).map(([k,v])=>`${fmtMod(v)} ${k}`).join(' ') : '';
 
-  const moves = p.moves.map((m,i) => {
+  const slots = [0,1,2,3].map(i => {
+    const name = (p.slots||[])[i];
+    if(!name) return `<div class="slot empty" onclick="openSlotPicker('${p.id}',${i})">
+        <span>+ scegli una mossa</span></div>`;
+    const md = findMoveData(name);
+    const col = md && TYPES[md.t] ? TYPES[md.t].c : 'var(--line)';
+    const used = (t0 && t0.stats.moves[name]) || 0;
+    let dmg = '';
+    if(md && md.dmg){
+      const tiers = Object.keys(md.dmg).map(Number).sort((a,b)=>a-b);
+      const cur = tiers.filter(x=>x<=p.level).pop() ?? tiers[0];
+      dmg = md.dmg[cur];
+    }
+    return `<div class="slot" style="border-left:4px solid ${col}">
+      <div class="row" style="gap:6px">
+        <b onclick="openMoveInfo('${esc(name).replace(/'/g,"\\'")}',${p.level},'${p.id}')" style="cursor:pointer">${esc(name)}</b>
+        ${md?`<span class="type-chip" style="background:${TYPES[md.t].c}">${TYPES[md.t].n}</span>`:''}
+        <span class="x" title="cambia mossa" onclick="openSlotPicker('${p.id}',${i})">⇄</span>
+      </div>
+      <div class="slot-meta">${dmg?`🎲 ${esc(dmg)} · `:''}${md?`PP ${md.pp||'—'} · ${esc(md.rng||'')}`:'mossa personalizzata'}${used?` · usata ×${used}`:''}</div>
+    </div>`;
+  }).join('');
+
+  const learnset = p.moves.map(m => {
+    const inUse = (p.slots||[]).includes(m.name);
     const locked = m.lv > p.level;
     const md = findMoveData(m.name);
     const col = md && TYPES[md.t] ? TYPES[md.t].c : 'transparent';
-    const used = (t0 && t0.stats.moves[m.name]) || 0;
-    return `<span class="move ${locked?'locked':''}" style="border-left:3px solid ${col}" title="dal livello ${m.lv} — clic per dettagli" onclick="openMoveInfo('${esc(m.name).replace(/'/g,"\\'")}',${p.level},'${p.id}')">${esc(m.name)} <small style="opacity:.6">liv.${m.lv}${used?` · ×${used}`:''}</small><span class="x" title="rimuovi" onclick="delMove('${p.id}',${i},event)">×</span></span>`;
+    return `<span class="move ${locked?'locked':''}" style="border-left:3px solid ${col}${inUse?'; border-color:var(--accent)':''}"
+      title="${locked?`si impara al livello ${m.lv}`:'clic per i dettagli'}"
+      onclick="openMoveInfo('${esc(m.name).replace(/'/g,"\\'")}',${p.level},'${p.id}')">${inUse?'● ':''}${esc(m.name)} <small style="opacity:.6">liv.${m.lv}</small></span>`;
   }).join('');
 
   const abChips = (p.abNames||[]).map(a=>`<span class="abil-chip" onclick="openAbil('${esc(a).replace(/'/g,"\\'")}')">${esc(a)}</span>`).join(' ');
@@ -2336,10 +2553,15 @@ function renderPkm(p){
 
     <div>
       <div class="row" style="justify-content:space-between">
-        <span style="font-size:12.5px; color:var(--muted)">Mosse — clic per i dettagli (in grigio: non ancora sbloccate)</span>
-        <button class="btn small ghost" onclick="openMoveModal('${p.id}',null)">+ mossa</button>
+        <span style="font-size:12.5px; color:var(--muted)">⚔ Mosse in uso — massimo 4, come nei giochi</span>
+        <button class="btn small ghost" onclick="openTMTeach('${p.id}')">📀 Usa una MT</button>
       </div>
-      <div class="moves" style="margin-top:5px">${moves}</div>
+      <div class="slots">${slots}</div>
+      <details style="margin-top:8px">
+        <summary class="hint" style="cursor:pointer; display:inline">📖 Tutte le mosse che può imparare (${p.moves.length})</summary>
+        <div class="moves" style="margin-top:6px">${learnset}</div>
+        <p class="hint" style="margin:6px 0 0">● = in uso · in grigio: si imparano salendo di livello. Per usarne una, mettila in uno dei 4 slot.</p>
+      </details>
     </div>
 
     <div class="row">
