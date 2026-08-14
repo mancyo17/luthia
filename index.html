@@ -716,6 +716,25 @@ window.addEventListener('error', function(e){
   window.__bootErr = (e && e.message) ? e.message : 'errore di caricamento';
   if(window.__bootShow) window.__bootShow();
 });
+
+/* Via di fuga: aprendo l'indirizzo con ?reset in fondo si buttano via copia
+   salvata e service worker prima ancora di caricare l'app. Serve quando su un
+   telefono è rimasta incastrata una versione vecchia o incompleta. */
+(function(){
+  if(location.search.indexOf('reset') < 0) return;
+  var lavori = [];
+  try{
+    if('serviceWorker' in navigator)
+      lavori.push(navigator.serviceWorker.getRegistrations()
+        .then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); }).catch(function(){}));
+    if(window.caches)
+      lavori.push(caches.keys().then(function(ks){
+        return Promise.all(ks.map(function(k){ return caches.delete(k); })); }).catch(function(){}));
+  }catch(e){}
+  var vai = function(){ location.replace(location.pathname); };
+  Promise.all(lavori).then(vai, vai);
+  setTimeout(vai, 4000);
+})();
 </script>
 
 <header>
@@ -986,10 +1005,13 @@ function bootDone(){
   if(!window.P5E || !window.P5E.POKEMON || !Object.keys(window.P5E.POKEMON).length){
     /* un tentativo automatico: se in memoria era rimasta una copia rotta dei
        dati, si butta via tutto e si ricarica una volta sola */
-    let giaProvato = false;
-    try{ giaProvato = sessionStorage.getItem('aethera-retry') === '1'; }catch(e){}
+    let giaProvato = true;   /* in dubbio, non si riprova: meglio il messaggio che un giro di ricariche */
+    try{
+      const ultimo = parseInt(localStorage.getItem('aethera-retry-ts') || '0', 10);
+      giaProvato = (Date.now() - ultimo) < 5*60*1000;
+    }catch(e){}
     if(!giaProvato){
-      try{ sessionStorage.setItem('aethera-retry','1'); }catch(e){}
+      try{ localStorage.setItem('aethera-retry-ts', String(Date.now())); }catch(e){}
       const m = document.getElementById('boot-msg');
       if(m) m.textContent = 'Riprovo a scaricare il Pokédex…';
       pulisciERicarica();
@@ -998,7 +1020,7 @@ function bootDone(){
     if(window.__bootShow) window.__bootShow();
     return;
   }
-  try{ sessionStorage.removeItem('aethera-retry'); }catch(e){}
+  try{ localStorage.removeItem('aethera-retry-ts'); }catch(e){}
   window.__bootDone = true;
   const b = document.getElementById('boot');
   if(b) b.remove();
@@ -1027,7 +1049,8 @@ window.__bootShow = function(){
   document.getElementById('boot-sub').innerHTML =
     'Il database non è arrivato del tutto. Tocca <b>Riprova</b>: butta via quello che è rimasto a metà ' +
     'e riscarica tutto da capo — meglio se sotto Wi-Fi, sono 1 MB.<br/>' +
-    'Dalla seconda volta resta salvato sul telefono e si apre anche senza connessione.';
+    'Dalla seconda volta resta salvato sul telefono e si apre anche senza connessione.<br/>' +
+    'Se non ne vuole sapere, riapri l\'indirizzo aggiungendo <b>?reset</b> in fondo.';
   document.getElementById('boot-retry').style.display = '';
 };
 /* se dopo 25 secondi non è partito niente, avvisa */
@@ -1547,7 +1570,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '2.4';
+const APP_VERSION = '2.5';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -4477,8 +4500,9 @@ function applyUpdate(){
   const b = document.getElementById('updbar');
   if(b) b.classList.remove('show');
   if(waitingWorker){
+    window.__updating = true;
     waitingWorker.postMessage({type:'SKIP_WAITING'});
-    setTimeout(() => location.reload(), 400);
+    setTimeout(() => location.reload(), 800);
   } else {
     location.reload();
   }
@@ -4514,9 +4538,13 @@ if('serviceWorker' in navigator && (location.protocol === 'http:' || location.pr
       });
     }).catch(()=>{});
 
+    /* Si ricarica SOLO quando è il giocatore a chiedere l'aggiornamento.
+       Ricaricare a ogni cambio di service worker può innescare un giro di
+       ricariche continue su alcuni telefoni. */
     let reloaded = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if(reloaded) return; reloaded = true; location.reload();
+      if(!window.__updating || reloaded) return;
+      reloaded = true; location.reload();
     });
   });
 }

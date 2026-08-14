@@ -4,7 +4,7 @@
    l'app avvisa con un pulsante «Aggiorna».
    I salvataggi vivono in localStorage e non vengono mai toccati da qui. */
 
-const VERSION = '2.4';
+const VERSION = '2.5';
 const CACHE = 'aethera-' + VERSION;
 const ASSETS = ['./', './index.html', './p5e-data.js', './p5e-gen8.js', './manifest.json',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
