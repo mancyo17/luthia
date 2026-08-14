@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Pokédex di Aethera</title>
 <meta name="description" content="Compagno digitale della campagna «Cronache di Allenatori» — Pokémon 5e: schede dei giocatori, Pokédex completo, lotte e strumenti." />
-<meta name="theme-color" content="#a5121f" />
+<meta name="theme-color" content="#c2172b" />
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="icon-192.png" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -15,17 +15,20 @@
 <meta name="apple-mobile-web-app-title" content="Aethera" />
 <style>
 :root{
-  --bg:#0b1214;
-  --panel:#111b1f;
-  --panel2:#0e171a;
-  --text:#e9f2f2;
-  --muted:#a9b7b7;
-  --accent:#4fd1c5;
-  --accent-dim:rgba(79,209,197,.15);
-  --line:rgba(255,255,255,.08);
-  --danger:#f56565;
-  --ok:#68d391;
-  --warn:#f6e05e;
+  /* i colori del marchio: giallo #ffcb05 e blu #2a75bb, sopra un blu notte da dispositivo */
+  --bg:#0c1424;
+  --panel:#16203a;
+  --panel2:#111a30;
+  --text:#eef2fb;
+  --muted:#9db0d2;
+  --accent:#ffcb05;
+  --accent-dim:rgba(255,203,5,.14);
+  --blue:#3d8bfd;
+  --blue-dim:rgba(61,139,253,.16);
+  --line:rgba(255,255,255,.10);
+  --danger:#ff5a5a;
+  --ok:#3ddc84;
+  --warn:#ffa726;
 }
 *{box-sizing:border-box}
 body{
@@ -139,12 +142,12 @@ th{color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase
 }
 .abilities .ab label{font-size:10.5px; color:var(--muted); letter-spacing:.5px}
 .abilities .ab input{width:46px; text-align:center; padding:3px 2px; font-size:14px; font-weight:700}
-.abilities .ab small{font-size:11px; color:var(--accent)}
+.abilities .ab small{font-size:11px; color:var(--blue)}
 .abilities .ab small.nat{color:var(--warn)}
 .hpbar{height:8px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden}
 .hpbar i{display:block; height:100%; background:var(--ok); border-radius:99px}
 .xpbar{height:6px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden}
-.xpbar i{display:block; height:100%; background:var(--accent); border-radius:99px}
+.xpbar i{display:block; height:100%; background:var(--blue); border-radius:99px}
 /* i 4 slot delle mosse */
 .slots{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:7px; margin-top:6px}
 .slot{
@@ -203,7 +206,7 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
   padding:16px; display:flex; flex-direction:column; gap:9px;
   transition:transform .08s ease, border-color .08s ease;
 }
-.profile:hover{transform:translateY(-2px); border-color:rgba(79,209,197,.5)}
+.profile:hover{transform:translateY(-2px); border-color:rgba(61,139,253,.5)}
 .profile .pname{font-size:19px; font-weight:800; cursor:pointer}
 .profile .pname:hover{color:var(--accent)}
 .profile .pmeta{font-size:12.5px; color:var(--muted)}
@@ -253,7 +256,7 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 .record .w{color:var(--ok)}
 .record .l{color:var(--danger)}
 .record .sep{color:var(--muted); font-weight:400}
-.meter{height:10px; border-radius:99px; background:rgba(79,209,197,.16); overflow:hidden; margin-top:7px}
+.meter{height:10px; border-radius:99px; background:rgba(61,139,253,.16); overflow:hidden; margin-top:7px}
 .meter i{display:block; height:100%; background:var(--accent); border-radius:99px}
 .typebar{display:flex; gap:2px; height:14px; border-radius:99px; overflow:hidden; margin:4px 0 8px}
 .typebar span{display:block; min-width:3px}
@@ -274,10 +277,10 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 }
 .status-chip.on{border-color:var(--danger); color:var(--danger); background:rgba(245,101,101,.1)}
 .cdbox{
-  border:1px dashed rgba(79,209,197,.4); border-radius:12px; padding:8px 10px;
+  border:1px dashed rgba(61,139,253,.40); border-radius:12px; padding:8px 10px;
   font-size:13px;
 }
-.cdbox b{color:var(--accent); font-size:17px}
+.cdbox b{color:var(--accent); font-size:18px}
 /* strumenti */
 .itemlist .panel{padding:10px 14px}
 .itemlist b{font-size:14.5px}
@@ -321,10 +324,10 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
   --ball:#ee1b2e;
   --ball-dark:#a5121f;
   --ball-lite:#ff4d5e;
-  --screen:#0c1a16;
-  --screen-lite:#123027;
-  --gold:#f6c945;
-  --ink:#07100f;
+  --screen:#0a1f18;
+  --screen-lite:#0f2f24;
+  --gold:#ffcb05;
+  --ink:#060d18;
   --radius:16px;
   --shadow:0 6px 20px rgba(0,0,0,.35);
   --t-fast:.16s cubic-bezier(.34,1.2,.64,1);
@@ -332,16 +335,17 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 }
 body{
   background:
-    radial-gradient(1200px 520px at 50% -180px, rgba(238,27,46,.13), transparent 70%),
-    radial-gradient(900px 420px at 110% 12%, rgba(79,209,197,.07), transparent 65%),
+    radial-gradient(1100px 480px at 50% -180px, rgba(238,27,46,.20), transparent 68%),
+    radial-gradient(800px 380px at 8% 4%, rgba(255,203,5,.07), transparent 60%),
+    radial-gradient(900px 460px at 108% 18%, rgba(42,117,187,.16), transparent 66%),
     var(--bg);
   background-attachment:fixed;
 }
 
 /* ---------- intestazione ---------- */
 header{
-  background:linear-gradient(180deg, rgba(165,18,31,.34), rgba(11,18,20,.95));
-  border-bottom:2px solid rgba(238,27,46,.35);
+  background:linear-gradient(180deg, rgba(238,27,46,.42), rgba(12,20,36,.96));
+  border-bottom:2px solid rgba(255,203,5,.35);
 }
 .brand{flex-direction:row; align-items:center; gap:11px}
 .brand .logo{
@@ -455,12 +459,13 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
 .pkm .lvl{
   font-size:15px; font-weight:800; color:#fff; letter-spacing:.3px;
   background:linear-gradient(180deg, var(--ball), var(--ball-dark));
-  padding:3px 12px; border-radius:999px; box-shadow:0 2px 8px rgba(238,27,46,.4);
+  padding:3px 12px; border-radius:999px; border:1.5px solid rgba(255,203,5,.55);
+  box-shadow:0 2px 10px rgba(238,27,46,.45);
 }
 .hpbar{height:11px; border:1px solid rgba(0,0,0,.5); background:#0a1113; box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
 .hpbar i{transition:width .45s cubic-bezier(.2,.8,.3,1)}
 .xpbar{height:7px; border:1px solid rgba(0,0,0,.45); background:#0a1113}
-.xpbar i{transition:width .45s cubic-bezier(.2,.8,.3,1); background:linear-gradient(90deg,#3aa7ff,var(--accent))}
+.xpbar i{transition:width .45s cubic-bezier(.2,.8,.3,1); background:linear-gradient(90deg,#2a75bb,#3d8bfd)}
 
 /* natura e abilità */
 .idcard{
@@ -480,8 +485,8 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
 /* ---------- PP e stati ---------- */
 .pp{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px;
-  color:var(--accent); border:1px solid rgba(79,209,197,.35);
-  border-radius:7px; padding:1px 7px; background:rgba(79,209,197,.08);
+  color:var(--blue); border:1px solid rgba(61,139,253,.35);
+  border-radius:7px; padding:1px 7px; background:rgba(61,139,253,.10);
 }
 .pp.low{color:var(--warn); border-color:rgba(246,224,94,.45); background:rgba(246,224,94,.08)}
 .pp.out{color:var(--danger); border-color:rgba(245,101,101,.5); background:rgba(245,101,101,.1)}
@@ -502,7 +507,7 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
   background:rgba(255,255,255,.03); display:flex; flex-direction:column; gap:5px;
   transition:transform var(--t-fast), border-color var(--t-fast);
 }
-.boxmon:hover{transform:translateY(-2px); border-color:rgba(79,209,197,.5)}
+.boxmon:hover{transform:translateY(-2px); border-color:rgba(61,139,253,.5)}
 .bm-top{display:flex; align-items:baseline; gap:6px}
 .bm-top b{font-size:14px}
 .bm-top .lv{margin-left:auto; font-size:11.5px; color:var(--muted); white-space:nowrap}
@@ -618,7 +623,7 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
   color:var(--gold); white-space:nowrap;
 }
 .price.nosale{color:var(--muted); font-size:11px}
-.mini.cap{color:var(--accent); border-color:rgba(79,209,197,.4)}
+.mini.cap{color:var(--blue); border-color:rgba(61,139,253,.40)}
 .tmdot{width:9px; height:9px; border-radius:50%; flex:none; display:inline-block}
 
 /* ---------- avviso volante ---------- */
@@ -626,7 +631,7 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
   position:fixed; left:50%; bottom:calc(78px + env(safe-area-inset-bottom));
   transform:translate(-50%, 26px); opacity:0; pointer-events:none; z-index:60;
   background:rgba(17,27,31,.97); color:var(--text);
-  border:1px solid var(--accent); border-radius:999px;
+  border:1.5px solid var(--accent); border-radius:999px;
   padding:10px 18px; font-size:13px; max-width:88vw; text-align:center;
   box-shadow:0 10px 28px rgba(0,0,0,.5);
   transition:opacity var(--t), transform var(--t);
@@ -653,8 +658,8 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
   .bottomnav{
     display:grid; grid-auto-flow:column; grid-auto-columns:1fr;
     position:fixed; left:0; right:0; bottom:0; z-index:40;
-    background:rgba(11,18,20,.97); backdrop-filter:blur(10px);
-    border-top:1px solid rgba(238,27,46,.3);
+    background:rgba(12,20,36,.97); backdrop-filter:blur(10px);
+    border-top:1px solid rgba(255,203,5,.28);
     padding:6px 4px calc(6px + env(safe-area-inset-bottom));
     overflow-x:auto;
   }
@@ -665,7 +670,7 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
     transition:color var(--t-fast), transform var(--t-fast);
   }
   .bottomnav button i{font-style:normal; font-size:19px; line-height:1}
-  .bottomnav button.active{color:var(--ball-lite)}
+  .bottomnav button.active{color:var(--accent)}
   .bottomnav button.active i{transform:translateY(-2px) scale(1.12)}
   main{padding-bottom:86px}
   .footer-note{padding-bottom:90px}
@@ -1788,7 +1793,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '2.1';
+const APP_VERSION = '2.2';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -4363,7 +4368,7 @@ function renderItems(){
 
   wrap.innerHTML = items.map(i => {
     const price = i.p ? `<span class="mini">${i.p.toLocaleString('it-IT')} P$</span>` : '';
-    const cap = i.cap ? `<span class="mini" style="color:var(--accent); border-color:rgba(79,209,197,.4)">cattura ${i.cap===99?'automatica':'+'+i.cap}</span>` : '';
+    const cap = i.cap ? `<span class="mini" style="color:var(--accent); border-color:rgba(61,139,253,.40)">cattura ${i.cap===99?'automatica':'+'+i.cap}</span>` : '';
     return `<div class="panel">
       <div class="row" style="gap:7px">
         <b>${esc(i.n)}</b>
