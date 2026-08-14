@@ -23,6 +23,16 @@ Esporta/Importa per condividerli).
   scheda è aperta: i soldi si scalano da soli, la roba finisce nello zaino e si può
   rivendere a metà prezzo. Lo zaino è diviso in tasche e le MT si usano direttamente da lì,
   che le propone solo ai Pokémon che possono impararle.
+- **Centro Pokémon**: un tocco e tutta la squadra torna a PF pieni, senza stati e con i
+  PP ricaricati; si può curare solo una cosa alla volta o includere anche il Box.
+- **Stati e PP**: i sette stati (avvelenato, iper-avvelenato, scottato, paralizzato,
+  addormentato, congelato, confuso) stanno sulla scheda con il loro effetto scritto, e il
+  pulsante «inizio turno» tira i danni e i tiri salvezza per liberarsene. Ogni mossa negli
+  slot ha i suoi PP, che si consumano usandola e si ricaricano con Etere, Elisir o al
+  Centro. Le regole degli stati sono **della casa** e regolabili; i PP si possono spegnere
+  del tutto per chi non li usa.
+- **Lealtà**: il valore del sistema P5e usato dalle bacche che riducono le caratteristiche e
+  dalla Calmanella, ora tracciato sulla scheda; alcune Poké Ball la assegnano alla cattura.
 - **Statistiche del giocatore**: record vittorie/sconfitte con percentuale, Pokémon
   catturati, medaglie, Pokémon più usato, iniziale, mossa preferita, XP guadagnati,
   avversario ricorrente e composizione della squadra per tipo. Si aggiornano da sole
@@ -36,7 +46,9 @@ Esporta/Importa per condividerli).
   chat (o il file .json) e il GM vede squadre, livelli, PF, mosse e zaino di tutti.
   Nessun server: i salvataggi restano sui dispositivi.
 - **Lotte**: tavolo del GM per più scontri in contemporanea — PF auto-calcolati, stati,
-  prova di cattura in stile PHB (CD = base + livello + PF rimasti) con tutte le Poké Ball.
+  prova di cattura in stile PHB (CD = base + livello + PF rimasti). Le Poké Ball non
+  aiutano il tiro: **abbassano la CD** (Mega Ball −5, Ultra Ball −10, quelle specialistiche
+  −8 quando ricorre la loro condizione), e la Master Ball cattura senza tirare.
 - **PNG**: capipalestra, rivali del torneo, Superquattro e Campione della guida di Aethera
   già pronti (squadra, formato, regola speciale), modificabili e creabili da zero, con
   apertura rapida della lotta.

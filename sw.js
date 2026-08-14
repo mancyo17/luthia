@@ -4,7 +4,7 @@
    il giocatore con un pulsante «Aggiorna».
    I salvataggi vivono in localStorage e non vengono mai toccati da qui. */
 
-const VERSION = '2.0';
+const VERSION = '2.1';
 const CACHE = 'aethera-' + VERSION;
 const ASSETS = ['./', './index.html', './manifest.json',
   './icon-192.png', './icon-512.png', './apple-touch-icon.png'];

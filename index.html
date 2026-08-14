@@ -477,6 +477,23 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
 .idbtn{margin-left:auto; cursor:pointer; opacity:.55; font-size:13px; transition:opacity var(--t-fast), transform var(--t-fast)}
 .idbtn:hover{opacity:1; transform:rotate(-18deg) scale(1.15)}
 
+/* ---------- PP e stati ---------- */
+.pp{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px;
+  color:var(--accent); border:1px solid rgba(79,209,197,.35);
+  border-radius:7px; padding:1px 7px; background:rgba(79,209,197,.08);
+}
+.pp.low{color:var(--warn); border-color:rgba(246,224,94,.45); background:rgba(246,224,94,.08)}
+.pp.out{color:var(--danger); border-color:rgba(245,101,101,.5); background:rgba(245,101,101,.1)}
+.statusrow{display:flex; gap:5px; flex-wrap:wrap; align-items:center}
+.st-chip{
+  font-size:11px; padding:3px 9px; border-radius:999px; cursor:pointer; user-select:none;
+  border:1px solid var(--line); color:var(--muted); background:rgba(255,255,255,.02);
+  transition:all var(--t-fast);
+}
+.st-chip:hover{border-color:var(--muted); color:var(--text)}
+.st-chip.on{font-weight:600}
+
 /* ---------- Box ---------- */
 .boxpanel{background:linear-gradient(180deg, rgba(58,167,255,.07), rgba(255,255,255,.01)), var(--panel)}
 .boxgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:9px; margin-top:4px}
@@ -725,6 +742,8 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
       <div class="row" style="margin-top:12px">
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autonat" onchange="saveSettings()"/> natura sorteggiata alla cattura</label>
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autoabil" onchange="saveSettings()"/> abilità sorteggiata alla cattura</label>
+        <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-pp" onchange="saveSettings()"/> tieni conto dei PP delle mosse</label>
+        <label>CD per liberarsi dagli stati <input type="number" id="set-statusdc" min="1" max="30" onchange="saveSettings()"/></label>
         <label>Abilità quando evolve
           <select id="set-evoabil" onchange="saveSettings()">
             <option value="ask">chiede al giocatore</option>
@@ -1557,22 +1576,22 @@ const ITEM_CATS = ['Poké Ball','Cure','Vitamine','Pietre','Oggetti chiave','Pre
 
 const CATALOG = [
   /* --- POKÉ BALL --- */
-  {n:'Poké Ball', c:'Poké Ball', p:200, cap:0, e:'La Ball di base. Nessun bonus alla prova di cattura.'},
-  {n:'Mega Ball', c:'Poké Ball', p:600, cap:1, e:'+1 alla prova di cattura.'},
-  {n:'Ultra Ball', c:'Poké Ball', p:1200, cap:2, e:'+2 alla prova di cattura.'},
+  {n:'Poké Ball', c:'Poké Ball', p:200, cap:0, e:'La Ball di base: non aiuta in nessun modo, la CD di cattura resta quella piena.'},
+  {n:'Mega Ball', c:'Poké Ball', p:600, cap:5, e:'Abbassa di 5 la CD di cattura.'},
+  {n:'Ultra Ball', c:'Poké Ball', p:1200, cap:10, e:'Abbassa di 10 la CD di cattura.'},
   {n:'Master Ball', c:'Poké Ball', p:0, cap:99, e:'Cattura automatica, senza tiro. Irripetibile: nella campagna se ne trova una sola.'},
-  {n:'Ball Rete', c:'Poké Ball', p:1000, cap:3, e:'+3 contro i Pokémon di tipo Acqua e Coleottero, altrimenti +0.'},
-  {n:'Ball Sub', c:'Poké Ball', p:1000, cap:3, e:'+3 se il bersaglio è in acqua o è stato pescato, altrimenti +0.'},
-  {n:'Ball Nido', c:'Poké Ball', p:1000, cap:3, e:'+3 se il livello del bersaglio è inferiore a quello del tuo Pokémon in campo.'},
-  {n:'Ball Ripeti', c:'Poké Ball', p:1000, cap:3, e:'+3 se hai già catturato quella specie (è segnata nel Pokédex).'},
-  {n:'Ball Timer', c:'Poké Ball', p:1000, cap:1, e:'+1 per ogni round di lotta trascorso, fino a un massimo di +4.'},
-  {n:'Ball Sublime', c:'Poké Ball', p:300, cap:1, e:'+1 alla cattura e il Pokémon catturato inizia con Lealtà +1.'},
-  {n:'Amica Ball', c:'Poké Ball', p:200, cap:0, e:'Il Pokémon catturato inizia con Lealtà +2: ideale per i legami.'},
-  {n:'Ball Lusso', c:'Poké Ball', p:1000, cap:0, e:'Il Pokémon guadagna Lealtà al doppio della velocità.'},
-  {n:'Ball Velox', c:'Poké Ball', p:1000, cap:5, e:'+5 solo se lanciata nel primo round dell\'incontro, altrimenti +0.'},
-  {n:'Ball Pesante', c:'Poké Ball', p:1000, cap:3, e:'+3 contro Pokémon di taglia Grande o superiore; −2 contro i Minuscoli.'},
-  {n:'Ball Esca', c:'Poké Ball', p:1000, cap:2, e:'+2 se il bersaglio è addormentato o congelato.'},
-  {n:'Ball Zenith', c:'Poké Ball', p:1000, cap:3, e:'+3 contro i Pokémon che stanno volando o di tipo Volante.'},
+  {n:'Ball Rete', c:'Poké Ball', p:1000, cap:8, e:'Abbassa di 8 la CD contro i Pokémon di tipo Acqua e Coleottero; con gli altri non fa nulla.'},
+  {n:'Ball Sub', c:'Poké Ball', p:1000, cap:8, e:'Abbassa di 8 la CD se il bersaglio è in acqua o è stato pescato; altrimenti non fa nulla.'},
+  {n:'Ball Nido', c:'Poké Ball', p:1000, cap:8, e:'Abbassa di 8 la CD se il livello del bersaglio è inferiore a quello del tuo Pokémon in campo.'},
+  {n:'Ball Ripeti', c:'Poké Ball', p:1000, cap:8, e:'Abbassa di 8 la CD se quella specie è già segnata nel tuo Pokédex.'},
+  {n:'Ball Timer', c:'Poké Ball', p:1000, cap:2, e:'Abbassa la CD di 2 per ogni round di lotta già trascorso, fino a un massimo di 10.'},
+  {n:'Ball Sublime', c:'Poké Ball', p:300, cap:3, e:'Abbassa di 3 la CD e il Pokémon catturato inizia con Lealtà +1.'},
+  {n:'Amica Ball', c:'Poké Ball', p:200, cap:3, e:'Abbassa di 3 la CD; il Pokémon catturato arriva senza stati alterati e con Lealtà +2.'},
+  {n:'Ball Lusso', c:'Poké Ball', p:1000, cap:0, e:'Non aiuta la cattura, ma il Pokémon catturato entra riposato — PF al massimo e PP carichi — e con Lealtà +1.'},
+  {n:'Ball Velox', c:'Poké Ball', p:1000, cap:15, e:'Abbassa di 15 la CD, ma solo se lanciata nel primo round dell\'incontro; dopo non fa nulla.'},
+  {n:'Ball Pesante', c:'Poké Ball', p:1000, cap:8, e:'Abbassa di 8 la CD contro i Pokémon di taglia Grande o superiore; contro i Minuscoli invece la alza di 5.'},
+  {n:'Ball Esca', c:'Poké Ball', p:1000, cap:6, e:'Abbassa di 6 la CD se il bersaglio è addormentato o congelato.'},
+  {n:'Ball Zenith', c:'Poké Ball', p:1000, cap:8, e:'Abbassa di 8 la CD contro i Pokémon di tipo Volante o che stanno volando.'},
 
   /* --- CURE --- */
   {n:'Pozione', c:'Cure', p:300, e:'Un\'azione: il Pokémon recupera 2d4+2 PF.'},
@@ -1634,7 +1653,7 @@ const CATALOG = [
   {n:'Pepita', c:'Preziosi', p:5000, e:'Si vende. Non ha altri usi.'},
   {n:'Perla', c:'Preziosi', p:1400, e:'Si vende. Non ha altri usi.'},
   {n:'Perlissima', c:'Preziosi', p:7500, e:'Si vende. Non ha altri usi.'},
-  {n:'Bracciallegro', c:'Preziosi', p:0, e:'Il Pokémon che lo tiene guadagna Lealtà al doppio della velocità.'},
+  {n:'Bracciallegro', c:'Preziosi', p:2000, e:'Il Pokémon che lo tiene guadagna Lealtà al doppio della velocità.'},
   {n:'Superesperienza', c:'Preziosi', p:0, e:'Il Pokémon che la tiene guadagna il 50% di XP in più dalle lotte.'},
   {n:'Condivisore Esperienza', c:'Oggetti chiave', p:0, nosale:true,
    e:'Ogni Pokémon della squadra che non ha partecipato allo scontro riceve comunque metà degli XP. Non si compra: te lo consegna il Professor Eidon.'}
@@ -1769,11 +1788,11 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '2.0';
+const APP_VERSION = '2.1';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
-const SCHEMA = 2;
+const SCHEMA = 3;
 const MAX_TEAM = 6;
 let migrationNote = '';
 
@@ -1784,7 +1803,8 @@ if(P5) for(const [n,d] of Object.entries(state.customSpecies||{})) P5.POKEMON[n]
 function defaultSettings(){
   return {needMult:2, defeatMult:1, captureMult:1, autoLevel:true,
     capBase:10, capLevel:true, capHP:true,
-    autoNature:true, autoAbility:true, evoAbility:'ask'};
+    autoNature:true, autoAbility:true, evoAbility:'ask',
+    trackPP:true, statusDC:10};
 }
 function defaultState(){
   return {schema:SCHEMA, caught:{}, trainers:[], activeTrainer:null, battles:[],
@@ -1820,8 +1840,11 @@ function migratePkm(p, t){
   p.ts = p.ts || ''; p.speed = p.speed || ''; p.vul = p.vul || ''; p.res = p.res || '';
   p.ability = p.ability || ''; p.abNames = p.abNames || [];
   p.uses = p.uses || 0;
+  if(!Array.isArray(p.status)) p.status = [];
+  if(typeof p.loyalty !== 'number') p.loyalty = 0;
+  if(!p.pp || typeof p.pp !== 'object') p.pp = {};
   if(!Array.isArray(p.slots)) p.slots = autoSlots(p);
-  /* schema 2: ogni Pokémon ha un'abilità sua, sorteggiata fra quelle della specie */
+  /* schema 2: abilità propria · schema 3: stati, PP e Lealtà */
   if(p.abil === undefined){
     p.abil = randomAbility(p.species) || (p.abNames[0] || '');
     if(p.abil) migrationNote = 'ability';
@@ -2268,8 +2291,237 @@ function openMoveInfo(name, level, pid){
 }
 function useMove(pid, name){
   const [t,p] = findPkm(pid); if(!t||!p) return;
+  if(ppTrack()){
+    const left = ppLeft(p, name);
+    if(left === 0){
+      alert(p.nick + ' ha esaurito i PP di ' + name + ': serve un Etere, un Elisir o una visita al Centro Pokémon.');
+      return;
+    }
+    spendPP(p, name, 1);
+  }
   t.stats.moves[name] = (t.stats.moves[name]||0) + 1;
+  p.uses = (p.uses||0) + 0;
   save(); closeModal(); renderSquad();
+  const left = ppLeft(p, name);
+  toast('⚔ ' + p.nick + ' usa ' + name + (left!=null && ppTrack() ? ' · PP ' + left + '/' + ppMax(name) : ''));
+}
+
+/* ================= STATI, PP E CURE =================
+   Le regole degli stati non sono nel manuale di Aethera: sono regole della casa,
+   scritte qui in chiaro e regolabili dal GM nelle impostazioni. */
+
+const STATUS_INFO = {
+  'Avvelenato': {ico:'☠️', col:'#a855f7', dmg:'1d4',
+    eff:'Danni all\'inizio di ogni suo turno; svantaggio ai tiri per colpire.',
+    fine:'Si cura con un Antidoto, o con un TS su Costituzione a fine turno.'},
+  'Iper-avvelenato': {ico:'☣️', col:'#7e22ce', dmg:'2d4',
+    eff:'Come avvelenato ma con il doppio dei danni (è l\'effetto di Tossina).',
+    fine:'Solo Antidoto o Cura Totale: non passa da sé.'},
+  'Scottato': {ico:'🔥', col:'#f97316', dmg:'1d4',
+    eff:'Danni all\'inizio di ogni suo turno; i suoi attacchi basati su Forza infliggono metà danni.',
+    fine:'Si cura con un\'Antiscottatura.'},
+  'Paralizzato': {ico:'⚡', col:'#eab308', dmg:'',
+    eff:'Velocità dimezzata e svantaggio ai tiri salvezza su Destrezza. All\'inizio del turno tira un TS su Costituzione: se fallisce perde l\'azione.',
+    fine:'Si cura con un\'Antiparalisi.'},
+  'Addormentato': {ico:'💤', col:'#60a5fa', dmg:'',
+    eff:'Non può agire e gli attacchi contro di lui hanno vantaggio. Si sveglia se subisce danni.',
+    fine:'TS su Costituzione a fine turno, oppure un Risveglio.'},
+  'Congelato': {ico:'🧊', col:'#38bdf8', dmg:'',
+    eff:'Non può agire. Si scongela subito se viene colpito da una mossa di tipo Fuoco.',
+    fine:'TS su Costituzione all\'inizio del turno, oppure un Antigelo.'},
+  'Confuso': {ico:'💫', col:'#f472b6', dmg:'',
+    eff:'All\'inizio del turno tira 1d4: con 1 attacca sé stesso invece di agire.',
+    fine:'Passa da sé dopo qualche round, oppure con una Cura Totale.'}
+};
+const ALL_STATUSES = Object.keys(STATUS_INFO);
+
+function rollDice(expr){
+  const m = String(expr||'').match(/^(\d+)d(\d+)$/);
+  if(!m) return {tot:0, tiri:[]};
+  const n = +m[1], f = +m[2], tiri = [];
+  for(let i=0;i<n;i++) tiri.push(1 + Math.floor(Math.random()*f));
+  return {tot: tiri.reduce((a,b)=>a+b,0), tiri};
+}
+
+/* ---- punti potere ---- */
+function ppTrack(){ return state.settings.trackPP !== false; }
+function ppMax(name){
+  const md = findMoveData(name);
+  return md && md.pp ? md.pp : 0;
+}
+function ppLeft(p, name){
+  const max = ppMax(name);
+  if(!max) return null;
+  return Math.max(0, max - ((p.pp||{})[name]||0));
+}
+function spendPP(p, name, n){
+  const max = ppMax(name);
+  if(!max) return true;
+  p.pp = p.pp || {};
+  const used = (p.pp[name]||0) + (n||1);
+  if(used > max && !(n<0)) return false;
+  p.pp[name] = Math.max(0, Math.min(max, used));
+  return true;
+}
+function restorePP(p, name){
+  if(!p.pp) return;
+  if(name) delete p.pp[name]; else p.pp = {};
+}
+
+/* ---- Lealtà: la usano le bacche e la Calmanella del dex P5e ---- */
+function setLoyalty(pid, delta, abs){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.loyalty = Math.max(-5, Math.min(5, abs != null ? abs : (p.loyalty||0) + delta));
+  save(); renderSquad();
+}
+function openLoyalty(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  showModal(`<h3>💛 Lealtà di ${esc(p.nick)}</h3>
+    <p class="levelup-gain">Valore attuale: <b>${fmtMod(p.loyalty||0)}</b></p>
+    <p class="hint">È il valore del sistema Pokémon 5e che misura quanto il Pokémon si fida di te.
+      Nel dex la alzano le bacche che riducono una caratteristica (Baccagrepa, Baccahondew, Baccakelpsy,
+      Baccapomeg, Baccaqualot, Baccatomato) e la riporta a +0 la Calmanella; alcune Ball la danno già
+      alla cattura. Per cosa comporta ai tuoi tavoli — obbedienza, tiri, ricadute — fa fede il tuo PHB:
+      qui il valore si tiene solo in vista.</p>
+    <div class="mrow">
+      <button class="btn ghost" onclick="setLoyalty('${pid}',-1); openLoyalty('${pid}')">−1</button>
+      <button class="btn ghost" onclick="setLoyalty('${pid}',1); openLoyalty('${pid}')">+1</button>
+      <button class="btn ghost" onclick="setLoyalty('${pid}',0,0); openLoyalty('${pid}')">🔔 Calmanella (azzera)</button>
+    </div>
+    <div class="mrow"><button class="btn" onclick="closeModal()">Chiudi</button></div>`);
+}
+
+/* ---- Etere ed Elisir ---- */
+function etherMove(pid, name){
+  const [t,p] = findPkm(pid); if(!p) return;
+  const max = ppMax(name);
+  const left = ppLeft(p, name);
+  if(left >= max){ toast(name + ' ha già tutti i PP.'); return; }
+  const haEtere = (t.bag['Etere']||0) > 0;
+  const haElisir = (t.bag['Elisir']||0) > 0;
+  showModal(`<h3>Ripristinare i PP di ${esc(name)}?</h3>
+    <p class="levelup-gain">Ora sono <b>${left}/${max}</b>.</p>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">
+      ${haEtere?`<button class="btn" onclick="closeModal(); useEther('${pid}','${esc(name).replace(/'/g,"\\'")}','Etere')">
+        🧪 Usa un Etere <small>(ne hai ${t.bag['Etere']}) — +10 PP a questa mossa</small></button>`:''}
+      ${haElisir?`<button class="btn" onclick="closeModal(); useEther('${pid}','','Elisir')">
+        🧴 Usa un Elisir <small>(ne hai ${t.bag['Elisir']}) — +10 PP a tutte le mosse</small></button>`:''}
+      <button class="btn ghost" onclick="closeModal(); freePP('${pid}','${esc(name).replace(/'/g,"\\'")}')">
+        ↩ Ripristina senza consumare nulla <small>(riposo o decisione del GM)</small></button>
+    </div>
+    ${!haEtere && !haElisir ? '<p class="hint">Nello zaino non ci sono Etere né Elisir: li trovi al Poké Market.</p>' : ''}
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Annulla</button></div>`);
+}
+function useEther(pid, name, item){
+  const [t,p] = findPkm(pid); if(!p) return;
+  if(!(t.bag[item] > 0)) return;
+  t.bag[item]--; if(!t.bag[item]) delete t.bag[item];
+  if(item === 'Elisir'){
+    for(const k of Object.keys(p.pp||{})) p.pp[k] = Math.max(0, p.pp[k] - 10);
+  } else {
+    p.pp = p.pp || {};
+    p.pp[name] = Math.max(0, (p.pp[name]||0) - 10);
+  }
+  save(); renderSquad();
+  toast('🧪 ' + item + ' usato su ' + p.nick + '.');
+}
+function freePP(pid, name){
+  const [,p] = findPkm(pid); if(!p) return;
+  restorePP(p, name);
+  save(); renderSquad();
+  toast('↩ PP di ' + name + ' ripristinati.');
+}
+
+/* ---- Centro Pokémon ---- */
+function healPkm(p, mode){
+  if(mode === 'full' || mode === 'hp') p.curPF = maxPF(p);
+  if(mode === 'full' || mode === 'status') p.status = [];
+  if(mode === 'full' || mode === 'pp') restorePP(p);
+}
+function pokeCenter(tid, mode, quali){
+  const t = state.trainers.find(x=>x.id===tid); if(!t) return;
+  const lista = quali === 'box' ? allPkm(t) : t.team;
+  lista.forEach(p => healPkm(p, mode || 'full'));
+  save(); renderSquad();
+  const q = lista.length;
+  const testo = {full:'rimessi a nuovo', hp:'curati', status:'liberati dagli stati', pp:'con i PP ricaricati'}[mode||'full'];
+  toast('🏥 ' + q + ' Pokémon ' + testo + '.');
+}
+function askPokeCenter(tid){
+  const t = state.trainers.find(x=>x.id===tid); if(!t) return;
+  const feriti = t.team.filter(p => (p.curPF ?? maxPF(p)) < maxPF(p)).length;
+  const malati = t.team.filter(p => (p.status||[]).length).length;
+  const scarichi = t.team.filter(p => Object.values(p.pp||{}).some(v => v>0)).length;
+  showModal(`<h3>🏥 Centro Pokémon</h3>
+    <p class="levelup-gain">«Benvenuto! Lascia stare i tuoi Pokémon a noi.»</p>
+    <p class="hint">In squadra: ${feriti} feriti · ${malati} con stati · ${scarichi} con mosse consumate.</p>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">
+      <button class="btn" onclick="closeModal(); pokeCenter('${tid}','full')">💗 Cura completa della squadra <small>PF, stati e PP</small></button>
+      <button class="btn ghost" onclick="closeModal(); pokeCenter('${tid}','full','box')">🗄️ Cura anche il Box</button>
+      <button class="btn ghost" onclick="closeModal(); pokeCenter('${tid}','hp')">Solo i PF</button>
+      <button class="btn ghost" onclick="closeModal(); pokeCenter('${tid}','status')">Solo gli stati</button>
+      <button class="btn ghost" onclick="closeModal(); pokeCenter('${tid}','pp')">Solo i PP</button>
+    </div>
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Annulla</button></div>`);
+}
+
+/* ---- stati sul singolo Pokémon ---- */
+function toggleStatus(pid, st){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.status = p.status || [];
+  const i = p.status.indexOf(st);
+  if(i >= 0) p.status.splice(i,1); else p.status.push(st);
+  save(); renderSquad();
+}
+function statusTurn(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const sts = p.status || [];
+  if(!sts.length){ toast('Nessuno stato attivo su ' + p.nick + '.'); return; }
+  const righe = [];
+  let danni = 0;
+  for(const st of sts){
+    const info = STATUS_INFO[st]; if(!info) continue;
+    if(info.dmg){
+      const r = rollDice(info.dmg);
+      danni += r.tot;
+      righe.push(`${info.ico} <b>${st}</b>: ${info.dmg} → [${r.tiri.join(', ')}] = <b>${r.tot}</b> danni`);
+    } else if(st === 'Confuso'){
+      const r = rollDice('1d4');
+      righe.push(`${info.ico} <b>Confuso</b>: 1d4 → <b>${r.tot}</b> — ${r.tot===1?'si colpisce da solo, niente azione':'agisce normalmente'}`);
+    } else {
+      const r = rollDice('1d20');
+      const cd = state.settings.statusDC || 10;
+      const ok = r.tot >= cd;
+      righe.push(`${info.ico} <b>${st}</b>: TS su COS ${r.tot} contro CD ${cd} → ${ok?'<b>si libera</b>':'resta così'}`);
+      if(ok) p.status = p.status.filter(x=>x!==st);
+    }
+  }
+  if(danni){
+    p.curPF = Math.max(0, (p.curPF ?? maxPF(p)) - danni);
+  }
+  save(); renderSquad();
+  showModal(`<h3>${esc(p.nick)} — inizio del turno</h3>
+    ${righe.map(r=>`<p class="levelup-gain">${r}</p>`).join('')}
+    ${danni?`<p class="levelup-gain">💔 Totale <b>${danni} danni</b> → ${p.curPF}/${maxPF(p)} PF</p>`:''}
+    <p class="hint">Regole della casa: si cambiano da Impostazioni.</p>
+    <button class="btn" onclick="closeModal()">OK</button>`);
+}
+function openStatusPicker(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const sts = p.status || [];
+  const btns = ALL_STATUSES.map(st => {
+    const i = STATUS_INFO[st];
+    const on = sts.includes(st);
+    return `<button class="btn ${on?'':'ghost'}" style="text-align:left" onclick="toggleStatus('${pid}','${st}'); openStatusPicker('${pid}')">
+      ${i.ico} <b>${st}</b>${on?' ✓':''}<br/><small style="opacity:.75; font-weight:400">${esc(i.eff)}</small>
+      <br/><small style="opacity:.55; font-weight:400">${esc(i.fine)}</small></button>`;
+  }).join('');
+  showModal(`<h3>Stati di ${esc(p.nick)}</h3>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">${btns}</div>
+    <div class="mrow">
+      ${sts.length?`<button class="btn" onclick="closeModal(); statusTurn('${pid}')">☠ Applica inizio turno</button>`:''}
+      <button class="btn ghost" onclick="closeModal()">Chiudi</button>
+    </div>`);
 }
 
 /* ================= SQUADRE ================= */
@@ -2370,6 +2622,9 @@ function addPokemon(trainer, species, types, level){
   if(p.level < p.minLevel) p.level = p.minLevel;
   p.curPF = maxPF(p);
   p.uses = 0;
+  p.status = [];
+  p.pp = {};
+  p.loyalty = 0;
   p.slots = autoSlots(p);
   if(trainer.team.length < MAX_TEAM) trainer.team.push(p);
   else (trainer.box = trainer.box || []).unshift(p);
@@ -3232,6 +3487,7 @@ function renderSquad(){
   view.innerHTML = `
     <div class="row" style="margin-bottom:12px">
       <button class="btn ghost small" onclick="closeTrainer()">← Tutte le schede</button>
+      <button class="btn small" onclick="askPokeCenter('${t.id}')">🏥 Centro Pokémon</button>
       <button class="btn small" onclick="openShareCode('${t.id}')">📨 Manda al GM</button>
       <button class="btn ghost small" onclick="exportTrainer('${t.id}')">⬇ Esporta</button>
     </div>
@@ -3366,13 +3622,25 @@ function renderPkm(p){
       const cur = tiers.filter(x=>x<=p.level).pop() ?? tiers[0];
       dmg = md.dmg[cur];
     }
+    const max = ppMax(name);
+    const left = ppLeft(p, name);
+    const ppShow = ppTrack() && max
+      ? `<span class="pp ${left===0?'out':left<=Math.ceil(max/4)?'low':''}">PP ${left}/${max}</span>` : '';
     return `<div class="slot" style="border-left:4px solid ${col}">
       <div class="row" style="gap:6px">
         <b onclick="openMoveInfo('${esc(name).replace(/'/g,"\\'")}',${p.level},'${p.id}')" style="cursor:pointer">${esc(name)}</b>
         ${md?`<span class="type-chip" style="background:${TYPES[md.t].c}">${TYPES[md.t].n}</span>`:''}
         <span class="x" title="cambia mossa" onclick="openSlotPicker('${p.id}',${i})">⇄</span>
       </div>
-      <div class="slot-meta">${dmg?`🎲 ${esc(dmg)} · `:''}${md?`PP ${md.pp||'—'} · ${esc(md.rng||'')}`:'mossa personalizzata'}${used?` · usata ×${used}`:''}</div>
+      <div class="slot-meta">${dmg?`🎲 ${esc(dmg)} · `:''}${md?`${esc(md.rng||'')}`:'mossa personalizzata'}${used?` · usata ×${used}`:''}</div>
+      <div class="row" style="gap:5px; margin-top:2px">
+        ${ppShow}
+        <button class="btn small ${left===0?'ghost':''}" style="margin-left:auto; padding:2px 9px"
+          title="usa la mossa: consuma 1 PP e la conta nelle statistiche"
+          onclick="useMove('${p.id}','${esc(name).replace(/'/g,"\\'")}')">Usa</button>
+        ${ppTrack() && max && left < max ? `<button class="btn ghost small" style="padding:2px 8px" title="ripristina i PP di questa mossa"
+          onclick="etherMove('${p.id}','${esc(name).replace(/'/g,"\\'")}')">＋PP</button>` : ''}
+      </div>
     </div>`;
   }).join('');
 
@@ -3432,6 +3700,11 @@ function renderPkm(p){
           <span class="idbtn" title="ritira la natura" onclick="rerollNature('${p.id}')">🎲</span>
         </div>
         <div class="idrow">
+          <span class="idlbl">Lealtà</span>
+          <b class="idval">${fmtMod(p.loyalty||0)}</b>
+          <span class="idbtn" title="come funziona la Lealtà" onclick="openLoyalty('${p.id}')">💛</span>
+        </div>
+        <div class="idrow">
           <span class="idlbl">Abilità</span>
           <b class="idval abil" onclick="openAbil('${esc(p.abil||'').replace(/'/g,"\\'")}')">${esc(p.abil) || '—'}</b>
           ${p.abil && isHiddenAbility(p.species, p.abil)?`<small class="idnat">nascosta</small>`:''}
@@ -3440,6 +3713,16 @@ function renderPkm(p){
       </div>
     </div>
 
+    <div class="statusrow">
+      ${ALL_STATUSES.map(st => {
+        const on = (p.status||[]).includes(st);
+        const inf = STATUS_INFO[st];
+        return `<span class="st-chip ${on?'on':''}" style="${on?`border-color:${inf.col}; color:${inf.col}; background:${inf.col}22`:''}"
+          title="${esc(inf.eff)}" onclick="toggleStatus('${p.id}','${st}')">${inf.ico} ${st}</span>`;
+      }).join('')}
+      ${(p.status||[]).length ? `<button class="btn small" style="padding:2px 9px" onclick="statusTurn('${p.id}')">☠ Inizio turno</button>` : ''}
+      <span class="idbtn" title="cosa fanno gli stati" onclick="openStatusPicker('${p.id}')">❔</span>
+    </div>
     ${abChips?`<div class="defline">✨ Possibili: ${abChips}${p.ts?` · <b>TS:</b> ${esc(p.ts)}`:''}</div>`:(p.ts?`<div class="defline"><b>TS:</b> ${esc(p.ts)}</div>`:'')}
     ${p.ability?`<div class="defline">📖 ${esc(p.ability)}</div>`:''}
     ${defHTML}
@@ -3628,8 +3911,15 @@ function captureDC(b){
   const parts = [`${s.capBase} base`];
   if(s.capLevel){ dc += b.level; parts.push(`+${b.level} livello`); }
   if(s.capHP){ dc += b.pf; parts.push(`+${b.pf} PF rimasti`); }
-  return {dc, parts};
+  const sconto = ballBonusOf(b.ball);
+  if(sconto && sconto !== 99){
+    dc -= sconto;
+    parts.push(`−${sconto} ${b.ball}`);
+  }
+  if(dc < 1) dc = 1;
+  return {dc, parts, sconto};
 }
+/* le Ball non aiutano il tiro: abbassano la CD di cattura */
 function ballBonusOf(name){
   const b = BALLS().find(x=>x.n===name);
   return b ? b.cap : (parseInt(name)||0);   /* compatibilità coi vecchi salvataggi */
@@ -3644,19 +3934,18 @@ function tryCapture(id){
   }
   const roll = parseInt(document.getElementById('br-'+id).value);
   if(isNaN(roll)){ alert('Inserisci il tiro del giocatore (d20 + competenza).'); return; }
-  const {dc} = captureDC(b);
-  const ballBonus = ballBonusOf(b.ball);
-  const total = roll + ballBonus;
+  const {dc, sconto} = captureDC(b);
+  const scontoNota = sconto ? ` — la ${esc(b.ball)} l'ha già abbassata di ${sconto}` : '';
   const advHint = b.statuses.length ? `<p class="hint">Con ${b.statuses.map(s=>s.toLowerCase()).join(', ')}: il tiro andava fatto con vantaggio.</p>` : '';
-  if(total >= dc){
+  if(roll >= dc){
     showModal(`<h3>◓ GOTCHA! ${esc(b.species)} è stato catturato!</h3>
-      <p class="levelup-gain">Tiro ${roll} + Ball ${fmtMod(ballBonus)} = <b>${total}</b> contro CD ${dc}.</p>
+      <p class="levelup-gain">Tiro <b>${roll}</b> contro CD <b>${dc}</b>${scontoNota}.</p>
       <div class="mrow"><button class="btn" onclick="closeModal(); endBattle('${id}','capture')">Concludi la cattura →</button></div>`);
   } else {
     showModal(`<h3>💨 La Ball si apre!</h3>
-      <p class="levelup-gain">Tiro ${roll} + Ball ${fmtMod(ballBonus)} = <b>${total}</b> contro CD ${dc}: non basta.</p>
+      <p class="levelup-gain">Tiro <b>${roll}</b> contro CD <b>${dc}</b>${scontoNota}: non basta.</p>
       ${advHint}
-      <p class="hint">Abbassa i PF del selvatico per ridurre la CD, poi riprova.</p>
+      <p class="hint">Abbassa i PF del selvatico o passa a una Ball migliore: la CD scende.</p>
       <button class="btn" onclick="closeModal()">Si continua!</button>`);
   }
 }
@@ -3715,8 +4004,14 @@ function confirmEndBattle(id, outcome){
   if(capDex && capDex.checked) state.caught[b.species] = true;
   let newPkm = null;
   const capTeam = document.getElementById('cap-team');
+  let ballNota = '';
   if(capTeam && capTeam.checked && t){
     newPkm = addPokemon(t, b.species, b.types, b.level);
+    if(newPkm){
+      if(b.ball === 'Ball Sublime'){ newPkm.loyalty = 1; ballNota = 'La Ball Sublime gli fa iniziare il viaggio con Lealtà +1.'; }
+      if(b.ball === 'Amica Ball'){ newPkm.status = []; newPkm.loyalty = 2; ballNota = 'L\'Amica Ball l\'ha rimesso in sesto: nessuno stato alterato e Lealtà +2.'; }
+      if(b.ball === 'Ball Lusso'){ healPkm(newPkm, 'full'); newPkm.loyalty = 1; ballNota = 'La Ball Lusso l\'ha coccolato: PF al massimo, PP carichi e Lealtà +1.'; }
+    }
   }
   state.battles = state.battles.filter(x=>x.id!==id);
   save(); renderAll();
@@ -3724,6 +4019,7 @@ function confirmEndBattle(id, outcome){
   if(allUps.length) html += levelUpRows(allUps);
   else html += `<p class="levelup-gain">XP distribuiti (+${xpEach} a testa).</p>`;
   if(newPkm) html += `<p class="levelup-gain">🎒 <b>${esc(newPkm.nick)}</b> si unisce alla squadra al liv. ${newPkm.level} con la scheda già compilata dal dex.</p>`;
+  if(ballNota) html += `<p class="levelup-gain">◓ ${ballNota}</p>`;
   html += `<button class="btn" onclick="closeModal()">Avanti!</button>`;
   showModal(html);
 }
@@ -3767,11 +4063,11 @@ function renderBattles(){
       ${b.statuses.length?`<div class="hint" style="margin:0">💫 stati attivi → il tiro di cattura ha <b>vantaggio</b></div>`:''}
 
       <div class="cdbox">
-        🎯 CD di cattura attuale: <b>${dc}</b>
+        🎯 CD di cattura con la ${esc(b.ball)}: <b>${dc}</b>
         <span class="hint" style="display:block; margin:2px 0 6px">${parts.join(' · ')}</span>
         <div class="row" style="gap:5px">
           <select onchange="battleBall('${b.id}',this.value)">
-            ${BALLS().map(x=>`<option value="${esc(x.n)}" ${b.ball===x.n?'selected':''}>${esc(x.n)} ${x.cap===99?'(✓)':'('+(x.cap>=0?'+':'')+x.cap+')'}</option>`).join('')}
+            ${BALLS().map(x=>`<option value="${esc(x.n)}" ${b.ball===x.n?'selected':''}>${esc(x.n)} ${x.cap===99?'(cattura sicura)':x.cap?'(CD −'+x.cap+')':'(nessun aiuto)'}</option>`).join('')}
           </select>
           <input type="number" id="br-${b.id}" placeholder="tiro d20+comp" style="width:120px"/>
           <button class="btn small" onclick="tryCapture('${b.id}')">◓ Prova cattura!</button>
@@ -4208,6 +4504,8 @@ function renderSettings(){
   document.getElementById('set-autonat').checked = s.autoNature !== false;
   document.getElementById('set-autoabil').checked = s.autoAbility !== false;
   document.getElementById('set-evoabil').value = s.evoAbility || 'ask';
+  document.getElementById('set-pp').checked = s.trackPP !== false;
+  document.getElementById('set-statusdc').value = s.statusDC || 10;
   document.getElementById('app-version').textContent = APP_VERSION;
   document.getElementById('app-schema').textContent = SCHEMA;
 }
@@ -4235,6 +4533,8 @@ function saveSettings(){
   s.autoNature = document.getElementById('set-autonat').checked;
   s.autoAbility = document.getElementById('set-autoabil').checked;
   s.evoAbility = document.getElementById('set-evoabil').value;
+  s.trackPP = document.getElementById('set-pp').checked;
+  s.statusDC = parseInt(document.getElementById('set-statusdc').value) || 10;
   s.needMult = g('set-need')||2;
   s.defeatMult = isNaN(g('set-defeat'))?1:g('set-defeat');
   s.captureMult = isNaN(g('set-capture'))?1:g('set-capture');
