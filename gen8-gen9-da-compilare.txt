@@ -1,0 +1,821 @@
+################################################################################
+#  POKÉDEX DI AETHERA — RACCOLTA DATI GENERAZIONE 8 E 9 (da poke5e.app)
+################################################################################
+#
+#  COME SI USA
+#  1. Apri  https://poke5e.app/pokemon  e cerca il Pokémon.
+#  2. Seleziona TUTTO il blocco della scheda (dal nome fino alle MT/evoluzione)
+#     e copialo.
+#  3. Torna qui, trova la riga  === #810 Grookey ===  e incolla SOTTO di essa.
+#  4. Non serve pulire niente: ci penso io. Non toccare le righe con ===.
+#  5. Quando hai finito (anche solo una parte!) rimandami questo file.
+#
+#  COSA MI SERVE DELLA SCHEDA (di solito c'è tutto nel copia-incolla):
+#     tipo/i · SR · CA · PF e Dado Vita · livello minimo · velocità · taglia
+#     FOR DES COS INT SAG CAR · tiri salvezza · abilità (skills)
+#     abilità speciali (Abilities) e abilità nascosta
+#     mosse iniziali e mosse per livello · elenco MT · evoluzione (a che livello)
+#
+#  SE UNA SCHEDA NON ESISTE sul sito: lascia il segnaposto vuoto e vai avanti,
+#  quella la costruisco io a mano come ho fatto per le altre.
+#
+#  I Pokémon segnati [GIÀ NELL'APP] ci sono già, ma con statistiche fatte da me
+#  «a occhio»: se me li mandi li sostituisco con quelli veri. Se hai poco tempo,
+#  saltali e parti dagli altri.
+#
+################################################################################
+
+
+
+#==============================================================================
+#  GENERAZIONE 8 — GALAR (Spada / Scudo)  ·  89 specie
+#==============================================================================
+
+=== #810 Grookey ===   [GIÀ NELL'APP]
+
+
+=== #811 Thwackey ===   [GIÀ NELL'APP]
+
+
+=== #812 Rillaboom ===   [GIÀ NELL'APP]
+
+
+=== #813 Scorbunny ===   [GIÀ NELL'APP]
+
+
+=== #814 Raboot ===   [GIÀ NELL'APP]
+
+
+=== #815 Cinderace ===   [GIÀ NELL'APP]
+
+
+=== #816 Sobble ===   [GIÀ NELL'APP]
+
+
+=== #817 Drizzile ===   [GIÀ NELL'APP]
+
+
+=== #818 Inteleon ===   [GIÀ NELL'APP]
+
+
+=== #819 Skwovet ===
+
+
+=== #820 Greedent ===
+
+
+=== #821 Rookidee ===   [GIÀ NELL'APP]
+
+
+=== #822 Corvisquire ===   [GIÀ NELL'APP]
+
+
+=== #823 Corviknight ===   [GIÀ NELL'APP]
+
+
+=== #824 Blipbug ===
+
+
+=== #825 Dottler ===
+
+
+=== #826 Orbeetle ===
+
+
+=== #827 Nickit ===
+
+
+=== #828 Thievul ===
+
+
+=== #829 Gossifleur ===
+
+
+=== #830 Eldegoss ===
+
+
+=== #831 Wooloo ===
+
+
+=== #832 Dubwool ===
+
+
+=== #833 Chewtle ===
+
+
+=== #834 Drednaw ===
+
+
+=== #835 Yamper ===
+
+
+=== #836 Boltund ===
+
+
+=== #837 Rolycoly ===
+
+
+=== #838 Carkol ===
+
+
+=== #839 Coalossal ===
+
+
+=== #840 Applin ===   [GIÀ NELL'APP]
+
+
+=== #841 Flapple ===   [GIÀ NELL'APP]
+
+
+=== #842 Appletun ===   [GIÀ NELL'APP]
+
+
+=== #843 Silicobra ===
+
+
+=== #844 Sandaconda ===
+
+
+=== #845 Cramorant ===
+
+
+=== #846 Arrokuda ===
+
+
+=== #847 Barraskewda ===
+
+
+=== #848 Toxel ===   [GIÀ NELL'APP]
+
+
+=== #849 Toxtricity ===   [GIÀ NELL'APP]
+
+
+=== #850 Sizzlipede ===
+
+
+=== #851 Centiskorch ===
+
+
+=== #852 Clobbopus ===
+
+
+=== #853 Grapploct ===
+
+
+=== #854 Sinistea ===
+
+
+=== #855 Polteageist ===
+
+
+=== #856 Hatenna ===
+
+
+=== #857 Hattrem ===
+
+
+=== #858 Hatterene ===
+
+
+=== #859 Impidimp ===   [GIÀ NELL'APP]
+
+
+=== #860 Morgrem ===   [GIÀ NELL'APP]
+
+
+=== #861 Grimmsnarl ===   [GIÀ NELL'APP]
+
+
+=== #862 Obstagoon ===
+
+
+=== #863 Perrserker ===
+
+
+=== #864 Cursola ===   [GIÀ NELL'APP]
+
+
+=== #865 Sirfetch'd ===   [GIÀ NELL'APP]
+
+
+=== #866 Mr. Rime ===
+
+
+=== #867 Runerigus ===
+
+
+=== #868 Milcery ===
+
+
+=== #869 Alcremie ===
+
+
+=== #870 Falinks ===
+
+
+=== #871 Pincurchin ===
+
+
+=== #872 Snom ===   [GIÀ NELL'APP]
+
+
+=== #873 Frosmoth ===   [GIÀ NELL'APP]
+
+
+=== #874 Stonjourner ===
+
+
+=== #875 Eiscue ===   [GIÀ NELL'APP]
+
+
+=== #876 Indeedee ===
+
+
+=== #877 Morpeko ===
+
+
+=== #878 Cufant ===
+
+
+=== #879 Copperajah ===
+
+
+=== #880 Dracozolt ===
+
+
+=== #881 Arctozolt ===
+
+
+=== #882 Dracovish ===
+
+
+=== #883 Arctovish ===
+
+
+=== #884 Duraludon ===
+
+
+=== #885 Dreepy ===   [GIÀ NELL'APP]
+
+
+=== #886 Drakloak ===   [GIÀ NELL'APP]
+
+
+=== #887 Dragapult ===   [GIÀ NELL'APP]
+
+
+=== #888 Zacian ===
+
+
+=== #889 Zamazenta ===
+
+
+=== #890 Eternatus ===
+
+
+=== #891 Kubfu ===
+
+
+=== #892 Urshifu ===
+
+
+=== #893 Zarude ===
+
+
+=== #894 Regieleki ===
+
+
+=== #895 Regidrago ===
+
+
+=== #896 Glastrier ===
+
+
+=== #897 Spectrier ===
+
+
+=== #898 Calyrex ===
+
+
+#==============================================================================
+#  GENERAZIONE 8 — HISUI (Leggende Arceus)  ·  7 specie
+#==============================================================================
+
+=== #899 Wyrdeer ===
+
+
+=== #900 Kleavor ===
+
+
+=== #901 Ursaluna ===
+
+
+=== #902 Basculegion ===
+
+
+=== #903 Sneasler ===
+
+
+=== #904 Overqwil ===
+
+
+=== #905 Enamorus ===
+
+
+#==============================================================================
+#  FORME DI GALAR  ·  19 forme
+#==============================================================================
+
+=== Galarian Meowth ===
+
+
+=== Galarian Ponyta ===   [GIÀ NELL'APP]
+
+
+=== Galarian Rapidash ===   [GIÀ NELL'APP]
+
+
+=== Galarian Slowpoke ===
+
+
+=== Galarian Slowbro ===
+
+
+=== Galarian Slowking ===
+
+
+=== Galarian Farfetch'd ===
+
+
+=== Galarian Weezing ===
+
+
+=== Galarian Mr. Mime ===
+
+
+=== Galarian Articuno ===
+
+
+=== Galarian Zapdos ===
+
+
+=== Galarian Moltres ===
+
+
+=== Galarian Corsola ===
+
+
+=== Galarian Zigzagoon ===
+
+
+=== Galarian Linoone ===
+
+
+=== Galarian Darumaka ===   [GIÀ NELL'APP]
+
+
+=== Galarian Darmanitan ===   [GIÀ NELL'APP]
+
+
+=== Galarian Yamask ===
+
+
+=== Galarian Stunfisk ===
+
+
+#==============================================================================
+#  FORME DI HISUI  ·  16 forme
+#==============================================================================
+
+=== Hisuian Growlithe ===
+
+
+=== Hisuian Arcanine ===
+
+
+=== Hisuian Voltorb ===
+
+
+=== Hisuian Electrode ===
+
+
+=== Hisuian Typhlosion ===
+
+
+=== Hisuian Qwilfish ===
+
+
+=== Hisuian Sneasel ===
+
+
+=== Hisuian Samurott ===
+
+
+=== Hisuian Lilligant ===
+
+
+=== Hisuian Zorua ===
+
+
+=== Hisuian Zoroark ===
+
+
+=== Hisuian Braviary ===
+
+
+=== Hisuian Sliggoo ===
+
+
+=== Hisuian Goodra ===
+
+
+=== Hisuian Avalugg ===
+
+
+=== Hisuian Decidueye ===
+
+
+#==============================================================================
+#  GENERAZIONE 9 — PALDEA (Scarlatto / Violetto)  ·  120 specie
+#==============================================================================
+
+=== #906 Sprigatito ===   [GIÀ NELL'APP]
+
+
+=== #907 Floragato ===   [GIÀ NELL'APP]
+
+
+=== #908 Meowscarada ===   [GIÀ NELL'APP]
+
+
+=== #909 Fuecoco ===   [GIÀ NELL'APP]
+
+
+=== #910 Crocalor ===   [GIÀ NELL'APP]
+
+
+=== #911 Skeledirge ===   [GIÀ NELL'APP]
+
+
+=== #912 Quaxly ===   [GIÀ NELL'APP]
+
+
+=== #913 Quaxwell ===   [GIÀ NELL'APP]
+
+
+=== #914 Quaquaval ===   [GIÀ NELL'APP]
+
+
+=== #915 Lechonk ===
+
+
+=== #916 Oinkologne ===
+
+
+=== #917 Tarountula ===
+
+
+=== #918 Spidops ===
+
+
+=== #919 Nymble ===
+
+
+=== #920 Lokix ===
+
+
+=== #921 Pawmi ===
+
+
+=== #922 Pawmo ===
+
+
+=== #923 Pawmot ===
+
+
+=== #924 Tandemaus ===
+
+
+=== #925 Maushold ===
+
+
+=== #926 Fidough ===
+
+
+=== #927 Dachsbun ===
+
+
+=== #928 Smoliv ===
+
+
+=== #929 Dolliv ===
+
+
+=== #930 Arboliva ===
+
+
+=== #931 Squawkabilly ===
+
+
+=== #932 Nacli ===
+
+
+=== #933 Naclstack ===
+
+
+=== #934 Garganacl ===
+
+
+=== #935 Charcadet ===   [GIÀ NELL'APP]
+
+
+=== #936 Armarouge ===   [GIÀ NELL'APP]
+
+
+=== #937 Ceruledge ===   [GIÀ NELL'APP]
+
+
+=== #938 Tadbulb ===
+
+
+=== #939 Bellibolt ===
+
+
+=== #940 Wattrel ===
+
+
+=== #941 Kilowattrel ===
+
+
+=== #942 Maschiff ===
+
+
+=== #943 Mabosstiff ===
+
+
+=== #944 Shroodle ===
+
+
+=== #945 Grafaiai ===
+
+
+=== #946 Bramblin ===
+
+
+=== #947 Brambleghast ===
+
+
+=== #948 Toedscool ===
+
+
+=== #949 Toedscruel ===
+
+
+=== #950 Klawf ===
+
+
+=== #951 Capsakid ===
+
+
+=== #952 Scovillain ===
+
+
+=== #953 Rellor ===
+
+
+=== #954 Rabsca ===
+
+
+=== #955 Flittle ===
+
+
+=== #956 Espathra ===
+
+
+=== #957 Tinkatink ===
+
+
+=== #958 Tinkatuff ===
+
+
+=== #959 Tinkaton ===
+
+
+=== #960 Wiglett ===
+
+
+=== #961 Wugtrio ===
+
+
+=== #962 Bombirdier ===
+
+
+=== #963 Finizen ===
+
+
+=== #964 Palafin ===
+
+
+=== #965 Varoom ===
+
+
+=== #966 Revavroom ===
+
+
+=== #967 Cyclizar ===
+
+
+=== #968 Orthworm ===
+
+
+=== #969 Glimmet ===
+
+
+=== #970 Glimmora ===
+
+
+=== #971 Greavard ===
+
+
+=== #972 Houndstone ===
+
+
+=== #973 Flamigo ===
+
+
+=== #974 Cetoddle ===
+
+
+=== #975 Cetitan ===
+
+
+=== #976 Veluza ===
+
+
+=== #977 Dondozo ===
+
+
+=== #978 Tatsugiri ===
+
+
+=== #979 Annihilape ===
+
+
+=== #980 Clodsire ===
+
+
+=== #981 Farigiraf ===
+
+
+=== #982 Dudunsparce ===
+
+
+=== #983 Kingambit ===
+
+
+=== #984 Great Tusk ===
+
+
+=== #985 Scream Tail ===
+
+
+=== #986 Brute Bonnet ===
+
+
+=== #987 Flutter Mane ===
+
+
+=== #988 Slither Wing ===
+
+
+=== #989 Sandy Shocks ===
+
+
+=== #990 Iron Treads ===
+
+
+=== #991 Iron Bundle ===
+
+
+=== #992 Iron Hands ===
+
+
+=== #993 Iron Jugulis ===
+
+
+=== #994 Iron Moth ===
+
+
+=== #995 Iron Thorns ===
+
+
+=== #996 Frigibax ===   [GIÀ NELL'APP]
+
+
+=== #997 Arctibax ===   [GIÀ NELL'APP]
+
+
+=== #998 Baxcalibur ===   [GIÀ NELL'APP]
+
+
+=== #999 Gimmighoul ===
+
+
+=== #1000 Gholdengo ===
+
+
+=== #1001 Wo-Chien ===
+
+
+=== #1002 Chien-Pao ===
+
+
+=== #1003 Ting-Lu ===
+
+
+=== #1004 Chi-Yu ===
+
+
+=== #1005 Roaring Moon ===
+
+
+=== #1006 Iron Valiant ===
+
+
+=== #1007 Koraidon ===
+
+
+=== #1008 Miraidon ===
+
+
+=== #1009 Walking Wake ===
+
+
+=== #1010 Iron Leaves ===
+
+
+=== #1011 Dipplin ===
+
+
+=== #1012 Poltchageist ===
+
+
+=== #1013 Sinistcha ===
+
+
+=== #1014 Okidogi ===
+
+
+=== #1015 Munkidori ===
+
+
+=== #1016 Fezandipiti ===
+
+
+=== #1017 Ogerpon ===
+
+
+=== #1018 Archaludon ===
+
+
+=== #1019 Hydrapple ===
+
+
+=== #1020 Gouging Fire ===
+
+
+=== #1021 Raging Bolt ===
+
+
+=== #1022 Iron Boulder ===
+
+
+=== #1023 Iron Crown ===
+
+
+=== #1024 Terapagos ===
+
+
+=== #1025 Pecharunt ===
+
+
+#==============================================================================
+#  FORME DI PALDEA  ·  4 forme
+#==============================================================================
+
+=== Paldean Wooper ===
+
+
+=== Paldean Tauros (Combat) ===
+
+
+=== Paldean Tauros (Blaze) ===
+
+
+=== Paldean Tauros (Aqua) ===
+
+
+#==============================================================================
+#  FINE — grazie! Rimandami il file anche se è compilato solo a metà.
+#==============================================================================
