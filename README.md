@@ -9,10 +9,20 @@ senza installare nulla; i salvataggi restano sul dispositivo di ognuno (con
 Esporta/Importa per condividerli).
 
 - **Schede Pokémon** (schermata iniziale): una galleria di schede, una per giocatore,
-  ognuna indipendente ed esportabile come file a sé. Dentro la scheda: squadra in stile
-  scheda del personaggio (scegli la specie e si compila da sola dal dex), nature ufficiali
-  P5e applicate in automatico, mosse con dettagli e danni scalati al livello,
-  PF/competenza/STAB ricalcolati a ogni livello, evoluzioni che aggiornano la scheda.
+  ognuna indipendente ed esportabile come file a sé. Dentro la scheda: **squadra di sei**
+  in stile scheda del personaggio (scegli la specie e si compila da sola dal dex) e
+  **Box** con tutti gli altri Pokémon catturati, con scambio in due tocchi. Mosse con
+  dettagli e danni scalati al livello, PF/competenza/STAB ricalcolati a ogni livello,
+  evoluzioni che aggiornano la scheda.
+- **Natura e abilità come nei giochi**: alla cattura escono da sole — natura fra le 21
+  ufficiali, abilità sorteggiata fra quelle che quella specie può avere (nascosta compresa).
+  Quando il Pokémon evolve l'abilità può cambiare: decide il giocatore (o il GM imposta
+  «la tiene» / «si ritira sempre»).
+- **Poké Market**: scaffali per categoria con Poké Ball, cure, vitamine, pietre, oggetti
+  chiave e **tutte le 256 MT**, ognuno con il suo prezzo. Si compra per il giocatore la cui
+  scheda è aperta: i soldi si scalano da soli, la roba finisce nello zaino e si può
+  rivendere a metà prezzo. Lo zaino è diviso in tasche e le MT si usano direttamente da lì,
+  che le propone solo ai Pokémon che possono impararle.
 - **Statistiche del giocatore**: record vittorie/sconfitte con percentuale, Pokémon
   catturati, medaglie, Pokémon più usato, iniziale, mossa preferita, XP guadagnati,
   avversario ricorrente e composizione della squadra per tipo. Si aggiornano da sole
@@ -40,6 +50,18 @@ Esporta/Importa per condividerli).
 - **Tabella MT completa**: 256 macchine tecniche con numero e nome italiano, usate sia dalle
   schede del dex sia dal sistema dei 4 slot mosse.
 - **Calcoli** e **Tipi**: formule P5e e tabella di efficacia in due direzioni.
+
+### Installazione e aggiornamenti
+
+L'app è una PWA: aperta da un indirizzo `https://` si installa sulla schermata Home
+(iPhone/iPad da Safari con «Aggiungi a Home», Android da Chrome con «Installa app») e da lì
+funziona anche senza connessione.
+
+Gli aggiornamenti **non cancellano nulla**: i salvataggi vivono in `localStorage` e hanno un
+numero di schema. Quando l'app cambia struttura, all'avvio converte i dati vecchi da sola
+(e prima mette da parte una copia di sicurezza, ripristinabile da *Copie di sicurezza*).
+Quando esce una versione nuova compare in basso una barra **Aggiorna**: si applica quando
+lo decide il giocatore, mai a metà di una lotta.
 
 `p5e-data.js` è generato dal dataset open source del dex P5e standard
 (Jerakin/p5e-data, branch no-variants) più i datafiles di Jerakin/Pokedex5E.

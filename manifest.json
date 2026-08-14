@@ -1,17 +1,25 @@
 {
   "name": "Pokédex di Aethera",
   "short_name": "Aethera",
-  "description": "Compagno digitale della campagna «Cronache di Allenatori» — Pokémon 5e: schede dei giocatori, Pokédex completo, lotte e strumenti.",
+  "description": "Compagno digitale della campagna «Cronache di Allenatori» — Pokémon 5e: squadra e Box, Pokédex completo, Poké Market, lotte e PNG.",
   "lang": "it",
   "start_url": "./",
   "scope": "./",
+  "id": "aethera-pokedex",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "orientation": "any",
   "background_color": "#0b1214",
-  "theme_color": "#0b1214",
+  "theme_color": "#a5121f",
   "categories": ["games", "utilities"],
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "La mia squadra", "short_name": "Squadra", "url": "./#squad", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Pokédex", "short_name": "Pokédex", "url": "./#dex", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "Poké Market", "short_name": "Market", "url": "./#market", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
   ]
 }

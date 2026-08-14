@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Pokédex di Aethera</title>
 <meta name="description" content="Compagno digitale della campagna «Cronache di Allenatori» — Pokémon 5e: schede dei giocatori, Pokédex completo, lotte e strumenti." />
-<meta name="theme-color" content="#0b1214" />
+<meta name="theme-color" content="#a5121f" />
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="icon-192.png" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
@@ -313,14 +313,366 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
   .pkm .head input.nick{width:120px}
   .abilities{grid-template-columns:repeat(3,1fr)}
 }
+
+/* ==========================================================================
+   TEMA POKÉMON — livello grafico sopra lo stile di base
+   ========================================================================== */
+:root{
+  --ball:#ee1b2e;
+  --ball-dark:#a5121f;
+  --ball-lite:#ff4d5e;
+  --screen:#0c1a16;
+  --screen-lite:#123027;
+  --gold:#f6c945;
+  --ink:#07100f;
+  --radius:16px;
+  --shadow:0 6px 20px rgba(0,0,0,.35);
+  --t-fast:.16s cubic-bezier(.34,1.2,.64,1);
+  --t:.26s cubic-bezier(.34,1.2,.64,1);
+}
+body{
+  background:
+    radial-gradient(1200px 520px at 50% -180px, rgba(238,27,46,.13), transparent 70%),
+    radial-gradient(900px 420px at 110% 12%, rgba(79,209,197,.07), transparent 65%),
+    var(--bg);
+  background-attachment:fixed;
+}
+
+/* ---------- intestazione ---------- */
+header{
+  background:linear-gradient(180deg, rgba(165,18,31,.34), rgba(11,18,20,.95));
+  border-bottom:2px solid rgba(238,27,46,.35);
+}
+.brand{flex-direction:row; align-items:center; gap:11px}
+.brand .logo{
+  width:32px; height:32px; border-radius:50%; flex:none; position:relative;
+  background:linear-gradient(180deg, var(--ball) 0 48%, #f2f2f2 48% 100%);
+  border:2px solid #10181a; box-shadow:0 2px 8px rgba(238,27,46,.4);
+}
+.brand .logo::after{
+  content:''; position:absolute; inset:0; margin:auto;
+  width:10px; height:10px; border-radius:50%;
+  background:#fff; border:2.5px solid #10181a;
+}
+.brand .txt{display:flex; flex-direction:column; gap:1px}
+.brand strong{letter-spacing:.2px}
+
+/* ---------- navigazione ---------- */
+nav.tabs button{
+  display:flex; align-items:center; gap:6px;
+  border-radius:999px; transition:background var(--t-fast), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast);
+}
+nav.tabs button i{font-style:normal; font-size:15px; line-height:1}
+nav.tabs button:hover{transform:translateY(-1px)}
+nav.tabs button.active{
+  background:linear-gradient(180deg, rgba(238,27,46,.28), rgba(238,27,46,.12));
+  border-color:var(--ball); color:#ffdfe2;
+}
+.bottomnav{display:none}
+
+/* ---------- transizione fra sezioni ---------- */
+section.tab.enter{animation:secIn .3s cubic-bezier(.2,.8,.3,1)}
+@keyframes secIn{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none}}
+
+/* ---------- pannelli e bottoni ---------- */
+.panel{box-shadow:var(--shadow); transition:border-color var(--t-fast)}
+button.btn{transition:transform var(--t-fast), filter var(--t-fast), background var(--t-fast)}
+button.btn:active{transform:scale(.96)}
+button.btn[disabled]{opacity:.45; cursor:not-allowed}
+
+/* ---------- intestazioni di sezione ---------- */
+.sechead{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  margin:16px 0 10px;
+}
+.sechead h3{margin:0; font-size:15px; letter-spacing:.2px}
+.counter{
+  font-size:12px; font-weight:700; padding:2px 10px; border-radius:999px;
+  background:rgba(255,255,255,.06); border:1px solid var(--line); color:var(--muted);
+}
+.counter.full{color:var(--ball-lite); border-color:rgba(238,27,46,.5); background:rgba(238,27,46,.12)}
+.ballrow{display:flex; gap:5px}
+.ballslot{
+  width:14px; height:14px; border-radius:50%; border:1.5px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.05); transition:all var(--t);
+}
+.ballslot.on{
+  border-color:#10181a;
+  background:linear-gradient(180deg, var(--ball) 0 48%, #ececec 48% 100%);
+  box-shadow:0 0 0 1px rgba(0,0,0,.5), 0 2px 6px rgba(238,27,46,.45);
+}
+
+/* ---------- Pokédex: aspetto da dispositivo ---------- */
+#tab-dex .dexdevice{
+  border:1px solid rgba(238,27,46,.4); border-radius:20px;
+  background:linear-gradient(180deg, rgba(238,27,46,.16), rgba(255,255,255,.02) 120px);
+  padding:14px; box-shadow:var(--shadow); margin-bottom:14px;
+}
+.dexlights{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+.dexlens{
+  width:44px; height:44px; border-radius:50%; flex:none;
+  background:radial-gradient(circle at 32% 30%, #bfe6ff, #2f7fd0 55%, #124a86);
+  border:3px solid #eaeaea; box-shadow:0 0 14px rgba(58,167,255,.5), inset 0 0 10px rgba(255,255,255,.35);
+  animation:lens 3.6s ease-in-out infinite;
+}
+@keyframes lens{0%,100%{box-shadow:0 0 12px rgba(58,167,255,.45), inset 0 0 10px rgba(255,255,255,.3)}
+                50%{box-shadow:0 0 22px rgba(58,167,255,.8), inset 0 0 12px rgba(255,255,255,.5)}}
+.dexled{width:11px; height:11px; border-radius:50%; flex:none}
+.dexled.r{background:#ff5f5f; box-shadow:0 0 8px rgba(255,95,95,.7)}
+.dexled.y{background:var(--gold); box-shadow:0 0 8px rgba(246,201,69,.7)}
+.dexled.g{background:#5ee08a; box-shadow:0 0 8px rgba(94,224,138,.7)}
+.dexscreen{
+  border-radius:14px; padding:12px;
+  background:linear-gradient(180deg, var(--screen), var(--screen-lite));
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:inset 0 2px 18px rgba(0,0,0,.55);
+}
+.dexcount{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:12px; color:#7ce0b4; letter-spacing:.6px; margin-bottom:8px;
+}
+.dex-item{
+  transition:transform var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+  background:rgba(255,255,255,.03);
+}
+.dex-item:hover{transform:translateX(3px); border-color:rgba(238,27,46,.45)}
+.dex-item .num{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:var(--gold); font-weight:700;
+}
+
+/* ---------- scheda del Pokémon ---------- */
+.pkm{
+  position:relative; overflow:hidden;
+  background:linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,0) 92px), var(--panel);
+  transition:border-color var(--t-fast), transform var(--t-fast);
+}
+.pkm::before{
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, var(--ball), var(--gold), var(--accent));
+  opacity:.75;
+}
+.pkm .lvl{
+  font-size:15px; font-weight:800; color:#fff; letter-spacing:.3px;
+  background:linear-gradient(180deg, var(--ball), var(--ball-dark));
+  padding:3px 12px; border-radius:999px; box-shadow:0 2px 8px rgba(238,27,46,.4);
+}
+.hpbar{height:11px; border:1px solid rgba(0,0,0,.5); background:#0a1113; box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+.hpbar i{transition:width .45s cubic-bezier(.2,.8,.3,1)}
+.xpbar{height:7px; border:1px solid rgba(0,0,0,.45); background:#0a1113}
+.xpbar i{transition:width .45s cubic-bezier(.2,.8,.3,1); background:linear-gradient(90deg,#3aa7ff,var(--accent))}
+
+/* natura e abilità */
+.idcard{
+  display:flex; flex-direction:column; gap:5px; min-width:190px;
+  border:1px solid var(--line); border-radius:12px; padding:8px 10px;
+  background:rgba(255,255,255,.03);
+}
+.idrow{display:flex; align-items:center; gap:7px}
+.idlbl{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; min-width:52px}
+.idval{font-size:13.5px}
+.idval.abil{color:var(--gold); cursor:pointer}
+.idval.abil:hover{text-decoration:underline}
+.idnat{font-size:10.5px; color:var(--warn); opacity:.85}
+.idbtn{margin-left:auto; cursor:pointer; opacity:.55; font-size:13px; transition:opacity var(--t-fast), transform var(--t-fast)}
+.idbtn:hover{opacity:1; transform:rotate(-18deg) scale(1.15)}
+
+/* ---------- Box ---------- */
+.boxpanel{background:linear-gradient(180deg, rgba(58,167,255,.07), rgba(255,255,255,.01)), var(--panel)}
+.boxgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:9px; margin-top:4px}
+.boxmon{
+  border:1px solid var(--line); border-radius:12px; padding:9px 10px;
+  background:rgba(255,255,255,.03); display:flex; flex-direction:column; gap:5px;
+  transition:transform var(--t-fast), border-color var(--t-fast);
+}
+.boxmon:hover{transform:translateY(-2px); border-color:rgba(79,209,197,.5)}
+.bm-top{display:flex; align-items:baseline; gap:6px}
+.bm-top b{font-size:14px}
+.bm-top .lv{margin-left:auto; font-size:11.5px; color:var(--muted); white-space:nowrap}
+.bm-types{display:flex; gap:4px; flex-wrap:wrap}
+.bm-meta{font-size:11px; color:var(--muted); line-height:1.35}
+.bm-act{display:flex; gap:5px; margin-top:2px}
+.bm-act .btn{flex:1; padding:4px 6px; font-size:11.5px}
+.bm-act .btn.danger{flex:0 0 auto}
+.boxsheet .pkm{border:none; padding:0; background:none; box-shadow:none}
+.boxsheet .pkm::before{display:none}
+
+/* ---------- porta-medaglie ---------- */
+.badges{gap:9px}
+.badge{
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  width:74px; padding:8px 4px; border-radius:14px; text-align:center;
+  font-size:10.5px; line-height:1.2; letter-spacing:.2px;
+  background:rgba(255,255,255,.02); transition:all var(--t);
+}
+.badge::before{
+  content:''; width:26px; height:26px; border-radius:50%;
+  background:rgba(255,255,255,.07); border:2px solid rgba(255,255,255,.14);
+  transition:all var(--t);
+}
+.badge.on{
+  border-color:rgba(246,201,69,.55); background:rgba(246,201,69,.09); color:var(--gold);
+}
+.badge.on::before{
+  background:radial-gradient(circle at 33% 30%, #fff6d4, var(--gold) 55%, #b98a10);
+  border-color:#fff2c4;
+  box-shadow:0 0 14px rgba(246,201,69,.6), inset 0 -2px 5px rgba(0,0,0,.25);
+  transform:rotate(-8deg);
+}
+.badge.on:hover::before{transform:rotate(8deg) scale(1.08)}
+
+/* ---------- zaino ---------- */
+.bag{background:linear-gradient(180deg, rgba(246,201,69,.07), rgba(255,255,255,.01)), var(--panel)}
+.wallet{
+  display:flex; flex-direction:column; align-items:flex-end; gap:1px;
+  padding:5px 12px; border-radius:12px;
+  background:rgba(246,201,69,.1); border:1px solid rgba(246,201,69,.35);
+}
+.wallet b{color:var(--gold); font-size:16px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.wallet.small{flex-direction:row; align-items:center; padding:3px 10px}
+.wallet.small b{font-size:13.5px}
+.pockets{display:flex; gap:6px; flex-wrap:wrap; margin:10px 0 4px}
+.pocket{
+  border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
+  border-radius:999px; padding:5px 12px; font-size:12.5px; cursor:pointer;
+  display:flex; align-items:center; gap:6px; transition:all var(--t-fast);
+}
+.pocket span{font-size:10.5px; background:rgba(255,255,255,.09); border-radius:99px; padding:0 6px}
+.pocket:hover{border-color:var(--accent); color:var(--accent)}
+.pocket.on{border-color:var(--gold); color:var(--gold); background:rgba(246,201,69,.1)}
+.bagpocket{margin-top:10px}
+.bp-lbl{
+  font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted);
+  border-bottom:1px solid var(--line); padding-bottom:4px; margin-bottom:2px;
+}
+.bagrow{
+  display:flex; align-items:center; gap:8px; padding:6px 2px;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.bagrow b{font-size:13.5px; min-width:130px}
+.bagrow .qty{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--gold);
+  font-size:12.5px; min-width:34px;
+}
+.bagrow .hint{flex:1; margin:0; font-size:11.5px}
+.bagrow .pm{display:flex; gap:4px}
+
+/* ---------- Poké Market ---------- */
+.counter-desk{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  border:1px solid rgba(58,167,255,.3); border-radius:var(--radius);
+  background:linear-gradient(180deg, rgba(58,167,255,.14), rgba(255,255,255,.02));
+  padding:14px; margin-bottom:12px; box-shadow:var(--shadow);
+}
+.clerk{display:flex; align-items:center; gap:11px}
+.clerk-ball{
+  width:34px; height:34px; border-radius:50%; flex:none; position:relative;
+  background:linear-gradient(180deg, #3aa7ff 0 48%, #f2f2f2 48% 100%);
+  border:2px solid #10181a;
+}
+.clerk-ball::after{
+  content:''; position:absolute; inset:0; margin:auto; width:10px; height:10px;
+  border-radius:50%; background:#fff; border:2.5px solid #10181a;
+}
+.counter-desk .wallet{margin-left:auto}
+.shelves{display:flex; gap:6px; flex-wrap:wrap}
+.shelf{
+  border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--text);
+  border-radius:11px; padding:7px 13px; font-size:13px; cursor:pointer;
+  transition:all var(--t-fast);
+}
+.shelf:hover{border-color:var(--accent)}
+.shelf.on{background:linear-gradient(180deg, rgba(58,167,255,.28), rgba(58,167,255,.1)); border-color:#3aa7ff; color:#cfe9ff}
+.shopgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:9px}
+.shopitem{
+  border:1px solid var(--line); border-radius:13px; padding:10px 12px;
+  background:var(--panel); display:flex; gap:10px; align-items:flex-start;
+  transition:transform var(--t-fast), border-color var(--t-fast);
+}
+.shopitem:hover{transform:translateY(-2px); border-color:rgba(58,167,255,.5)}
+.shopitem.nosale{opacity:.72}
+.si-main{flex:1; min-width:0}
+.si-name{display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+.si-name b{font-size:14px}
+.si-main p{margin:4px 0 0; font-size:12px; color:var(--muted); line-height:1.4}
+.si-buy{display:flex; flex-direction:column; align-items:flex-end; gap:5px; flex:none}
+.price{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13px;
+  color:var(--gold); white-space:nowrap;
+}
+.price.nosale{color:var(--muted); font-size:11px}
+.mini.cap{color:var(--accent); border-color:rgba(79,209,197,.4)}
+.tmdot{width:9px; height:9px; border-radius:50%; flex:none; display:inline-block}
+
+/* ---------- avviso volante ---------- */
+.toast{
+  position:fixed; left:50%; bottom:calc(78px + env(safe-area-inset-bottom));
+  transform:translate(-50%, 26px); opacity:0; pointer-events:none; z-index:60;
+  background:rgba(17,27,31,.97); color:var(--text);
+  border:1px solid var(--accent); border-radius:999px;
+  padding:10px 18px; font-size:13px; max-width:88vw; text-align:center;
+  box-shadow:0 10px 28px rgba(0,0,0,.5);
+  transition:opacity var(--t), transform var(--t);
+}
+.toast.show{opacity:1; transform:translate(-50%,0)}
+
+/* ---------- avviso di aggiornamento ---------- */
+.updbar{
+  position:fixed; left:12px; right:12px; bottom:calc(78px + env(safe-area-inset-bottom));
+  z-index:55; display:none; align-items:center; gap:10px; flex-wrap:wrap;
+  background:linear-gradient(180deg, rgba(238,27,46,.95), rgba(165,18,31,.95));
+  color:#fff; border-radius:14px; padding:11px 14px; font-size:13.5px;
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
+}
+.updbar.show{display:flex}
+.updbar button{
+  margin-left:auto; background:#fff; color:var(--ball-dark); border:none;
+  border-radius:9px; padding:7px 13px; font-weight:700; cursor:pointer; font-size:13px;
+}
+
+/* ---------- telefono ---------- */
+@media (max-width:760px){
+  header nav.tabs{display:none}
+  .bottomnav{
+    display:grid; grid-auto-flow:column; grid-auto-columns:1fr;
+    position:fixed; left:0; right:0; bottom:0; z-index:40;
+    background:rgba(11,18,20,.97); backdrop-filter:blur(10px);
+    border-top:1px solid rgba(238,27,46,.3);
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+    overflow-x:auto;
+  }
+  .bottomnav button{
+    background:none; border:none; color:var(--muted); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+    padding:5px 2px; font-size:10px; min-width:56px;
+    transition:color var(--t-fast), transform var(--t-fast);
+  }
+  .bottomnav button i{font-style:normal; font-size:19px; line-height:1}
+  .bottomnav button.active{color:var(--ball-lite)}
+  .bottomnav button.active i{transform:translateY(-2px) scale(1.12)}
+  main{padding-bottom:86px}
+  .footer-note{padding-bottom:90px}
+  .badge{width:66px}
+  .shopitem{flex-direction:column}
+  .si-buy{flex-direction:row; align-items:center; width:100%}
+  .si-buy .btn{margin-left:auto}
+  .bagrow b{min-width:110px}
+  .bagrow .hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms !important; transition-duration:.001ms !important}
+}
 </style>
 </head>
 <body>
 
 <header>
   <div class="brand">
-    <strong>Pokédex di Aethera</strong>
-    <span>Cronache di Allenatori · Sistema Pokémon 5e</span>
+    <span class="logo" aria-hidden="true"></span>
+    <span class="txt">
+      <strong>Pokédex di Aethera</strong>
+      <span>Cronache di Allenatori · Sistema Pokémon 5e</span>
+    </span>
   </div>
   <nav class="tabs" id="tabs"></nav>
   <button class="btn small" id="install-btn" style="display:none" onclick="installApp()">📱 Installa</button>
@@ -330,15 +682,23 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
   <!-- ============ POKEDEX ============ -->
   <section class="tab" id="tab-dex">
     <h2>Pokédex</h2>
-    <p class="hint" id="dex-intro">Tutte le specie del dex Pokémon 5e con scheda completa: clicca il nome per aprirla.</p>
-    <div class="panel">
-      <div class="row">
-        <input id="dex-search" placeholder="Cerca specie…" style="flex:1; min-width:160px" oninput="dexShown=DEX_PAGE; renderDex()" />
-        <select id="dex-type" onchange="dexShown=DEX_PAGE; renderDex()"></select>
-        <label class="caughtbox"><input type="checkbox" id="dex-caught" onchange="dexShown=DEX_PAGE; renderDex()" /> solo catturati</label>
-        <button class="btn small ghost" onclick="openSpeciesEditor()">✨ Nuova specie</button>
+    <p class="hint" id="dex-intro">Tutte le specie del dex Pokémon 5e con scheda completa: tocca il nome per aprirla.</p>
+    <div class="dexdevice">
+      <div class="dexlights">
+        <span class="dexlens" aria-hidden="true"></span>
+        <span class="dexled r" aria-hidden="true"></span>
+        <span class="dexled y" aria-hidden="true"></span>
+        <span class="dexled g" aria-hidden="true"></span>
+        <button class="btn small ghost" style="margin-left:auto" onclick="openSpeciesEditor()">✨ Nuova specie</button>
       </div>
-      <p class="hint" id="dex-count" style="margin:10px 0 0"></p>
+      <div class="dexscreen">
+        <p class="dexcount" id="dex-count"></p>
+        <div class="row">
+          <input id="dex-search" placeholder="Cerca specie…" style="flex:1; min-width:120px" oninput="dexShown=DEX_PAGE; renderDex()" />
+          <select id="dex-type" onchange="dexShown=DEX_PAGE; renderDex()"></select>
+          <label class="caughtbox"><input type="checkbox" id="dex-caught" onchange="dexShown=DEX_PAGE; renderDex()" /> solo catturati</label>
+        </div>
+      </div>
     </div>
     <div class="dexgrid" id="dex-list"></div>
     <div class="row" style="justify-content:center; margin-top:12px">
@@ -363,10 +723,26 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-auto" onchange="saveSettings()"/> salita di livello automatica</label>
       </div>
       <div class="row" style="margin-top:12px">
+        <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autonat" onchange="saveSettings()"/> natura sorteggiata alla cattura</label>
+        <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autoabil" onchange="saveSettings()"/> abilità sorteggiata alla cattura</label>
+        <label>Abilità quando evolve
+          <select id="set-evoabil" onchange="saveSettings()">
+            <option value="ask">chiede al giocatore</option>
+            <option value="keep">la tiene</option>
+            <option value="reroll">la ritira sempre</option>
+          </select></label>
+      </div>
+      <div class="row" style="margin-top:12px">
         <button class="btn ghost small" onclick="exportData()">⬇ Esporta dati</button>
         <button class="btn ghost small" onclick="importData()">⬆ Importa dati</button>
         <button class="btn danger small" onclick="resetData()">Azzera tutto</button>
       </div>
+      <div class="row" style="margin-top:12px">
+        <span class="hint" style="margin:0">Versione <b id="app-version"></b> · salvataggi schema <b id="app-schema"></b></span>
+        <button class="btn ghost small" onclick="checkForUpdate(true)">🔄 Cerca aggiornamenti</button>
+        <button class="btn ghost small" onclick="openBackups()">🛟 Copie di sicurezza</button>
+      </div>
+      <p class="hint" style="margin:8px 0 0">Gli aggiornamenti dell'app <b>non cancellano nulla</b>: squadre, Box, zaino e soldi restano dove sono, e prima di ogni cambio di struttura viene messa da parte una copia di sicurezza.</p>
     </div>
   </section>
 
@@ -419,7 +795,15 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
     <div class="npcgrid" id="npc-list"></div>
   </section>
 
-  <!-- ============ STRUMENTI ============ -->
+    <!-- ============ POKÉ MARKET ============ -->
+  <section class="tab" id="tab-market">
+    <h2>Poké Market</h2>
+    <p class="hint">Poké Ball, cure, vitamine, pietre e tutte le 256 MT, con il prezzo accanto.
+      Si compra per il giocatore la cui scheda è aperta: i soldi si scalano da soli e la roba finisce nel suo zaino.</p>
+    <div id="market-view"></div>
+  </section>
+
+<!-- ============ STRUMENTI ============ -->
   <section class="tab" id="tab-items">
     <h2>Oggetti e strumenti</h2>
     <p class="hint">Poké Ball, cure, pietre evolutive, oggetti chiave e strumenti tenuti. Aggiungili allo zaino di un giocatore con «+ Zaino», oppure assegna uno strumento tenuto dalla scheda del Pokémon.</p>
@@ -510,6 +894,13 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
     </div>
   </section>
 </main>
+
+<div class="updbar" id="updbar">
+  <span>✨ È disponibile una versione aggiornata del Pokédex. I tuoi dati restano dove sono.</span>
+  <button onclick="applyUpdate()">Aggiorna</button>
+</div>
+
+<nav class="bottomnav" id="bottomnav"></nav>
 
 <div id="modal-bg" onclick="if(event.target===this)closeModal()">
   <div id="modal"></div>
@@ -1244,7 +1635,9 @@ const CATALOG = [
   {n:'Perla', c:'Preziosi', p:1400, e:'Si vende. Non ha altri usi.'},
   {n:'Perlissima', c:'Preziosi', p:7500, e:'Si vende. Non ha altri usi.'},
   {n:'Bracciallegro', c:'Preziosi', p:0, e:'Il Pokémon che lo tiene guadagna Lealtà al doppio della velocità.'},
-  {n:'Superesperienza', c:'Preziosi', p:0, e:'Il Pokémon che la tiene guadagna il 50% di XP in più dalle lotte.'}
+  {n:'Superesperienza', c:'Preziosi', p:0, e:'Il Pokémon che la tiene guadagna il 50% di XP in più dalle lotte.'},
+  {n:'Condivisore Esperienza', c:'Oggetti chiave', p:0, nosale:true,
+   e:'Ogni Pokémon della squadra che non ha partecipato allo scontro riceve comunque metà degli XP. Non si compra: te lo consegna il Professor Eidon.'}
 ];
 
 /* aggiunge il catalogo all'elenco strumenti già presente nel dex */
@@ -1256,6 +1649,30 @@ const ALL_ITEMS = () => {
 };
 const ITEM_BY_NAME = () => Object.fromEntries(ALL_ITEMS().map(i=>[i.n,i]));
 const BALLS = () => CATALOG.filter(i => i.c === 'Poké Ball');
+
+/* --- le 256 MT come articoli del negozio --- */
+const TM_PRICE = 3000;
+function tmItemName(num){ return 'MT' + String(num).padStart(2,'0') + ' — ' + (P5 && P5.TM ? P5.TM[num] : ''); }
+let _tmItems = null;
+function TM_ITEMS(){
+  if(_tmItems) return _tmItems;
+  _tmItems = [];
+  if(P5 && P5.TM){
+    for(const [num, move] of Object.entries(P5.TM)){
+      const md = P5.MOVES[move];
+      _tmItems.push({n: tmItemName(num), c:'MT', p:TM_PRICE, tm:+num, move,
+        t: md ? md.t : null,
+        e: 'Insegna ' + move + (md && md.desc ? ' — ' + String(md.desc).slice(0,120) + (md.desc.length>120?'…':'')
+             : '. Solo ai Pokémon che hanno questa MT nella propria scheda.')});
+    }
+    _tmItems.sort((a,b)=>a.tm-b.tm);
+  }
+  return _tmItems;
+}
+const MARKET_CATS = ['Poké Ball','Cure','Vitamine','Pietre','MT','Preziosi','Oggetti chiave'];
+function MARKET_ITEMS(){ return [...CATALOG, ...TM_ITEMS()]; }
+function marketByName(){ return Object.fromEntries(MARKET_ITEMS().map(i=>[i.n,i])); }
+function onSale(i){ return !!i.p && !i.nosale; }
 
 /* ================= PNG: CAPIPALESTRA, RIVALI, ALLENATORI =================
    Precaricati dalla guida di Aethera; il GM può modificarli e crearne di nuovi. */
@@ -1352,20 +1769,68 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
+const APP_VERSION = '2.0';
+/* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
+   vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
+   Prima di toccarli se ne tiene una copia di sicurezza. */
+const SCHEMA = 2;
+const MAX_TEAM = 6;
+let migrationNote = '';
+
 let state = load();
 /* specie create dal GM: entrano nel dex come le altre */
 if(P5) for(const [n,d] of Object.entries(state.customSpecies||{})) P5.POKEMON[n] = Object.assign({}, d, {custom:true});
 
 function defaultSettings(){
   return {needMult:2, defeatMult:1, captureMult:1, autoLevel:true,
-    capBase:10, capLevel:true, capHP:true};
+    capBase:10, capLevel:true, capHP:true,
+    autoNature:true, autoAbility:true, evoAbility:'ask'};
 }
 function defaultState(){
-  return {caught:{}, trainers:[], activeTrainer:null, battles:[],
+  return {schema:SCHEMA, caught:{}, trainers:[], activeTrainer:null, battles:[],
     customSpecies:{}, npcs:[], guests:[], settings:defaultSettings()};
 }
 function defaultTrainerStats(){
   return {wins:0, losses:0, captures:0, battles:0, xpTotal:0, levelUps:0, moves:{}, foes:{}};
+}
+
+/* ---- natura e abilità sorteggiate ---- */
+function randomNature(){
+  const list = Object.keys(NATURES);
+  return list.length ? list[Math.floor(Math.random()*list.length)] : '';
+}
+function abilityChoices(species){
+  const d = p5data(species);
+  if(!d) return [];
+  const out = [...(d.ab||[]), ...(d.hab ? [d.hab] : [])];
+  return [...new Set(out.filter(a => a && a !== '—'))];
+}
+function randomAbility(species){
+  const c = abilityChoices(species);
+  return c.length ? c[Math.floor(Math.random()*c.length)] : '';
+}
+function isHiddenAbility(species, name){
+  const d = p5data(species);
+  return !!(d && d.hab && d.hab === name);
+}
+
+function migratePkm(p, t){
+  if(!p.stats) p.stats = {FOR:10,DES:10,COS:10+2*(p.con||0),INT:10,SAG:10,CAR:10};
+  p.nature = p.nature || ''; p.item = p.item || '';
+  p.ts = p.ts || ''; p.speed = p.speed || ''; p.vul = p.vul || ''; p.res = p.res || '';
+  p.ability = p.ability || ''; p.abNames = p.abNames || [];
+  p.uses = p.uses || 0;
+  if(!Array.isArray(p.slots)) p.slots = autoSlots(p);
+  /* schema 2: ogni Pokémon ha un'abilità sua, sorteggiata fra quelle della specie */
+  if(p.abil === undefined){
+    p.abil = randomAbility(p.species) || (p.abNames[0] || '');
+    if(p.abil) migrationNote = 'ability';
+  }
+  if(!p.nature){
+    p.nature = randomNature();
+    if(p.nature) migrationNote = migrationNote || 'nature';
+  }
+  return p;
 }
 function migrateTrainer(t){
   t.notes = t.notes || '';
@@ -1375,16 +1840,19 @@ function migrateTrainer(t){
   t.stats.foes = t.stats.foes || {};
   t.bag = t.bag || {};
   t.money = t.money || 0;
-  for(const p of t.team){
-    if(!p.stats) p.stats = {FOR:10,DES:10,COS:10+2*(p.con||0),INT:10,SAG:10,CAR:10};
-    p.nature = p.nature || ''; p.item = p.item || '';
-    p.ts = p.ts || ''; p.speed = p.speed || ''; p.vul = p.vul || ''; p.res = p.res || '';
-    p.ability = p.ability || ''; p.abNames = p.abNames || [];
-    p.uses = p.uses || 0;
-    if(!Array.isArray(p.slots)) p.slots = autoSlots(p);
+  if(!Array.isArray(t.box)) t.box = [];
+  /* schema 2: in squadra restano sei Pokémon, gli altri passano nel Box */
+  if(t.team.length > MAX_TEAM){
+    t.box = t.team.splice(MAX_TEAM).concat(t.box);
+    migrationNote = 'box';
   }
+  t.team.forEach(p => migratePkm(p, t));
+  t.box.forEach(p => migratePkm(p, t));
   if(!t.starter && t.team.length) t.starter = t.team[0].id;
   return t;
+}
+function backupSave(raw, fromSchema){
+  try{ localStorage.setItem(STORE_KEY + '-backup-s' + fromSchema, raw); }catch(e){}
 }
 function load(){
   let s = defaultState();
@@ -1392,14 +1860,36 @@ function load(){
     const raw = localStorage.getItem(STORE_KEY);
     if(raw){
       const saved = JSON.parse(raw);
+      const from = saved.schema || 1;
+      if(from < SCHEMA) backupSave(raw, from);
       s = Object.assign(defaultState(), saved);
       s.settings = Object.assign(defaultSettings(), saved.settings||{});
+      s.schema = SCHEMA;
     }
   }catch(e){}
   s.trainers.forEach(migrateTrainer);
   return s;
 }
-function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function save(){
+  state.schema = SCHEMA;
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch(e){ alert('Memoria del dispositivo piena: il salvataggio non è riuscito. Esporta i dati e libera spazio.'); }
+}
+function listBackups(){
+  const out = [];
+  for(let i=0;i<localStorage.length;i++){
+    const k = localStorage.key(i);
+    if(k && k.startsWith(STORE_KEY + '-backup-s')) out.push(k);
+  }
+  return out.sort();
+}
+function restoreBackup(key){
+  const raw = localStorage.getItem(key);
+  if(!raw) return;
+  if(!confirm('Ripristinare la copia di sicurezza «' + key + '»? I dati attuali verranno sostituiti.')) return;
+  localStorage.setItem(STORE_KEY, raw);
+  location.reload();
+}
 let uid = () => Math.random().toString(36).slice(2,9);
 
 /* ================= UTIL UI ================= */
@@ -1417,21 +1907,45 @@ function showModal(html){
   document.getElementById('modal-bg').classList.add('open');
 }
 function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); }
+let toastTimer = null;
+function toast(msg){
+  let el = document.getElementById('toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'toast'; el.className = 'toast';
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
 
 /* ================= TABS ================= */
 
 const TABS = [
-  ['squad','📋 Schede Pokémon'],['dex','📖 Pokédex'],['battle','⚡ Lotte'],['npc','🎭 PNG'],
-  ['items','🎒 Oggetti'],['calc','🧮 Calcoli'],['types','🛡️ Tipi']
+  ['squad','Squadra','◓'],['dex','Pokédex','📖'],['market','Market','🛒'],
+  ['battle','Lotte','⚡'],['npc','PNG','🎭'],['items','Oggetti','🎒'],
+  ['calc','Calcoli','🧮'],['types','Tipi','🛡️']
 ];
 let activeTab = 'squad';
 function renderTabs(){
-  document.getElementById('tabs').innerHTML = TABS.map(([id,label]) =>
-    `<button class="${activeTab===id?'active':''}" onclick="setTab('${id}')">${label}</button>`).join('');
+  const html = TABS.map(([id,label,ico]) =>
+    `<button class="${activeTab===id?'active':''}" onclick="setTab('${id}')">
+      <i>${ico}</i><span>${label}</span></button>`).join('');
+  document.getElementById('tabs').innerHTML = html;
+  const bn = document.getElementById('bottomnav');
+  if(bn) bn.innerHTML = html;
   document.querySelectorAll('section.tab').forEach(s => s.classList.remove('active'));
-  document.getElementById('tab-'+activeTab).classList.add('active');
+  const sec = document.getElementById('tab-'+activeTab);
+  sec.classList.add('active');
+  sec.classList.remove('enter'); void sec.offsetWidth; sec.classList.add('enter');
 }
-function setTab(id){ activeTab = id; renderTabs(); }
+function setTab(id){
+  activeTab = id; renderTabs();
+  if(id === 'market') renderMarket();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
 
 /* ================= SPECIE (dex P5e + zone di Aethera) ================= */
 
@@ -1850,11 +2364,15 @@ function addPokemon(trainer, species, types, level){
     moves: preset ? preset.moves.map(([lv,n])=>({lv,name:n}))
          : d ? learnsetMoves(d) : []
   };
+  /* come nei giochi: natura e abilità non si scelgono, escono al momento della cattura */
+  p.nature = state.settings.autoNature ? randomNature() : '';
+  p.abil = state.settings.autoAbility ? randomAbility(species) : '';
   if(p.level < p.minLevel) p.level = p.minLevel;
   p.curPF = maxPF(p);
   p.uses = 0;
   p.slots = autoSlots(p);
-  trainer.team.push(p);
+  if(trainer.team.length < MAX_TEAM) trainer.team.push(p);
+  else (trainer.box = trainer.box || []).unshift(p);
   if(!trainer.starter) trainer.starter = p.id;
   save(); renderSquad();
   return p;
@@ -1863,10 +2381,66 @@ function addPokemon(trainer, species, types, level){
 function findPkm(pid){
   for(const t of state.trainers){
     const p = t.team.find(p=>p.id===pid);
-    if(p) return [t,p];
+    if(p) return [t,p,'team'];
+    const b = (t.box||[]).find(p=>p.id===pid);
+    if(b) return [t,b,'box'];
   }
-  return [null,null];
+  return [null,null,null];
 }
+
+/* ================= SQUADRA E BOX ================= */
+
+function allPkm(t){ return [...(t.team||[]), ...(t.box||[])]; }
+function teamFull(t){ return t.team.length >= MAX_TEAM; }
+
+function toBox(pid){
+  const [t,p,where] = findPkm(pid);
+  if(!t || where !== 'team') return;
+  if(t.team.length <= 1){ alert('Deve restare almeno un Pokémon in squadra.'); return; }
+  t.team.splice(t.team.indexOf(p), 1);
+  t.box.unshift(p);
+  if(t.starter === p.id && t.team.length) t.starter = t.team[0].id;
+  save(); renderSquad();
+}
+function toTeam(pid){
+  const [t,p,where] = findPkm(pid);
+  if(!t || where !== 'box') return;
+  if(teamFull(t)){
+    alert('La squadra è già di ' + MAX_TEAM + ' Pokémon: rimanda prima qualcuno nel Box.');
+    return;
+  }
+  t.box.splice(t.box.indexOf(p), 1);
+  t.team.push(p);
+  save(); renderSquad();
+}
+function swapWithTeam(pid, outId){
+  const [t,p,where] = findPkm(pid);
+  if(!t || where !== 'box') return;
+  const out = t.team.find(x => x.id === outId);
+  if(!out) return;
+  const i = t.team.indexOf(out);
+  t.team[i] = p;
+  t.box[t.box.indexOf(p)] = out;
+  if(t.starter === out.id) t.starter = p.id;
+  save(); closeModal(); renderSquad();
+}
+function askSwap(pid){
+  const [t,p] = findPkm(pid);
+  if(!t) return;
+  const opts = t.team.map(x =>
+    `<button class="btn ghost" onclick="swapWithTeam('${pid}','${x.id}')">${esc(x.nick)} <small>Liv. ${x.level}</small></button>`).join(' ');
+  showModal(`<h3>◓ Chi lascia il posto a ${esc(p.nick)}?</h3>
+    <p class="hint">La squadra è al completo: scegli chi torna nel Box.</p>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">${opts}</div>
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Annulla</button></div>`);
+}
+function boxToTeam(pid){
+  const [t] = findPkm(pid);
+  if(t && teamFull(t)) askSwap(pid); else toTeam(pid);
+}
+let boxQuery = '', boxOpen = false;
+function setBoxQuery(v){ boxQuery = v; renderBoxOnly(); }
+function toggleBox(){ boxOpen = !boxOpen; renderSquad(); }
 
 function pkmField(pid, field, value, isNum){
   const [,p] = findPkm(pid); if(!p) return;
@@ -1895,11 +2469,16 @@ function pkmSetHP(pid, v){
   save(); renderSquad();
 }
 function removePkm(pid){
-  const [t,p] = findPkm(pid); if(!p) return;
-  if(!confirm(`Rimuovere ${p.nick} dalla squadra di ${t.name}?`)) return;
+  const [t,p,where] = findPkm(pid); if(!p) return;
+  if(where === 'team' && t.team.length > 1){
+    const scelta = confirm(`${p.nick}: OK per spostarlo nel Box, Annulla per altro.`);
+    if(scelta){ toBox(pid); return; }
+  }
+  if(!confirm(`Eliminare ${p.nick} dalla scheda di ${t.name}? L'operazione non si può annullare.`)) return;
   t.team = t.team.filter(x=>x.id!==pid);
+  t.box = (t.box||[]).filter(x=>x.id!==pid);
   if(t.starter===pid) t.starter = t.team[0]?.id || null;
-  save(); renderSquad();
+  save(); closeModal(); renderSquad();
 }
 function setStarter(pid){
   const [t,p] = findPkm(pid); if(!p) return;
@@ -2209,13 +2788,83 @@ function applyEvolution(pid, newName, pts){
     if(sp) p.types = sp.types;
   }
   p.curPF = (p.curPF==null) ? maxPF(p) : Math.min(maxPF(p), p.curPF + bonus);
+
+  /* abilità dopo l'evoluzione: si tiene, si ritira o la sceglie il giocatore */
+  const choices = abilityChoices(newName);
+  const stillValid = p.abil && choices.includes(p.abil);
+  const mode = state.settings.evoAbility || 'ask';
+  let abilNote = '';
+  if(choices.length){
+    if(mode === 'reroll' || !stillValid){
+      const old = p.abil;
+      p.abil = randomAbility(newName);
+      abilNote = old
+        ? `<p class="levelup-gain">✨ Abilità: <b>${esc(old)}</b> non esiste in questa forma → ora <b>${esc(p.abil)}</b>.</p>`
+        : `<p class="levelup-gain">✨ Abilità: <b>${esc(p.abil)}</b>.</p>`;
+    } else {
+      abilNote = `<p class="levelup-gain">✨ Abilità mantenuta: <b>${esc(p.abil)}</b>.</p>`;
+    }
+  }
   save(); renderSquad();
+
+  const askAbil = choices.length > 1 && mode === 'ask';
   showModal(`<h3>🌟 Evoluzione!</h3>
     <p class="levelup-gain"><b>${esc(p.nick)}</b> è evoluto in <b>${esc(newName)}</b>!</p>
     <p class="levelup-gain">💗 PF una tantum: <b>+${bonus}</b> (2 × liv. ${p.level}) → ora ${maxPF(p)} PF</p>
     ${nd ? `<p class="levelup-gain">📋 Scheda aggiornata dal dex: CA ${nd.ac}, statistiche e mosse della nuova forma.</p>` : ''}
     ${pts ? `<p class="levelup-gain">🎯 Distribuisci <b>+${pts} punti caratteristica</b> (regola ufficiale P5e).</p>` : ''}
+    ${abilNote}
+    ${askAbil ? `<p class="hint">Evolvendo l'abilità può cambiare: decidi tu.</p>
+      <div class="mrow">
+        <button class="btn ghost small" onclick="rerollAbility('${pid}')">🎲 Ritirala a caso</button>
+        <button class="btn ghost small" onclick="openAbilityPicker('${pid}')">✍ Scegli tu</button>
+      </div>` : ''}
     <button class="btn" onclick="closeModal()">OK</button>`);
+}
+
+/* ---- abilità del singolo Pokémon ---- */
+
+function rerollAbility(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const c = abilityChoices(p.species);
+  if(!c.length){ alert('Questa specie non ha abilità nel dex: scrivila a mano nei dati base.'); return; }
+  let n = randomAbility(p.species);
+  if(c.length > 1){ let g=0; while(n === p.abil && g++ < 12) n = randomAbility(p.species); }
+  p.abil = n;
+  save(); closeModal(); renderSquad();
+  toast(`✨ ${p.nick}: abilità ${n}`);
+}
+function openAbilityPicker(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const c = abilityChoices(p.species);
+  if(!c.length){ alert('Questa specie non ha abilità nel dex.'); return; }
+  const btns = c.map(a => {
+    const hid = isHiddenAbility(p.species, a);
+    return `<button class="btn ${a===p.abil?'':'ghost'}" style="text-align:left"
+      onclick="setAbility('${pid}','${esc(a).replace(/'/g,"\\'")}')">
+      ${esc(a)}${hid?' <small style="opacity:.7">(nascosta)</small>':''}<br/>
+      <small style="opacity:.75; font-weight:400">${esc(String((P5&&P5.ABIL[a])||'').slice(0,110))}${String((P5&&P5.ABIL[a])||'').length>110?'…':''}</small>
+    </button>`;
+  }).join('');
+  showModal(`<h3>✨ Abilità di ${esc(p.nick)}</h3>
+    <p class="hint">Nei giochi l'abilità esce a caso alla cattura; qui puoi anche sceglierla se il GM è d'accordo.</p>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">${btns}</div>
+    <div class="mrow">
+      <button class="btn ghost small" onclick="rerollAbility('${pid}')">🎲 A caso</button>
+      <button class="btn ghost small" onclick="closeModal()">Chiudi</button>
+    </div>`);
+}
+function rerollNature(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  let n = randomNature();
+  let g = 0; while(n === p.nature && g++ < 12) n = randomNature();
+  p.nature = n; save(); renderSquad();
+  const eff = NATURES[n];
+  toast('🎲 ' + p.nick + ': natura ' + n + (eff ? ' (' + Object.entries(eff).map(([k,v])=>fmtMod(v)+' '+k).join(' ') + ')' : ''));
+}
+function setAbility(pid, name){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.abil = name; save(); closeModal(); renderSquad();
 }
 
 /* --- difese automatiche dai tipi --- */
@@ -2249,15 +2898,17 @@ function autoDefense(types){
 function trainerStats(t){
   const s = t.stats || defaultTrainerStats();
   const team = t.team || [];
+  const box = t.box || [];
+  const tutti = [...team, ...box];
   const done = s.wins + s.losses;
   const winRate = done ? Math.round(100*s.wins/done) : null;
 
-  const starter = team.find(p=>p.id===t.starter) || null;
+  const starter = tutti.find(p=>p.id===t.starter) || null;
 
   let topPkm = null;
-  for(const p of team) if(!topPkm || (p.uses||0) > (topPkm.uses||0) ||
+  for(const p of tutti) if(!topPkm || (p.uses||0) > (topPkm.uses||0) ||
     ((p.uses||0)===(topPkm.uses||0) && p.level > topPkm.level)) topPkm = p;
-  if(topPkm && !(topPkm.uses||0) && team.length) topPkm = team.reduce((a,b)=>b.level>a.level?b:a, team[0]);
+  if(topPkm && !(topPkm.uses||0) && tutti.length) topPkm = tutti.reduce((a,b)=>b.level>a.level?b:a, tutti[0]);
 
   /* tipi: ogni Pokémon pesa per le sue partecipazioni (minimo 1) */
   const typeCount = {};
@@ -2271,11 +2922,11 @@ function trainerStats(t){
   const moves = Object.entries(s.moves||{}).sort((a,b)=>b[1]-a[1]);
   const foes = Object.entries(s.foes||{}).sort((a,b)=>b[1]-a[1]);
 
-  const lvls = team.map(p=>p.level);
+  const lvls = tutti.map(p=>p.level);
   const avgLv = lvls.length ? Math.round(10*lvls.reduce((a,b)=>a+b,0)/lvls.length)/10 : 0;
-  const species = new Set(team.map(p=>p.species).filter(Boolean));
+  const species = new Set(tutti.map(p=>p.species).filter(Boolean));
 
-  return {s, team, winRate, starter, topPkm, types, moves, foes, avgLv, species,
+  return {s, team, box, tutti, winRate, starter, topPkm, types, moves, foes, avgLv, species,
     badges: (t.badges||[]).filter(Boolean).length};
 }
 
@@ -2284,7 +2935,7 @@ function renderStats(t){
   const s = st.s;
 
   const tile = (lbl, val, sub) => {
-    const long = typeof val === 'string' && val.replace(/<[^>]*>/g,'').length > 9;
+    const long = typeof val === 'string' && val.replace(/<[^>]*>/g,'').length > 8;
     return `<div class="tile"><div class="lbl">${lbl}</div><div class="val${long?' sm':''}">${val}</div>${sub?`<div class="sub">${sub}</div>`:''}</div>`;
   };
 
@@ -2327,9 +2978,10 @@ function renderStats(t){
     <h3 style="margin-top:0">📊 Statistiche di ${esc(t.name)}</h3>
     <div class="kpi">
       ${recordTile}
-      ${tile('Pokémon catturati', s.captures, `${st.species.size} specie in squadra`)}
+      ${tile('Pokémon catturati', s.captures, `${st.species.size} specie diverse`)}
       ${tile('Medaglie', `${st.badges}<small> / 8</small>`, BADGE_LV[st.badges] ? `livelli consigliati ${BADGE_LV[st.badges]}` : '')}
-      ${tile('Squadra', st.team.length, st.avgLv ? `livello medio ${String(st.avgLv).replace('.',',')}` : 'nessun Pokémon')}
+      ${tile('Squadra', `${st.team.length}<small> / ${MAX_TEAM}</small>`, st.avgLv ? `livello medio ${String(st.avgLv).replace('.',',')}` : 'nessun Pokémon')}
+      ${tile('Nel Box', st.box.length, st.box.length ? 'più i sei in squadra' : 'la squadra è tutto')}
       ${topPkm}
       ${starter}
       ${favMove}
@@ -2367,11 +3019,12 @@ function shareCode(t){
     v:1, name:t.name, level:t.level, badges:t.badges, money:t.money,
     stats:{wins:t.stats.wins, losses:t.stats.losses, captures:t.stats.captures,
       xpTotal:t.stats.xpTotal, moves:t.stats.moves},
-    starter:(t.team.find(p=>p.id===t.starter)||{}).nick || '',
+    starter:(allPkm(t).find(p=>p.id===t.starter)||{}).nick || '',
     bag:t.bag,
     team:t.team.map(p=>({nick:p.nick, species:p.species, types:p.types, level:p.level,
-      pf:p.curPF, pfMax:maxPF(p), item:p.item, nature:p.nature, uses:p.uses||0,
-      moves:(p.slots||[]).filter(Boolean)}))
+      pf:p.curPF, pfMax:maxPF(p), item:p.item, nature:p.nature, abil:p.abil||'', uses:p.uses||0,
+      moves:(p.slots||[]).filter(Boolean)})),
+    box:(t.box||[]).map(p=>({nick:p.nick, species:p.species, level:p.level}))
   };
   return 'AETHERA1:' + btoa(unescape(encodeURIComponent(JSON.stringify(light))));
 }
@@ -2479,11 +3132,15 @@ function renderGuests(){
           <b>${esc(p.nick)}</b>${p.species&&p.species!==p.nick?`<span class="hint" style="margin:0">${esc(p.species)}</span>`:''}
           ${typeChips(p.types)}<span style="margin-left:auto; font-weight:700; color:var(--accent)">liv. ${p.level}</span>
         </div>
-        <div class="hint" style="margin:2px 0">PF ${p.pf??p.pfMax}/${p.pfMax}${p.item?` · 🎒 ${esc(p.item)}`:''}${p.nature?` · ${esc(p.nature)}`:''}</div>
+        <div class="hint" style="margin:2px 0">PF ${p.pf??p.pfMax}/${p.pfMax}${p.item?` · 🎒 ${esc(p.item)}`:''}${p.nature?` · ${esc(p.nature)}`:''}${p.abil?` · ✨ ${esc(p.abil)}`:''}</div>
         <div class="hpbar"><i style="width:${pct}%; background:${col}"></i></div>
         <div class="moves" style="margin-top:5px">${(p.moves||[]).map(m=>`<span class="move">${esc(m)}</span>`).join('')}</div>
       </div>`;
     }).join('') || '<p class="hint" style="margin:0">Squadra vuota.</p>';
+    const boxList = (g.box||[]).length
+      ? `<details style="margin-top:8px"><summary class="hint" style="cursor:pointer; display:inline">🗄️ Box (${g.box.length})</summary>
+         <div class="moves" style="margin-top:6px">${g.box.map(p=>`<span class="move">${esc(p.nick)} <small style="opacity:.6">liv.${p.level}</small></span>`).join('')}</div></details>`
+      : '';
     const bag = Object.entries(g.bag||{}).map(([n,q])=>`<span class="mini">${esc(n)} ×${q}</span>`).join('');
     return `<div class="panel">
       <div class="row">
@@ -2494,6 +3151,7 @@ function renderGuests(){
         <button class="btn danger small" style="margin-left:auto" onclick="removeGuest('${esc(g.name).replace(/'/g,"\\'")}')">Togli</button>
       </div>
       <div class="guestgrid" style="margin-top:10px">${team}</div>
+      ${boxList}
       ${bag?`<div class="row" style="margin-top:8px; gap:5px"><span class="hint" style="margin:0">🎒</span>${bag}${g.money?`<span class="mini">${g.money} P$</span>`:''}</div>`:''}
     </div>`;
   }).join('');
@@ -2519,7 +3177,8 @@ function renderProfiles(){
       <div class="pstats">
         <div><b class="record" title="${st.s.wins} vittorie, ${st.s.losses} sconfitte"><span class="w">${st.s.wins}</span><span class="sep">–</span><span class="l">${st.s.losses}</span></b><span>Vinte–Perse</span></div>
         <div><b>${st.s.captures}</b><span>Catture</span></div>
-        <div><b>${t.team.length}</b><span>Squadra</span></div>
+        <div><b>${t.team.length}<small style="font-size:12px; color:var(--muted)">/${MAX_TEAM}</small></b><span>Squadra</span></div>
+        <div><b>${(t.box||[]).length}</b><span>Box</span></div>
       </div>
       <div class="pteam">${team}</div>
       <div class="row" style="margin-top:auto">
@@ -2544,6 +3203,7 @@ function renderProfiles(){
 }
 
 function renderSquad(){
+  refreshBoxSheet();
   const view = document.getElementById('squad-view');
   const t = getActiveTrainer();
   const title = document.getElementById('squad-title');
@@ -2564,7 +3224,8 @@ function renderSquad(){
 
   const badgeCount = t.badges.filter(Boolean).length;
   const badges = BADGE_NAMES.map((b,i) =>
-    `<span class="badge ${t.badges[i]?'on':''}" onclick="toggleBadge('${t.id}',${i})" title="Medaglia ${b}">${t.badges[i]?'●':'○'} ${b}</span>`).join('');
+    `<span class="badge ${t.badges[i]?'on':''}" onclick="toggleBadge('${t.id}',${i})"
+       title="${t.badges[i]?'Medaglia '+b+' conquistata':'Medaglia '+b+' non ancora conquistata'}">${b}</span>`).join('');
 
   const team = t.team.map(p => renderPkm(p)).join('');
 
@@ -2585,11 +3246,87 @@ function renderSquad(){
     </div>
     ${renderStats(t)}
     ${renderBag(t)}
+    <div class="sechead">
+      <h3>◓ Squadra</h3>
+      <span class="counter ${t.team.length>=MAX_TEAM?'full':''}">${t.team.length}/${MAX_TEAM}</span>
+      <div class="ballrow">${[0,1,2,3,4,5].map(i=>{
+        const p = t.team[i];
+        return `<span class="ballslot ${p?'on':''}" title="${p?esc(p.nick)+' · Liv. '+p.level:'posto libero'}"></span>`;
+      }).join('')}</div>
+      <button class="btn small" style="margin-left:auto" onclick="addBlankPkm('${t.id}')">+ Aggiungi</button>
+    </div>
     <div class="grid">${team}</div>
-    <div class="row" style="margin:12px 0">
-      <button class="btn" onclick="addBlankPkm('${t.id}')">+ Aggiungi Pokémon</button>
-      <span class="hint" style="margin:0">oppure aggiungilo direttamente dal Pokédex</span>
+    ${t.team.length ? '' : '<div class="panel"><p class="hint" style="margin:0">Squadra vuota: aggiungi un Pokémon da qui o dal Pokédex.</p></div>'}
+    <div id="box-wrap">${renderBox(t)}</div>`;
+}
+
+/* ---- Box: tutti i Pokémon catturati oltre ai sei in squadra ---- */
+
+function renderBox(t){
+  const box = t.box || [];
+  const q = boxQuery.trim().toLowerCase();
+  const list = q ? box.filter(p =>
+        (p.nick||'').toLowerCase().includes(q) ||
+        (p.species||'').toLowerCase().includes(q) ||
+        (p.types||'').toLowerCase().includes(q)) : box;
+  const tiles = list.map(p => {
+    const mx = maxPF(p);
+    const cur = p.curPF ?? mx;
+    const pct = mx>0 ? Math.round(100*cur/mx) : 0;
+    return `<div class="boxmon">
+      <div class="bm-top">
+        <b>${esc(p.nick)}</b>
+        <span class="lv">Liv. ${p.level}</span>
+      </div>
+      <div class="bm-types">${typeChips(p.types)}</div>
+      <div class="bm-meta">${esc(p.species||'')}${p.nature?` · ${esc(p.nature)}`:''}${p.abil?` · ${esc(p.abil)}`:''}</div>
+      <div class="hpbar"><i style="width:${pct}%; background:${pct>50?'var(--ok)':pct>25?'var(--warn)':'var(--danger)'}"></i></div>
+      <div class="bm-act">
+        <button class="btn small" onclick="boxToTeam('${p.id}')">◓ In squadra</button>
+        <button class="btn ghost small" onclick="openBoxSheet('${p.id}')">📋 Scheda</button>
+        <button class="btn danger small" onclick="removePkm('${p.id}')">🗑</button>
+      </div>
     </div>`;
+  }).join('');
+
+  return `<div class="panel boxpanel">
+    <div class="sechead" onclick="toggleBox()" style="cursor:pointer">
+      <h3 style="margin:0">🗄️ Box</h3>
+      <span class="counter">${box.length}</span>
+      <span class="hint" style="margin:0">tutti i Pokémon catturati oltre ai sei in squadra</span>
+      <span style="margin-left:auto; color:var(--muted)">${boxOpen?'▾':'▸'}</span>
+    </div>
+    ${boxOpen ? `
+      <div class="row" style="margin:10px 0">
+        <input placeholder="Cerca nel Box…" value="${esc(boxQuery)}" style="flex:1; min-width:150px"
+          oninput="setBoxQuery(this.value)"/>
+        <span class="hint" style="margin:0">${list.length} di ${box.length}</span>
+      </div>
+      ${box.length ? `<div class="boxgrid">${tiles || '<p class="hint">Nessun Pokémon con questo nome.</p>'}</div>`
+        : '<p class="hint" style="margin:0">Il Box è vuoto. Quando la squadra è al completo, i nuovi Pokémon finiscono qui.</p>'}
+    ` : ''}
+  </div>`;
+}
+function renderBoxOnly(){
+  const t = getActiveTrainer();
+  const w = document.getElementById('box-wrap');
+  if(t && w) w.innerHTML = renderBox(t);
+}
+let openBoxPid = null;
+function openBoxSheet(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  openBoxPid = pid;
+  showModal(`<div class="boxsheet">${renderPkm(p)}</div>
+    <div class="mrow"><button class="btn ghost" onclick="openBoxPid=null; closeModal()">Chiudi</button></div>`);
+}
+function refreshBoxSheet(){
+  if(!openBoxPid) return;
+  const bg = document.getElementById('modal-bg');
+  if(!bg || !bg.classList.contains('open')){ openBoxPid = null; return; }
+  const [,p] = findPkm(openBoxPid);
+  if(!p){ openBoxPid = null; closeModal(); return; }
+  const box = document.querySelector('#modal .boxsheet');
+  if(box) box.innerHTML = renderPkm(p);
 }
 
 function renderPkm(p){
@@ -2687,13 +3424,23 @@ function renderPkm(p){
 
     <div class="row">
       <div class="abilities">${abilities}</div>
-      <label style="font-size:12.5px; color:var(--muted)">Natura<br/>
-        <input list="naturelist" value="${esc(p.nature)}" style="width:110px" onchange="pkmField('${p.id}','nature',this.value)"/>
-        ${natLabel?`<small style="color:var(--warn)">${natLabel}</small>`:''}
-      </label>
+      <div class="idcard">
+        <div class="idrow">
+          <span class="idlbl">Natura</span>
+          <b class="idval">${esc(p.nature) || '—'}</b>
+          ${natLabel?`<small class="idnat">${natLabel}</small>`:''}
+          <span class="idbtn" title="ritira la natura" onclick="rerollNature('${p.id}')">🎲</span>
+        </div>
+        <div class="idrow">
+          <span class="idlbl">Abilità</span>
+          <b class="idval abil" onclick="openAbil('${esc(p.abil||'').replace(/'/g,"\\'")}')">${esc(p.abil) || '—'}</b>
+          ${p.abil && isHiddenAbility(p.species, p.abil)?`<small class="idnat">nascosta</small>`:''}
+          <span class="idbtn" title="cambia abilità" onclick="openAbilityPicker('${p.id}')">🎲</span>
+        </div>
+      </div>
     </div>
 
-    ${abChips?`<div class="defline">✨ ${abChips}${p.ts?` · <b>TS:</b> ${esc(p.ts)}`:''}</div>`:(p.ts?`<div class="defline"><b>TS:</b> ${esc(p.ts)}</div>`:'')}
+    ${abChips?`<div class="defline">✨ Possibili: ${abChips}${p.ts?` · <b>TS:</b> ${esc(p.ts)}`:''}</div>`:(p.ts?`<div class="defline"><b>TS:</b> ${esc(p.ts)}</div>`:'')}
     ${p.ability?`<div class="defline">📖 ${esc(p.ability)}</div>`:''}
     ${defHTML}
 
@@ -2748,6 +3495,7 @@ function renderPkm(p){
       <button class="btn small" onclick="levelUp('${p.id}')">⬆ +1 livello</button>
       <button class="btn small" onclick="evolvePkm('${p.id}')">🌟 Evolvi</button>
       <button class="btn ghost small" title="${isStarter?'Non è più il tuo iniziale':'Segna come Pokémon iniziale'}" onclick="setStarter('${p.id}')">${isStarter?'⭐':'☆'}</button>
+      <button class="btn ghost small" title="Sposta nel Box" onclick="toBox('${p.id}')">🗄️ Nel Box</button>
       ${sIdx!=null && SPECIES[sIdx].p5 ? `<button class="btn small ghost" onclick="openSheet(${sIdx})">📜 Scheda dex</button>` : ''}
       <button class="btn danger small" style="margin-left:auto" onclick="removePkm('${p.id}')">Rimuovi</button>
     </div>
@@ -2767,6 +3515,7 @@ function renderPkm(p){
         <label>Livello <input type="number" value="${p.level}" onchange="pkmField('${p.id}','level',this.value,1)"/></label>
       </div>
       <div class="row" style="margin-top:8px">
+        <label>Natura <input list="naturelist" value="${esc(p.nature)}" style="width:120px" onchange="pkmField('${p.id}','nature',this.value)"/></label>
         <label>Velocità <input value="${esc(p.speed)}" style="width:140px" onchange="pkmField('${p.id}','speed',this.value)"/></label>
         <label>Tiri salvezza <input value="${esc(p.ts)}" style="width:150px" onchange="pkmField('${p.id}','ts',this.value)"/></label>
       </div>
@@ -3191,6 +3940,115 @@ function saveNPC(id){
   save(); closeModal(); renderNPCs();
 }
 
+/* ================= POKÉ MARKET ================= */
+
+let marketCat = 'Poké Ball', marketQty = 1;
+
+function money(t){ return t ? (t.money||0) : 0; }
+function fmtMoney(v){ return (v||0).toLocaleString('it-IT') + ' P$'; }
+
+function buyItem(name, qty){
+  const t = getActiveTrainer();
+  if(!t){ alert('Apri prima la scheda di un giocatore: gli acquisti finiscono nel suo zaino.'); return; }
+  const it = marketByName()[name];
+  if(!it || !onSale(it)){ alert('Questo oggetto non è in vendita.'); return; }
+  qty = Math.max(1, qty||1);
+  const cost = it.p * qty;
+  if(money(t) < cost){
+    alert('Soldi insufficienti: servono ' + fmtMoney(cost) + ', ne hai ' + fmtMoney(money(t)) + '.');
+    return;
+  }
+  t.money = money(t) - cost;
+  t.bag[name] = (t.bag[name]||0) + qty;
+  save(); renderMarket(); renderSquad();
+  toast('🛒 ' + name + ' ×' + qty + ' — ' + fmtMoney(cost) + ' · restano ' + fmtMoney(t.money));
+}
+function sellItem(name, qty){
+  const t = getActiveTrainer();
+  if(!t) return;
+  const have = t.bag[name]||0;
+  qty = Math.min(have, Math.max(1, qty||1));
+  if(!qty) return;
+  const it = marketByName()[name];
+  const unit = it && it.p ? Math.floor(it.p/2) : 0;
+  const gain = unit * qty;
+  if(!unit && !confirm(name + ' non ha un valore di rivendita: lo butti via?')) return;
+  t.bag[name] = have - qty;
+  if(!t.bag[name]) delete t.bag[name];
+  t.money = money(t) + gain;
+  save(); renderMarket(); renderSquad();
+  toast(gain ? ('💰 Venduto ' + name + ' ×' + qty + ' per ' + fmtMoney(gain))
+             : ('🗑 ' + name + ' ×' + qty + ' buttato'));
+}
+function setMarketCat(c){ marketCat = c; renderMarket(); }
+function setMarketQty(v){ marketQty = Math.max(1, parseInt(v)||1); renderMarket(); }
+
+function renderMarket(){
+  const wrap = document.getElementById('market-view');
+  if(!wrap) return;
+  const t = getActiveTrainer();
+  const q = (document.getElementById('market-search')||{}).value || '';
+  const qq = q.trim().toLowerCase();
+  const all = MARKET_ITEMS();
+  const list = all.filter(i =>
+    (i.c === marketCat || (qq && !!qq)) &&
+    (!qq || i.n.toLowerCase().includes(qq) || String(i.e).toLowerCase().includes(qq)));
+
+  const shelves = MARKET_CATS.map(c =>
+    `<button class="shelf ${marketCat===c&&!qq?'on':''}" onclick="setMarketCat('${c}')">${esc(c)}</button>`).join('');
+
+  const rows = list.slice(0, 120).map(i => {
+    const sale = onSale(i);
+    const have = t ? (t.bag[i.n]||0) : 0;
+    const afford = t && money(t) >= i.p * marketQty;
+    const col = i.t && TYPES[i.t] ? TYPES[i.t].c : null;
+    return `<div class="shopitem${sale?'':' nosale'}">
+      <div class="si-main">
+        <div class="si-name">
+          ${col?`<span class="tmdot" style="background:${col}"></span>`:''}
+          <b>${esc(i.n)}</b>
+          ${have?`<span class="mini">ne hai ${have}</span>`:''}
+          ${i.cap?`<span class="mini cap">cattura ${i.cap===99?'auto':'+'+i.cap}</span>`:''}
+        </div>
+        <p>${esc(i.e)}</p>
+      </div>
+      <div class="si-buy">
+        ${sale ? `<span class="price">${fmtMoney(i.p)}</span>
+          <button class="btn small ${afford?'':'ghost'}" ${t?'':'disabled'}
+            onclick="buyItem('${esc(i.n).replace(/'/g,"\\'")}',marketQty)">Compra</button>`
+        : `<span class="price nosale">non in vendita</span>`}
+        ${have ? `<button class="btn ghost small" onclick="sellItem('${esc(i.n).replace(/'/g,"\\'")}',1)">Vendi ${i.p?fmtMoney(Math.floor(i.p/2)):''}</button>` : ''}
+      </div>
+    </div>`;
+  }).join('') || '<div class="panel"><p class="hint" style="margin:0">Nessun articolo con questo nome.</p></div>';
+
+  wrap.innerHTML = `
+    <div class="counter-desk">
+      <div class="clerk">
+        <div class="clerk-ball"></div>
+        <div>
+          <b>Benvenuto al Poké Market!</b>
+          <div class="hint" style="margin:0">${t ? 'Stai comprando per <b>'+esc(t.name)+'</b>.' : 'Apri la scheda di un giocatore per poter comprare.'}</div>
+        </div>
+      </div>
+      <div class="wallet">
+        <span class="hint" style="margin:0">Portamonete</span>
+        <b>${t ? fmtMoney(money(t)) : '—'}</b>
+      </div>
+    </div>
+    <div class="shelves">${shelves}</div>
+    <div class="row" style="margin:10px 0">
+      <input id="market-search" placeholder="Cerca in tutto il negozio (anche fra le 256 MT)…" value="${esc(q)}"
+        style="flex:1; min-width:180px" oninput="renderMarket()"/>
+      <label class="hint" style="margin:0">Quantità
+        <input type="number" min="1" value="${marketQty}" style="width:70px" onchange="setMarketQty(this.value)"/></label>
+    </div>
+    ${qq && list.length>120 ? `<p class="hint">Mostrati i primi 120 di ${list.length}: restringi la ricerca.</p>` : ''}
+    <div class="shopgrid">${rows}</div>`;
+  const inp = document.getElementById('market-search');
+  if(inp && q){ inp.focus(); inp.setSelectionRange(q.length, q.length); }
+}
+
 /* ================= STRUMENTI ================= */
 
 function renderItems(){
@@ -3253,27 +4111,57 @@ function confirmBagItem(tid){
   if(!n) return;
   closeModal(); addBagItem(tid, n, q);
 }
+function bagPocketOf(name){
+  const it = marketByName()[name] || ITEM_BY_NAME()[name];
+  if(it && it.c) return it.c;
+  return 'Altro';
+}
+let bagPocket = null;
+function setBagPocket(c){ bagPocket = (bagPocket === c) ? null : c; renderSquad(); }
+
 function renderBag(t){
-  const items = Object.entries(t.bag||{}).sort((a,b)=>a[0].localeCompare(b[0]));
-  const byName = ITEM_BY_NAME();
-  const rows = items.map(([n,q]) => {
-    const info = byName[n];
-    return `<div class="row" style="gap:6px; padding:5px 0; border-bottom:1px solid var(--line)">
-      <b style="min-width:150px">${esc(n)}</b>
-      ${info ? `<span class="hint" style="margin:0; flex:1">${esc(String(info.e).slice(0,90))}${String(info.e).length>90?'…':''}</span>` : '<span style="flex:1"></span>'}
-      <button class="btn ghost small" onclick="addBagItem('${t.id}','${esc(n).replace(/'/g,"\\'")}',-1)">−</button>
-      <b style="min-width:26px; text-align:center">${q}</b>
-      <button class="btn ghost small" onclick="addBagItem('${t.id}','${esc(n).replace(/'/g,"\\'")}',1)">+</button>
-    </div>`;
+  const entries = Object.entries(t.bag||{}).filter(([,q]) => q > 0);
+  const byPocket = {};
+  for(const [n,q] of entries){
+    const c = bagPocketOf(n);
+    (byPocket[c] = byPocket[c] || []).push([n,q]);
+  }
+  const pockets = [...MARKET_CATS, 'Strumenti tenuti', 'Altro'].filter(c => byPocket[c]);
+  const shown = bagPocket && byPocket[bagPocket] ? [bagPocket] : pockets;
+
+  const tabs = pockets.map(c =>
+    `<button class="pocket ${bagPocket===c?'on':''}" onclick="setBagPocket('${c}')">
+      ${esc(c)} <span>${byPocket[c].length}</span></button>`).join('');
+
+  const body = shown.map(c => {
+    const rows = byPocket[c].sort((a,b)=>a[0].localeCompare(b[0])).map(([n,q]) => {
+      const info = marketByName()[n] || ITEM_BY_NAME()[n];
+      const isTM = info && info.tm;
+      return `<div class="bagrow">
+        <b>${esc(n)}</b>
+        <span class="qty">×${q}</span>
+        ${info ? `<span class="hint">${esc(String(info.e).slice(0,80))}${String(info.e).length>80?'…':''}</span>` : '<span class="hint"></span>'}
+        ${isTM ? `<button class="btn ghost small" onclick="useTMFromBag('${t.id}','${esc(n).replace(/'/g,"\\'")}')">Usa</button>` : ''}
+        <span class="pm">
+          <button class="btn ghost small" onclick="addBagItem('${t.id}','${esc(n).replace(/'/g,"\\'")}',-1)">−</button>
+          <button class="btn ghost small" onclick="addBagItem('${t.id}','${esc(n).replace(/'/g,"\\'")}',1)">+</button>
+        </span>
+      </div>`;
+    }).join('');
+    return `<div class="bagpocket"><div class="bp-lbl">${esc(c)}</div>${rows}</div>`;
   }).join('');
-  return `<div class="panel">
-    <div class="row">
-      <h3 style="margin:0">🎒 Zaino di ${esc(t.name)}</h3>
-      <label style="margin-left:auto; font-size:12.5px; color:var(--muted)">Soldi
-        <input type="number" min="0" value="${t.money||0}" style="width:100px" onchange="setMoney('${t.id}',this.value)"/> P$</label>
-      <button class="btn small" onclick="askBagItem('${t.id}')">+ Oggetto</button>
+
+  return `<div class="panel bag">
+    <div class="sechead">
+      <h3 style="margin:0">🎒 Zaino</h3>
+      <span class="wallet small"><b>${fmtMoney(t.money||0)}</b></span>
+      <label class="hint" style="margin:0">Soldi
+        <input type="number" min="0" value="${t.money||0}" style="width:100px" onchange="setMoney('${t.id}',this.value)"/></label>
+      <button class="btn small" style="margin-left:auto" onclick="setTab('market')">🛒 Poké Market</button>
+      <button class="btn ghost small" onclick="askBagItem('${t.id}')">+ A mano</button>
     </div>
-    ${rows || '<p class="hint" style="margin:8px 0 0">Zaino vuoto: aggiungi oggetti da qui o dalla sezione «Oggetti».</p>'}
+    ${entries.length ? `<div class="pockets">${tabs}</div><div class="bagbody">${body}</div>`
+      : '<p class="hint" style="margin:8px 0 0">Zaino vuoto: fai un salto al Poké Market.</p>'}
     <details style="margin-top:10px">
       <summary class="hint" style="cursor:pointer; display:inline">📝 Appunti</summary>
       <textarea placeholder="MT, medaglie speciali, oggetti chiave, promesse fatte ai PNG…" onchange="trainerNotes('${t.id}',this.value)">${esc(t.notes)}</textarea>
@@ -3281,6 +4169,31 @@ function renderBag(t){
   </div>`;
 }
 
+/* usa una MT dallo zaino: la offre solo ai Pokémon che possono impararla */
+function useTMFromBag(tid, itemName){
+  const t = state.trainers.find(x=>x.id===tid); if(!t) return;
+  const it = marketByName()[itemName];
+  if(!it || !it.tm) return;
+  const move = it.move;
+  const able = allPkm(t).filter(p => {
+    const d = p5data(p.species);
+    return d && (d.mv.tm||[]).includes(it.tm);
+  });
+  if(!able.length){
+    showModal(`<h3>📀 ${esc(itemName)}</h3>
+      <p class="levelup-gain">Nessun Pokémon di ${esc(t.name)} può imparare <b>${esc(move)}</b>.</p>
+      <p class="hint">Le MT funzionano solo con le specie che le hanno nella propria scheda del dex.</p>
+      <button class="btn" onclick="closeModal()">Chiudi</button>`);
+    return;
+  }
+  const btns = able.map(p => `<button class="btn ghost" style="text-align:left"
+    onclick="closeModal(); teachTM('${p.id}','${esc(move).replace(/'/g,"\\'")}')">
+    ${esc(p.nick)} <small>Liv. ${p.level} · ${esc(p.species)}</small></button>`).join('');
+  showModal(`<h3>📀 ${esc(itemName)}</h3>
+    <p class="hint">A chi la insegni? Le MT sono riutilizzabili: restano nello zaino.</p>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">${btns}</div>
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Annulla</button></div>`);
+}
 /* ================= IMPOSTAZIONI / DATI ================= */
 
 function renderSettings(){
@@ -3292,10 +4205,36 @@ function renderSettings(){
   document.getElementById('set-capbase').value = s.capBase;
   document.getElementById('set-caplevel').checked = s.capLevel;
   document.getElementById('set-caphp').checked = s.capHP;
+  document.getElementById('set-autonat').checked = s.autoNature !== false;
+  document.getElementById('set-autoabil').checked = s.autoAbility !== false;
+  document.getElementById('set-evoabil').value = s.evoAbility || 'ask';
+  document.getElementById('app-version').textContent = APP_VERSION;
+  document.getElementById('app-schema').textContent = SCHEMA;
+}
+function openBackups(){
+  const keys = listBackups();
+  const rows = keys.map(k => {
+    let info = '';
+    try{
+      const d = JSON.parse(localStorage.getItem(k));
+      const mon = (d.trainers||[]).reduce((n,t)=>n+(t.team||[]).length+(t.box||[]).length,0);
+      info = `${(d.trainers||[]).length} giocatori · ${mon} Pokémon`;
+    }catch(e){ info = 'copia illeggibile'; }
+    return `<div class="mrow"><button class="btn ghost" style="flex:1; text-align:left"
+      onclick="restoreBackup('${k}')">${esc(k.replace(STORE_KEY+'-backup-s','Copia prima della versione '))}<br/>
+      <small style="opacity:.7">${esc(info)}</small></button></div>`;
+  }).join('');
+  showModal(`<h3>🛟 Copie di sicurezza</h3>
+    <p class="hint">Ogni volta che un aggiornamento cambia la struttura dei salvataggi, la versione precedente viene messa da parte qui. Serve solo se qualcosa va storto.</p>
+    ${rows || '<p class="levelup-gain">Nessuna copia: i tuoi dati non hanno mai avuto bisogno di essere convertiti.</p>'}
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Chiudi</button></div>`);
 }
 function saveSettings(){
   const g = id => parseFloat(document.getElementById(id).value);
   const s = state.settings;
+  s.autoNature = document.getElementById('set-autonat').checked;
+  s.autoAbility = document.getElementById('set-autoabil').checked;
+  s.evoAbility = document.getElementById('set-evoabil').value;
   s.needMult = g('set-need')||2;
   s.defeatMult = isNaN(g('set-defeat'))?1:g('set-defeat');
   s.captureMult = isNaN(g('set-capture'))?1:g('set-capture');
@@ -3466,17 +4405,73 @@ function installApp(){
     <button class="btn" onclick="closeModal()">Ho capito</button>`);
 }
 
+/* ---- aggiornamenti dell'app senza perdere niente ----
+   I salvataggi stanno in localStorage e non vengono toccati: quando esce una
+   versione nuova compare una barra e l'aggiornamento parte solo se lo si tocca. */
+let waitingWorker = null;
+
+function showUpdateBar(){
+  const b = document.getElementById('updbar');
+  if(b) b.classList.add('show');
+}
+function applyUpdate(){
+  const b = document.getElementById('updbar');
+  if(b) b.classList.remove('show');
+  if(waitingWorker){
+    waitingWorker.postMessage({type:'SKIP_WAITING'});
+    setTimeout(() => location.reload(), 400);
+  } else {
+    location.reload();
+  }
+}
+function checkForUpdate(manual){
+  if(!('serviceWorker' in navigator)){
+    if(manual) toast('Gli aggiornamenti automatici funzionano solo aprendo il Pokédex dal link, non dal file.');
+    return;
+  }
+  navigator.serviceWorker.getRegistration().then(reg => {
+    if(!reg){ if(manual) toast('Nessun aggiornamento in sospeso.'); return; }
+    reg.update();
+    if(manual) toast('Controllo aggiornamenti…');
+  }).catch(()=>{});
+}
+
 if('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')){
-  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(()=>{}));
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      if(reg.waiting){ waitingWorker = reg.waiting; showUpdateBar(); }
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        if(!nw) return;
+        nw.addEventListener('statechange', () => {
+          if(nw.state === 'installed' && navigator.serviceWorker.controller){
+            waitingWorker = nw; showUpdateBar();
+          }
+        });
+      });
+      /* ricontrolla a ogni riapertura dell'app */
+      document.addEventListener('visibilitychange', () => {
+        if(document.visibilityState === 'visible') reg.update();
+      });
+    }).catch(()=>{});
+
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if(reloaded) return; reloaded = true; location.reload();
+    });
+  });
 }
 
 /* ================= AVVIO ================= */
 
 function renderAll(){
   renderTabs(); renderDex(); renderSquad(); renderBattleForm(); renderBattles();
-  renderNPCs(); renderItems(); renderSettings(); renderTypes(); calcPF(); calcEvo();
+  renderNPCs(); renderItems(); renderMarket(); renderSettings(); renderTypes(); calcPF(); calcEvo();
 }
 if(!state.npcsInit && !state.npcs.length) loadNPCPresets();
+/* scorciatoie dell'app installata: #squad, #dex, #market… */
+const startTab = (location.hash||'').replace('#','');
+if(TABS.some(([id]) => id === startTab)) activeTab = startTab;
 initDatalists();
 initDexFilters();
 renderAll();
