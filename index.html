@@ -993,8 +993,8 @@ window.addEventListener('error', function(e){
 
 <p class="footer-note">Pokédex di Aethera · compagno digitale di «Cronache di Allenatori» · dati P5e dal dex standard · i salvataggi restano su questo dispositivo</p>
 
-<script src="p5e-data.js"></script>
-<script src="p5e-gen8.js"></script>
+<script src="p5e-data.js?v=3"></script>
+<script src="p5e-gen8.js?v=3"></script>
 
 <script>
 /* ================= DATI ================= */
@@ -1570,7 +1570,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '2.5';
+const APP_VERSION = '3.0';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -4520,8 +4520,19 @@ function checkForUpdate(manual){
 }
 
 if('serviceWorker' in navigator && (location.protocol === 'http:' || location.protocol === 'https:')){
+  /* Le registrazioni delle prime versioni puntavano a sw.js: quel file ora è un
+     demolitore che ripulisce da sé i dispositivi rimasti indietro. Qui lo si
+     toglie di mezzo comunque, per non lasciarne due in giro. */
+  navigator.serviceWorker.getRegistrations().then(rs => {
+    for(const r of rs){
+      const u = (r.active && r.active.scriptURL) || (r.waiting && r.waiting.scriptURL) ||
+                (r.installing && r.installing.scriptURL) || '';
+      if(u && /\/sw\.js(\?|$)/.test(u)) r.unregister().catch(()=>{});
+    }
+  }).catch(()=>{});
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').then(reg => {
+    navigator.serviceWorker.register('sw-v3.js').then(reg => {
       if(reg.waiting){ waitingWorker = reg.waiting; showUpdateBar(); }
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing;
