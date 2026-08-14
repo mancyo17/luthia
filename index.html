@@ -734,7 +734,7 @@ window.addEventListener('error', function(e){
   <div class="boot-ball"></div>
   <p id="boot-msg">Carico il Pokédex…</p>
   <p class="hint" id="boot-sub">1000 e passa specie, ci vuole un attimo la prima volta.</p>
-  <button class="btn" id="boot-retry" style="display:none" onclick="location.reload()">↻ Riprova</button>
+  <button class="btn" id="boot-retry" style="display:none" onclick="pulisciERicarica()">↻ Riprova</button>
 </div>
 
 <main>
@@ -984,12 +984,40 @@ window.addEventListener('error', function(e){
 function bootDone(){
   /* senza il database non c'è app: meglio dirlo che mostrare un guscio vuoto */
   if(!window.P5E || !window.P5E.POKEMON || !Object.keys(window.P5E.POKEMON).length){
+    /* un tentativo automatico: se in memoria era rimasta una copia rotta dei
+       dati, si butta via tutto e si ricarica una volta sola */
+    let giaProvato = false;
+    try{ giaProvato = sessionStorage.getItem('aethera-retry') === '1'; }catch(e){}
+    if(!giaProvato){
+      try{ sessionStorage.setItem('aethera-retry','1'); }catch(e){}
+      const m = document.getElementById('boot-msg');
+      if(m) m.textContent = 'Riprovo a scaricare il Pokédex…';
+      pulisciERicarica();
+      return;
+    }
     if(window.__bootShow) window.__bootShow();
     return;
   }
+  try{ sessionStorage.removeItem('aethera-retry'); }catch(e){}
   window.__bootDone = true;
   const b = document.getElementById('boot');
   if(b) b.remove();
+}
+
+/* Butta via copia salvata e service worker, poi ricarica: serve quando è
+   rimasta in memoria una versione incompleta e la normale ricarica non basta. */
+function pulisciERicarica(){
+  const fine = () => location.reload();
+  const lavori = [];
+  try{
+    if('serviceWorker' in navigator)
+      lavori.push(navigator.serviceWorker.getRegistrations()
+        .then(rs => Promise.all(rs.map(r => r.unregister()))).catch(()=>{}));
+    if(window.caches)
+      lavori.push(caches.keys().then(ks => Promise.all(ks.map(k => caches.delete(k)))).catch(()=>{}));
+  }catch(e){}
+  Promise.all(lavori).then(fine, fine);
+  setTimeout(fine, 4000);
 }
 window.__bootShow = function(){
   const b = document.getElementById('boot');
@@ -997,8 +1025,9 @@ window.__bootShow = function(){
   b.classList.add('failed');
   document.getElementById('boot-msg').textContent = 'Il Pokédex non si è caricato del tutto.';
   document.getElementById('boot-sub').innerHTML =
-    'Di solito è la connessione che si è interrotta durante il primo caricamento: i dati sono 1 MB.<br/>' +
-    'Riprova, meglio se sotto Wi-Fi. Dalla seconda volta resta salvato sul telefono e si apre anche offline.';
+    'Il database non è arrivato del tutto. Tocca <b>Riprova</b>: butta via quello che è rimasto a metà ' +
+    'e riscarica tutto da capo — meglio se sotto Wi-Fi, sono 1 MB.<br/>' +
+    'Dalla seconda volta resta salvato sul telefono e si apre anche senza connessione.';
   document.getElementById('boot-retry').style.display = '';
 };
 /* se dopo 25 secondi non è partito niente, avvisa */
@@ -1518,7 +1547,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '2.3';
+const APP_VERSION = '2.4';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
