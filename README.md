@@ -40,8 +40,11 @@ Esporta/Importa per condividerli).
   Etere se ha finito i PP — tira la formula di cura scritta sull'oggetto e lo consuma.
 - **Natura scegliibile**: come per l'abilità, l'elenco completo delle 21 nature con i loro
   modificatori; alla cattura resta sorteggiata.
-- **Tabella MT modificabile**: quale mossa insegna ogni MT si può correggere da
-  Impostazioni → Tabella MT, con ripristino singolo o totale.
+- **MT e mosse modificabili**: da Impostazioni → Tabella MT si corregge quale mossa insegna
+  ogni MT, si creano **MT nuove** con un numero libero e si apre l'**editor delle mosse** —
+  tipo, PP, attivazione, gittata, danni per fascia di livello e descrizione. Serve soprattutto
+  per le 91 mosse recenti che il dex P5e non descrive: scritte una volta, compaiono ovunque
+  come le altre. Tutto con ripristino.
 - **Lealtà**: il valore del sistema P5e usato dalle bacche che riducono le caratteristiche e
   dalla Calmanella, ora tracciato sulla scheda; alcune Poké Ball la assegnano alla cattura.
 - **Statistiche del giocatore**: record vittorie/sconfitte con percentuale, Pokémon
