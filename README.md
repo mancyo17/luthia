@@ -21,8 +21,10 @@ Esporta/Importa per condividerli).
 - **Poké Market**: scaffali per categoria con Poké Ball, cure, vitamine, pietre, oggetti
   chiave e **tutte le 256 MT**, ognuno con il suo prezzo. Si compra per il giocatore la cui
   scheda è aperta: i soldi si scalano da soli, la roba finisce nello zaino e si può
-  rivendere a metà prezzo. Lo zaino è diviso in tasche e le MT si usano direttamente da lì,
-  che le propone solo ai Pokémon che possono impararle.
+  rivendere a metà prezzo. Ogni articolo ha la sua scheda con la descrizione per intero e,
+  per le MT, la scheda completa della mossa: tipo, PP, gittata, danni per livello ed effetti.
+  Lo zaino è diviso in tasche e le MT si usano direttamente da lì, che le propone solo ai
+  Pokémon che possono impararle.
 - **Centro Pokémon**: un tocco e tutta la squadra torna a PF pieni, senza stati e con i
   PP ricaricati; si può curare solo una cosa alla volta o includere anche il Box.
 - **Stati e PP**: i sette stati (avvelenato, iper-avvelenato, scottato, paralizzato,
@@ -37,6 +39,12 @@ Esporta/Importa per condividerli).
   catturati, medaglie, Pokémon più usato, iniziale, mossa preferita, XP guadagnati,
   avversario ricorrente e composizione della squadra per tipo. Si aggiornano da sole
   con le lotte, le catture e l'esperienza.
+- **Pokédex ordinabile**: per numero, nome, sfida (SR), tipo, PF, CA o livello minimo.
+- **Schede modificabili da chiunque**: ogni specie del dex si può correggere — utile
+  soprattutto per le MT, visto che il dex P5e standard si ferma alla MT 100 e le 156 più
+  recenti non sono assegnate alle specie vecchie. Dalla schermata «Usa una MT» c'è
+  «Ne manca una?»: si cerca, si aggiunge alla specie una volta sola e vale per sempre.
+  Ogni modifica si annulla con **Ripristina** e resta sul proprio dispositivo.
 - **Pokédex**: 1043 specie con scheda completa (CA, PF, statistiche, tiri salvezza,
   abilità, mosse per livello, evoluzioni, MT con numero e nome) — senza indicazioni su
   dove trovarle in Aethera, per non fare spoiler ai giocatori. Comprende le 896 specie

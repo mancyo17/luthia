@@ -646,6 +646,10 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
 .mini.cap{color:var(--blue); border-color:rgba(61,139,253,.40)}
 .tmdot{width:9px; height:9px; border-radius:50%; flex:none; display:inline-block}
 
+.si-open{cursor:pointer}
+.si-open:hover{color:var(--accent); text-decoration:underline}
+.si-main p{max-height:none}
+
 /* ---------- avviso volante ---------- */
 .toast{
   position:fixed; left:50%; bottom:calc(78px + env(safe-area-inset-bottom));
@@ -774,6 +778,7 @@ window.addEventListener('error', function(e){
         <div class="row">
           <input id="dex-search" placeholder="Cerca specie…" style="flex:1; min-width:120px" oninput="dexShown=DEX_PAGE; renderDex()" />
           <select id="dex-type" onchange="dexShown=DEX_PAGE; renderDex()"></select>
+          <select id="dex-sort" onchange="setDexSort(this.value)" title="ordina l'elenco"></select>
           <label class="caughtbox"><input type="checkbox" id="dex-caught" onchange="dexShown=DEX_PAGE; renderDex()" /> solo catturati</label>
         </div>
       </div>
@@ -1570,7 +1575,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '3.0';
+const APP_VERSION = '3.1';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -1579,8 +1584,21 @@ const MAX_TEAM = 6;
 let migrationNote = '';
 
 let state = load();
-/* specie create dal GM: entrano nel dex come le altre */
-if(P5) for(const [n,d] of Object.entries(state.customSpecies||{})) P5.POKEMON[n] = Object.assign({}, d, {custom:true});
+/* schede modificate dai giocatori: entrano nel dex al posto delle originali,
+   ma l'originale resta da parte così si può sempre tornare indietro */
+const SPECIE_ORIGINALI = {};
+if(P5) for(const [n,d] of Object.entries(state.customSpecies||{})){
+  if(P5.POKEMON[n] && !SPECIE_ORIGINALI[n]) SPECIE_ORIGINALI[n] = P5.POKEMON[n];
+  P5.POKEMON[n] = Object.assign({}, d, {custom:true});
+}
+function ripristinaSpecie(name){
+  if(!confirm('Rimettere ' + name + ' com\'era nel dex ufficiale? Le tue modifiche a questa specie andranno perse.')) return;
+  delete state.customSpecies[name];
+  if(SPECIE_ORIGINALI[name]){ P5.POKEMON[name] = SPECIE_ORIGINALI[name]; delete SPECIE_ORIGINALI[name]; }
+  else delete P5.POKEMON[name];
+  save(); buildSpecies(); initDatalists(); closeModal(); renderAll();
+  toast('↩ ' + name + ' è tornata alla scheda del dex.');
+}
 
 function defaultSettings(){
   return {needMult:2, defeatMult:1, captureMult:1, autoLevel:true,
@@ -1816,6 +1834,7 @@ function renderDex(){
     if(onlyCaught && !state.caught[s.name]) return false;
     return true;
   });
+  ordinaDex(list);
 
   const caughtCount = SPECIES.filter(s=>state.caught[s.name]).length;
   document.getElementById('dex-count').textContent =
@@ -1843,6 +1862,34 @@ function renderDex(){
     </div>`;
   }).join('');
 }
+/* ---- ordinamento del Pokédex ---- */
+const DEX_SORTS = {
+  num:   {lbl:'Numero del dex',    f:(a,b)=> n5(a).n - n5(b).n || a.name.localeCompare(b.name)},
+  nome:  {lbl:'Nome (A→Z)',        f:(a,b)=> a.name.localeCompare(b.name)},
+  nomez: {lbl:'Nome (Z→A)',        f:(a,b)=> b.name.localeCompare(a.name)},
+  sr:    {lbl:'Sfida (SR) ↑',      f:(a,b)=> n5(a).sr - n5(b).sr || n5(a).n - n5(b).n},
+  srg:   {lbl:'Sfida (SR) ↓',      f:(a,b)=> n5(b).sr - n5(a).sr || n5(a).n - n5(b).n},
+  tipo:  {lbl:'Tipo',              f:(a,b)=> (a.types||'').localeCompare(b.types||'') || n5(a).n - n5(b).n},
+  pf:    {lbl:'PF ↓',              f:(a,b)=> n5(b).hp - n5(a).hp || n5(a).n - n5(b).n},
+  ca:    {lbl:'CA ↓',              f:(a,b)=> n5(b).ac - n5(a).ac || n5(a).n - n5(b).n},
+  liv:   {lbl:'Livello minimo ↑',  f:(a,b)=> n5(a).min - n5(b).min || n5(a).n - n5(b).n}
+};
+const VUOTA = {n:99999, sr:0, hp:0, ac:0, min:0};
+function n5(s){ return s.p5 || VUOTA; }
+let dexSort = 'num';
+function setDexSort(v){ dexSort = v; dexShown = DEX_PAGE; renderDex(); }
+function ordinaDex(list){
+  const s = DEX_SORTS[dexSort] || DEX_SORTS.num;
+  list.sort(s.f);
+}
+function initDexSort(){
+  const sel = document.getElementById('dex-sort');
+  if(!sel || sel.options.length) return;
+  sel.innerHTML = Object.entries(DEX_SORTS).map(([k,v]) =>
+    `<option value="${k}">${v.lbl}</option>`).join('');
+  sel.value = dexSort;
+}
+
 function toggleCaught(i){
   const name = SPECIES[i].name;
   if(state.caught[name]) delete state.caught[name]; else state.caught[name] = true;
@@ -1921,15 +1968,19 @@ function openSheet(i){
     <h3>Mosse</h3>${mvHTML}
     ${d.mv.tm && d.mv.tm.length ? `<div class="mvgroup"><span class="lbl">MT compatibili</span><div class="moves">${d.mv.tm.map(n => (P5 && P5.TM && P5.TM[n]) ? moveChipHTML(P5.TM[n], d.min, 'MT '+n) : '').join('')}</div></div>` : ''}
     <div class="mrow"><button class="btn" onclick="closeModal(); addFromDex(${i})">+ Aggiungi a una squadra</button>
-    <button class="btn ghost" onclick="openSpeciesEditor('${esc(s.name).replace(/'/g,"\\'")}')">${d.custom||d.homebrew?'✏️ Modifica':'📋 Duplica e modifica'}</button>
+    <button class="btn ghost" onclick="openSpeciesEditor('${esc(s.name).replace(/'/g,"\\'")}')">✏️ Modifica</button>
+    <button class="btn ghost" onclick="openSpeciesEditor('${esc(s.name).replace(/'/g,"\\'")}',1)">📋 Copia</button>
     <button class="btn ghost" onclick="closeModal()">Chiudi</button></div>
   </div>`);
 }
 /* --- editor delle specie: crea o modifica un Pokémon --- */
 
-function openSpeciesEditor(name){
+function openSpeciesEditor(name, copia){
   const d = (name && P5) ? P5.POKEMON[name] : null;
-  const editable = !d || d.custom || d.homebrew;
+  /* tutti possono correggere qualsiasi scheda: se il dex sbaglia o manca
+     qualcosa, chi gioca deve poterlo sistemare senza aspettare nessuno */
+  const editable = !copia;
+  const ufficiale = !!(d && !d.custom);
   const a = (d && d.attr) || {FOR:10,DES:10,COS:10,INT:10,SAG:10,CAR:10};
   const typeOpts = (sel) => Object.entries(TYPES).map(([k,v])=>
     `<option value="${k}" ${sel===k?'selected':''}>${v.n}</option>`).join('');
@@ -1940,7 +1991,8 @@ function openSpeciesEditor(name){
 
   showModal(`<div class="sheet">
     <h3>${d ? (editable?'✏️ Modifica ':'📋 Copia da ')+esc(name) : '✨ Nuova specie'}</h3>
-    ${d && !editable ? `<p class="hint">Le specie del dex ufficiale non si modificano: salvando creerai una <b>copia personalizzata</b> con il nome che scegli.</p>` : ''}
+    ${d && !editable ? `<p class="hint">Stai creando una <b>copia</b>: dai un nome diverso e l'originale resta com'è.</p>` : ''}
+    ${d && editable && ufficiale ? `<p class="hint">Stai correggendo una scheda del dex — per esempio per aggiungere una MT che manca. La modifica vale solo sul tuo dispositivo e si può annullare in ogni momento con <b>Ripristina</b>.</p>` : ''}
     <div class="mrow">
       <label>Nome<br/><input id="sp-name" value="${esc(d && editable ? name : (d? name+' (mia versione)' : ''))}" style="width:200px" placeholder="es. Dragapult"/></label>
       <label>N° dex<br/><input id="sp-num" type="number" value="${d?d.n:''}" style="width:80px"/></label>
@@ -1973,15 +2025,67 @@ function openSpeciesEditor(name){
       <label>+punti car.<br/><input id="sp-evopts" type="number" value="${d&&d.ev?d.ev.pts:10}" style="width:80px"/></label>
     </div>
     <div class="mrow" style="flex-direction:column; align-items:stretch">
+      <label>MT compatibili — i numeri separati da virgola</label>
+      <input id="sp-tm" value="${d?(d.mv.tm||[]).join(', '):''}" placeholder="6, 17, 35, 118…" oninput="anteprimaMT()"/>
+      <p class="hint" id="sp-tm-prev" style="margin:4px 0 0"></p>
+      <div class="row" style="margin-top:4px">
+        <button class="btn ghost small" onclick="cercaMT()">🔎 Cerca una MT per nome</button>
+      </div>
+    </div>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">
       <label>Mosse — una per riga, «livello nome» (livello 1 = mosse iniziali)</label>
       <textarea id="sp-moves" style="min-height:120px" placeholder="1 Azione&#10;1 Ruggito&#10;6 Braci&#10;10 Lanciafiamme">${esc(movesTxt)}</textarea>
     </div>
     <div class="mrow">
       <button class="btn" onclick="saveSpeciesEditor('${d&&editable?esc(name).replace(/'/g,"\\'"):''}')">Salva nel dex</button>
-      ${d && editable && (P5.POKEMON[name]||{}).custom ? `<button class="btn danger" onclick="deleteCustomSpecies('${esc(name).replace(/'/g,"\\'")}')">Elimina</button>` : ''}
+      ${d && editable && ufficiale && state.customSpecies[name] ? `<button class="btn ghost" onclick="ripristinaSpecie('${esc(name).replace(/'/g,"\\'")}')">↩ Ripristina</button>` : ''}
+      ${d && editable && !ufficiale ? `<button class="btn danger" onclick="deleteCustomSpecies('${esc(name).replace(/'/g,"\\'")}')">Elimina</button>` : ''}
       <button class="btn ghost" onclick="closeModal()">Annulla</button>
     </div>
   </div>`);
+}
+
+function anteprimaMT(){
+  const el = document.getElementById('sp-tm');
+  const out = document.getElementById('sp-tm-prev');
+  if(!el || !out) return;
+  const nums = el.value.split(/[,;\s]+/).map(x=>parseInt(x)).filter(x=>x>0);
+  const buone = nums.filter(n => P5 && P5.TM && P5.TM[n]);
+  const male = nums.filter(n => !(P5 && P5.TM && P5.TM[n]));
+  out.innerHTML = (buone.length ? buone.map(n=>`MT${n} ${esc(P5.TM[n])}`).join(' · ') : 'nessuna MT') +
+    (male.length ? ` <span style="color:var(--danger)">— numeri inesistenti: ${male.join(', ')}</span>` : '');
+}
+function cercaMT(){
+  const el = document.getElementById('sp-tm');
+  const gia = new Set(el.value.split(/[,;\s]+/).map(x=>parseInt(x)).filter(Boolean));
+  const q = prompt('Che mossa cerchi? (anche solo un pezzo del nome)');
+  if(!q) return;
+  const qq = q.trim().toLowerCase();
+  const trovate = Object.entries((P5&&P5.TM)||{})
+    .filter(([n,m]) => m.toLowerCase().includes(qq)).slice(0, 40);
+  if(!trovate.length){ alert('Nessuna MT con questo nome.'); return; }
+  const btns = trovate.map(([n,m]) => {
+    const md = findMoveData(m);
+    const col = md && TYPES[md.t] ? TYPES[md.t].c : 'var(--line)';
+    return `<div class="pick" style="border-left:4px solid ${col}" onclick="aggiungiMT(${n})">
+      <b>MT${n}</b> ${esc(m)} ${md?`<span class="type-chip" style="background:${TYPES[md.t].c}">${TYPES[md.t].n}</span>`:''}
+      ${gia.has(+n)?'<span class="mini">già presente</span>':''}</div>`;
+  }).join('');
+  const salvato = document.getElementById('sp-tm').value;
+  window.__tmBack = salvato;
+  showModal(`<div class="sheet"><h3>🔎 MT che contengono «${esc(q)}»</h3>
+    <div class="pickgrid">${btns}</div>
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Chiudi</button></div></div>`);
+}
+function aggiungiMT(n){
+  closeModal();
+  const el = document.getElementById('sp-tm');
+  if(!el){ return; }
+  const set = new Set(el.value.split(/[,;\s]+/).map(x=>parseInt(x)).filter(Boolean));
+  set.add(+n);
+  el.value = [...set].sort((a,b)=>a-b).join(', ');
+  anteprimaMT();
+  toast('📀 MT' + n + ' ' + ((P5&&P5.TM&&P5.TM[n])||'') + ' aggiunta all\'elenco.');
 }
 
 function saveSpeciesEditor(origName){
@@ -2014,12 +2118,22 @@ function saveSpeciesEditor(origName){
     size: v('sp-size'),
     ab: v('sp-ab').split(',').map(s=>s.trim()).filter(Boolean),
     hab: v('sp-hab'),
-    mv: {s:start, l:lvl, tm:[]},
+    mv: {s:start, l:lvl,
+      tm: v('sp-tm').split(/[,;\s]+/).map(x=>parseInt(x)).filter(x=>x>0 && P5 && P5.TM && P5.TM[x])},
     custom: true
   };
+  /* quello che l'editor non tocca resta com'era: sensi, mosse uovo, competenze */
+  const prec = (P5 && P5.POKEMON[origName || name]) || null;
+  if(prec){
+    if(prec.sen) d.sen = prec.sen;
+    if(prec.egg) d.egg = prec.egg;
+    if(prec.sk && prec.sk.length) d.sk = prec.sk;
+  }
   if(evoInto.length) d.ev = {into:evoInto, lv:parseInt(v('sp-evolv'))||d.min+5,
     pts:parseInt(v('sp-evopts'))||10, st:1, tot:2};
   if(origName && origName !== name){ delete state.customSpecies[origName]; delete P5.POKEMON[origName]; }
+  if(P5.POKEMON[name] && !P5.POKEMON[name].custom && !SPECIE_ORIGINALI[name])
+    SPECIE_ORIGINALI[name] = P5.POKEMON[name];
   state.customSpecies[name] = d;
   P5.POKEMON[name] = d;
   save(); buildSpecies(); initDatalists(); closeModal(); renderAll();
@@ -2617,7 +2731,10 @@ function openTMTeach(pid){
   if(!tms.length){
     showModal(`<h3>📀 Nessuna MT compatibile</h3>
       <p class="hint">Il dex non elenca MT per ${esc(p.species||p.nick)} (capita con le specie aggiunte a mano). Puoi comunque mettere qualsiasi mossa in uno slot con «✏️ Mossa personalizzata».</p>
-      <button class="btn" onclick="closeModal()">OK</button>`);
+      <div class="mrow">
+        <button class="btn" onclick="mtMancante('${pid}')">➕ Aggiungine una</button>
+        <button class="btn ghost" onclick="closeModal()">Chiudi</button>
+      </div>`);
     return;
   }
   const inUse = new Set(p.slots||[]);
@@ -2634,9 +2751,93 @@ function openTMTeach(pid){
           ${inUse.has(m)?'<span class="mini">in uso</span>':''}</div>
       </div>`;
     }).join('')}</div>
-    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Chiudi</button></div>
+    <div class="mrow">
+      <button class="btn ghost" onclick="mtMancante('${pid}')">➕ Ne manca una?</button>
+      <button class="btn ghost" onclick="closeModal()">Chiudi</button>
+    </div>
   </div>`);
 }
+
+/* Il dex P5e standard si ferma alla MT 100: le 156 nuove non sono assegnate a
+   nessuna specie delle prime sette generazioni. Da qui si aggiunge quella che
+   manca alla scheda della specie, una volta sola e per sempre. */
+function mtMancante(pid, filtro){
+  const [,p] = findPkm(pid); if(!p) return;
+  const d = p5data(p.species);
+  const gia = new Set((d && d.mv.tm) || []);
+  const tipi = new Set(String(p.types||'').split('/').map(x=>x.trim()));
+  const q = (filtro||'').trim().toLowerCase();
+  const tutte = Object.entries((P5&&P5.TM)||{})
+    .filter(([n,m]) => !gia.has(+n) && (!q || m.toLowerCase().includes(q)))
+    .map(([n,m]) => {
+      const md = findMoveData(m);
+      const stesso = md && (tipi.has(md.t) || md.t === 'Nor');
+      return {n:+n, m, md, stesso};
+    })
+    .sort((a,b) => (b.stesso?1:0)-(a.stesso?1:0) || a.n-b.n);
+  const mostra = tutte.slice(0, 60);
+
+  showModal(`<div class="sheet">
+    <h3>➕ Aggiungi una MT a ${esc(p.species||p.nick)}</h3>
+    <p class="hint">Il dex in uso elenca solo le MT fino alla 100: le più recenti non sono state assegnate a nessuna specie vecchia.
+      Se sai che questo Pokémon impara una di queste, aggiungila: resta nella scheda della specie e vale anche per gli altri esemplari.</p>
+    <div class="row" style="margin-bottom:8px">
+      <input id="mt-cerca" placeholder="cerca per nome…" value="${esc(filtro||'')}" style="flex:1; min-width:150px"
+        onkeydown="if(event.key==='Enter') mtMancante('${pid}', this.value)"/>
+      <button class="btn small" onclick="mtMancante('${pid}', document.getElementById('mt-cerca').value)">Cerca</button>
+    </div>
+    ${mostra.length ? `<div class="pickgrid">${mostra.map(x => {
+      const col = x.md && TYPES[x.md.t] ? TYPES[x.md.t].c : 'var(--line)';
+      return `<div class="pick" style="border-left:4px solid ${col}"
+        onclick="confermaMTSpecie('${pid}',${x.n})">
+        <div class="row" style="gap:6px"><b>MT${x.n}</b> ${esc(x.m)}
+          ${x.md?`<span class="type-chip" style="background:${TYPES[x.md.t].c}">${TYPES[x.md.t].n}</span>`:''}
+          ${x.stesso?'<span class="mini" style="color:var(--accent); border-color:rgba(255,203,5,.4)">tipo compatibile</span>':''}</div>
+      </div>`;
+    }).join('')}</div>` : '<p class="levelup-gain">Nessuna MT con questo nome fra quelle non ancora assegnate.</p>'}
+    ${tutte.length > 60 ? `<p class="hint">Mostrate le prime 60 di ${tutte.length}: cerca per nome per restringere.</p>` : ''}
+    <div class="mrow"><button class="btn ghost" onclick="openTMTeach('${pid}')">← Torna alle MT compatibili</button>
+      <button class="btn ghost" onclick="closeModal()">Chiudi</button></div>
+  </div>`);
+  const inp = document.getElementById('mt-cerca');
+  if(inp && filtro){ inp.focus(); inp.setSelectionRange(filtro.length, filtro.length); }
+}
+function confermaMTSpecie(pid, num){
+  const [,p] = findPkm(pid); if(!p) return;
+  const mossa = P5.TM[num];
+  const specie = p.species;
+  const d = p5data(specie);
+  if(!d){ alert('Questa specie non è nel dex: aggiungi la mossa a mano da uno slot.'); return; }
+  showModal(`<h3>📀 MT${num} — ${esc(mossa)}</h3>
+    <p class="levelup-gain">Aggiungo questa MT alla scheda di <b>${esc(specie)}</b>?</p>
+    <p class="hint">La modifica resta sul tuo dispositivo e vale per tutti i ${esc(specie)} della tua scheda.
+      Si annulla in ogni momento dal Pokédex con <b>Ripristina</b>.</p>
+    <div class="mrow">
+      <button class="btn" onclick="aggiungiMTaSpecie('${pid}',${num},1)">Sì, e insegnala subito</button>
+      <button class="btn ghost" onclick="aggiungiMTaSpecie('${pid}',${num},0)">Solo aggiungila</button>
+      <button class="btn ghost" onclick="mtMancante('${pid}')">Annulla</button>
+    </div>`);
+}
+function aggiungiMTaSpecie(pid, num, insegna){
+  const [,p] = findPkm(pid); if(!p) return;
+  const specie = p.species;
+  const d = p5data(specie);
+  if(!d) return;
+  const chiave = p5name(specie) || specie;
+  if(!P5.POKEMON[chiave].custom && !SPECIE_ORIGINALI[chiave])
+    SPECIE_ORIGINALI[chiave] = P5.POKEMON[chiave];
+  const nuova = JSON.parse(JSON.stringify(P5.POKEMON[chiave]));
+  nuova.mv.tm = [...new Set([...(nuova.mv.tm||[]), +num])].sort((a,b)=>a-b);
+  nuova.custom = true;
+  state.customSpecies[chiave] = nuova;
+  P5.POKEMON[chiave] = nuova;
+  save(); buildSpecies();
+  closeModal();
+  const mossa = P5.TM[num];
+  if(insegna) teachTM(pid, mossa);
+  else { renderSquad(); toast('📀 MT' + num + ' ' + mossa + ' aggiunta a ' + specie + '.'); }
+}
+
 function teachTM(pid, name){
   const [,p] = findPkm(pid); if(!p) return;
   p.slots = p.slots || [];
@@ -4058,6 +4259,55 @@ function sellItem(name, qty){
   toast(gain ? ('💰 Venduto ' + name + ' ×' + qty + ' per ' + fmtMoney(gain))
              : ('🗑 ' + name + ' ×' + qty + ' buttato'));
 }
+/* scheda dell'oggetto: descrizione per intero, che nell'elenco viene tagliata */
+function openShopItem(name){
+  const it = marketByName()[name] || ITEM_BY_NAME()[name];
+  if(!it){ return; }
+  const t = getActiveTrainer();
+  const have = t ? (t.bag[it.n]||0) : 0;
+  const sale = onSale(it);
+  const puo = t && money(t) >= it.p;
+  const md = it.move ? findMoveData(it.move) : null;
+
+  let scheda = '';
+  if(md){
+    const tiers = md.dmg ? Object.keys(md.dmg).map(Number).sort((a,b)=>a-b) : [];
+    const dmg = tiers.length ? md.dmg[tiers[0]] : '';
+    scheda = `<div class="panel sub" style="margin:10px 0">
+      <div class="row" style="gap:6px">
+        <b>${esc(it.move)}</b> ${typeChips([md.t])}
+        <span class="mini">PP ${md.pp||'—'}</span>
+        <span class="mini">${esc(md.rng||'')}</span>
+      </div>
+      ${dmg?`<p class="levelup-gain" style="margin:6px 0 0">🎲 Danni al livello minimo: <b>${esc(dmg)}</b>${tiers.length>1?' — crescono con il livello':''}</p>`:''}
+      <p style="font-size:13.5px; margin:6px 0 0">${esc(md.desc||'')}</p>
+      ${md.sc?`<p class="hint" style="margin:6px 0 0">${esc(md.sc)}</p>`:''}
+    </div>`;
+  } else if(it.move){
+    scheda = `<p class="hint">La scheda P5e di <b>${esc(it.move)}</b> non è nel dex in uso: nome e tipo sono corretti, per danni ed effetti chiedi al GM.</p>`;
+  }
+
+  showModal(`<h3>${esc(it.n)}</h3>
+    <p class="hint" style="margin:0 0 8px">${esc(it.c)}${it.cap?` · cattura ${it.cap===99?'automatica':'CD −'+it.cap}`:''}${have?` · nello zaino: ${have}`:''}</p>
+    <p style="font-size:14px; margin:0">${esc(it.e)}</p>
+    ${scheda}
+    ${sale ? `<p class="levelup-gain">Prezzo: <b>${fmtMoney(it.p)}</b>${have?` · rivendita ${fmtMoney(Math.floor(it.p/2))}`:''}</p>` :
+             `<p class="hint">Non è in vendita: si trova giocando.</p>`}
+    ${t ? `<p class="hint" style="margin:0">Portamonete di ${esc(t.name)}: <b>${fmtMoney(money(t))}</b></p>` : '<p class="hint">Apri la scheda di un giocatore per comprare.</p>'}
+    <div class="mrow">
+      ${sale && t ? `<label>Quantità <input type="number" id="si-qty" min="1" value="1" style="width:70px"/></label>
+        <button class="btn ${puo?'':'ghost'}" onclick="compraDaScheda('${esc(name).replace(/'/g,"\\'")}')">🛒 Compra</button>` : ''}
+      ${have && t ? `<button class="btn ghost" onclick="closeModal(); sellItem('${esc(name).replace(/'/g,"\\'")}',1)">Vendi 1</button>` : ''}
+      ${it.tm && have && t ? `<button class="btn ghost" onclick="closeModal(); useTMFromBag('${t.id}','${esc(name).replace(/'/g,"\\'")}')">📀 Usala</button>` : ''}
+      <button class="btn ghost" onclick="closeModal()">Chiudi</button>
+    </div>`);
+}
+function compraDaScheda(name){
+  const q = Math.max(1, parseInt((document.getElementById('si-qty')||{}).value) || 1);
+  closeModal();
+  buyItem(name, q);
+}
+
 function setMarketCat(c){ marketCat = c; renderMarket(); }
 function setMarketQty(v){ marketQty = Math.max(1, parseInt(v)||1); renderMarket(); }
 
@@ -4084,7 +4334,7 @@ function renderMarket(){
       <div class="si-main">
         <div class="si-name">
           ${col?`<span class="tmdot" style="background:${col}"></span>`:''}
-          <b>${esc(i.n)}</b>
+          <b class="si-open" onclick="openShopItem('${esc(i.n).replace(/'/g,"\\'")}')" title="apri la scheda">${esc(i.n)}</b>
           ${have?`<span class="mini">ne hai ${have}</span>`:''}
           ${i.cap?`<span class="mini cap">cattura ${i.cap===99?'auto':'+'+i.cap}</span>`:''}
         </div>
@@ -4095,6 +4345,7 @@ function renderMarket(){
           <button class="btn small ${afford?'':'ghost'}" ${t?'':'disabled'}
             onclick="buyItem('${esc(i.n).replace(/'/g,"\\'")}',marketQty)">Compra</button>`
         : `<span class="price nosale">non in vendita</span>`}
+        <button class="btn ghost small" onclick="openShopItem('${esc(i.n).replace(/'/g,"\\'")}')">Dettagli</button>
         ${have ? `<button class="btn ghost small" onclick="sellItem('${esc(i.n).replace(/'/g,"\\'")}',1)">Vendi ${i.p?fmtMoney(Math.floor(i.p/2)):''}</button>` : ''}
       </div>
     </div>`;
@@ -4216,7 +4467,7 @@ function renderBag(t){
       const info = marketByName()[n] || ITEM_BY_NAME()[n];
       const isTM = info && info.tm;
       return `<div class="bagrow">
-        <b>${esc(n)}</b>
+        <b class="si-open" onclick="openShopItem('${esc(n).replace(/'/g,"\\'")}')">${esc(n)}</b>
         <span class="qty">×${q}</span>
         ${info ? `<span class="hint">${esc(String(info.e).slice(0,80))}${String(info.e).length>80?'…':''}</span>` : '<span class="hint"></span>'}
         ${isTM ? `<button class="btn ghost small" onclick="useTMFromBag('${t.id}','${esc(n).replace(/'/g,"\\'")}')">Usa</button>` : ''}
@@ -4572,6 +4823,7 @@ const startTab = (location.hash||'').replace('#','');
 if(TABS.some(([id]) => id === startTab)) activeTab = startTab;
 initDatalists();
 initDexFilters();
+initDexSort();
 renderAll();
 showInstallBtn();
 bootDone();
