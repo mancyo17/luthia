@@ -502,6 +502,28 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
 @keyframes bootspin{0%{transform:rotate(0) scale(1)} 50%{transform:rotate(180deg) scale(1.08)} 100%{transform:rotate(360deg) scale(1)}}
 .boot.failed .boot-ball{animation:none; filter:grayscale(.6); opacity:.7}
 
+/* ---------- immagini delle specie ---------- */
+.sprite{
+  width:44px; height:44px; flex:none; object-fit:contain;
+  image-rendering:-webkit-optimize-contrast;
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.5));
+  background:radial-gradient(circle at 50% 62%, rgba(255,255,255,.07), transparent 68%);
+  border-radius:12px;
+}
+.sprite.big{width:132px; height:132px}
+.sprite.ko{
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.10) 0 26%, transparent 27%),
+    linear-gradient(180deg, rgba(238,27,46,.30) 0 48%, rgba(255,255,255,.10) 48% 100%);
+  border:1px solid var(--line); filter:none; opacity:.5;
+}
+.dex-item .top .sprite{width:38px; height:38px}
+.pkm .head .sprite{width:52px; height:52px; margin-right:2px}
+.boxmon .bm-top .sprite{width:30px; height:30px}
+.sheethead{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:6px}
+.sheethead h3{font-size:17px}
+@media (max-width:520px){ .sprite.big{width:104px; height:104px} }
+
 /* ---------- PP e stati ---------- */
 .pp{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px;
@@ -1067,6 +1089,30 @@ setTimeout(function(){
 
 const P5 = window.P5E || null;
 
+/* ---- immagini delle specie ----
+   Gli sprite arrivano dall'archivio pubblico PokéAPI, indicizzati per numero del
+   dex: non sono dentro l'app, quindi la prima volta serve connessione (poi il
+   browser se li tiene). Le forme regionali hanno il numero della specie base,
+   perciò mostrare quell'immagine sarebbe sbagliato: lì compare un segnaposto,
+   e chi vuole può incollare l'indirizzo giusto dall'editor della specie. */
+const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
+const REGIONALI = / di (Galar|Hisui|Alola|Paldea)\b/;
+
+function immagineSpecie(nome, d, grande){
+  d = d || (P5 && P5.POKEMON[nome]) || null;
+  if(d && d.img) return d.img;                    /* indirizzo messo a mano */
+  if(!d || !d.n || d.n > 1025 || d.n < 1) return '';
+  if(REGIONALI.test(nome||'')) return '';         /* meglio niente che l'immagine sbagliata */
+  return SPRITE_BASE + (grande ? 'other/official-artwork/' : '') + d.n + '.png';
+}
+function imgHTML(nome, d, grande){
+  const src = immagineSpecie(nome, d, grande);
+  const cls = 'sprite' + (grande ? ' big' : '');
+  if(!src) return `<span class="${cls} ko" title="immagine non disponibile per questa forma"></span>`;
+  return `<img class="${cls}" src="${esc(src)}" alt="" loading="lazy" decoding="async"
+    onerror="this.classList.add('ko'); this.removeAttribute('src')"/>`;
+}
+
 const TYPES = {
   Nor:{n:'Normale',c:'#A8A878'}, Fuo:{n:'Fuoco',c:'#F08030'}, Acq:{n:'Acqua',c:'#6890F0'},
   Erb:{n:'Erba',c:'#78C850'}, Ele:{n:'Elettro',c:'#F8D030'}, Ghi:{n:'Ghiaccio',c:'#98D8D8'},
@@ -1577,7 +1623,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '3.3';
+const APP_VERSION = '3.4';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -1853,6 +1899,7 @@ function renderDex(){
     const sr = s.p5 ? `<span class="num">SR ${s.p5.sr}</span>` : '';
     return `<div class="dex-item">
       <div class="top">
+        ${imgHTML(s.name, s.p5)}
         <strong onclick="openSheet(${i})" title="apri la scheda">${esc(s.name)}</strong> ${num} ${typeChips(s.types)} ${sr}
         <label class="caughtbox" title="segna come catturato">
           <input type="checkbox" ${isCaught?'checked':''} onchange="toggleCaught(${i})"/> ◓
@@ -1955,7 +2002,10 @@ function openSheet(i){
   const evo = d.ev ? `<p class="levelup-gain">🌟 Evolve in <b>${d.ev.into.map(esc).join(' / ')}</b> dal liv. ${d.ev.lv} · +${d.ev.pts} punti caratteristica (stadio ${d.ev.st}/${d.ev.tot})</p>` : '';
   const spots = '';
   showModal(`<div class="sheet">
-    <h3>#${d.n} ${esc(s.name)} ${typeChips(s.types)}</h3>
+    <div class="sheethead">
+      ${imgHTML(s.name, d, true)}
+      <h3 style="margin:0">#${d.n} ${esc(s.name)} ${typeChips(s.types)}</h3>
+    </div>
     ${ex.g?`<p class="hint" style="margin:0">${esc(ex.g)}${ex.h?` · ${(ex.h/10).toLocaleString('it')} m · ${(ex.w/10).toLocaleString('it')} kg`:''}</p>`:''}
     ${ex.f?`<p class="flavor">${esc(ex.f)}</p>`:''}
     <div class="statline">
@@ -2021,6 +2071,10 @@ function openSpeciesEditor(name, copia){
     <div class="mrow">
       <label style="flex:1">Abilità<br/><input id="sp-ab" value="${esc(d?(d.ab||[]).join(', '):'')}" style="width:100%"/></label>
       <label style="flex:1">Abilità nascosta<br/><input id="sp-hab" value="${esc(d?d.hab||'':'')}" style="width:100%"/></label>
+    </div>
+    <div class="mrow">
+      <label style="flex:1">Immagine — indirizzo di una figura (facoltativo)<br/>
+        <input id="sp-img" value="${esc(d&&d.img||'')}" style="width:100%" placeholder="https://…  (serve per le forme regionali)"/></label>
     </div>
     <div class="mrow">
       <label style="flex:1">Evolve in<br/><input id="sp-evo" list="specieslist" value="${esc(d&&d.ev?d.ev.into.join(', '):'')}" style="width:100%" placeholder="lascia vuoto se è la forma finale"/></label>
@@ -2307,6 +2361,7 @@ function saveSpeciesEditor(origName){
     spd: v('sp-spd') || '9 m',
     size: v('sp-size'),
     ab: v('sp-ab').split(',').map(s=>s.trim()).filter(Boolean),
+    img: v('sp-img'),
     hab: v('sp-hab'),
     mv: {s:start, l:lvl,
       tm: v('sp-tm').split(/[,;\s]+/).map(x=>parseInt(x)).filter(x=>x>0 && P5 && P5.TM && P5.TM[x])},
@@ -3922,6 +3977,7 @@ function renderBox(t){
     const pct = mx>0 ? Math.round(100*cur/mx) : 0;
     return `<div class="boxmon">
       <div class="bm-top">
+        ${imgHTML(p5name(p.species)||p.species, p5data(p.species))}
         <b>${esc(p.nick)}</b>
         <span class="lv">Liv. ${p.level}</span>
       </div>
@@ -4063,8 +4119,10 @@ function renderPkm(p){
   const itemEff = P5 && p.item && P5.ITEMS[p.item] ? P5.ITEMS[p.item] : '';
   const sIdx = SPECIES_IDX.has(p5name(p.species)||p.species) ? SPECIES_IDX.get(p5name(p.species)||p.species) : null;
 
+  const dexData = p5data(p.species);
   return `<div class="pkm">
     <div class="head">
+      ${imgHTML(p5name(p.species)||p.species, dexData)}
       <input class="nick" value="${esc(p.nick)}" onchange="pkmField('${p.id}','nick',this.value)"/>
       ${isStarter?`<span class="mini" style="color:var(--warn); border-color:rgba(246,224,94,.4)" title="Pokémon iniziale">⭐ iniziale</span>`:''}
       <span class="hint" style="margin:0">${esc(p.species && p.species!==p.nick ? p.species : '')}</span>

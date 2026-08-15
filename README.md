@@ -52,6 +52,12 @@ Esporta/Importa per condividerli).
   avversario ricorrente e composizione della squadra per tipo. Si aggiornano da sole
   con le lotte, le catture e l'esperienza.
 - **Pokédex ordinabile**: per numero, nome, sfida (SR), tipo, PF, CA o livello minimo.
+- **Immagini**: sprite accanto a ogni specie nell'elenco, nelle carte della squadra e del Box,
+  e l'artwork grande nella scheda. Arrivano dall'archivio pubblico PokéAPI in base al numero
+  del dex — non sono nel repository, quindi la prima volta serve connessione e poi restano
+  nella cache del browser. Le forme regionali hanno il numero della specie base: lì compare
+  un segnaposto invece di un'immagine sbagliata, e nell'editor della specie c'è un campo per
+  incollare l'indirizzo giusto.
 - **Schede modificabili da chiunque**: ogni specie del dex si può correggere — utile
   soprattutto per le MT, visto che il dex P5e standard si ferma alla MT 100 e le 156 più
   recenti non sono assegnate alle specie vecchie. Dalla schermata «Usa una MT» c'è
