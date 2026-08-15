@@ -28,11 +28,20 @@ Esporta/Importa per condividerli).
 - **Centro Pokémon**: un tocco e tutta la squadra torna a PF pieni, senza stati e con i
   PP ricaricati; si può curare solo una cosa alla volta o includere anche il Box.
 - **Stati e PP**: i sette stati (avvelenato, iper-avvelenato, scottato, paralizzato,
-  addormentato, congelato, confuso) stanno sulla scheda con il loro effetto scritto, e il
-  pulsante «inizio turno» tira i danni e i tiri salvezza per liberarsene. Ogni mossa negli
-  slot ha i suoi PP, che si consumano usandola e si ricaricano con Etere, Elisir o al
-  Centro. Le regole degli stati sono **della casa** e regolabili; i PP si possono spegnere
-  del tutto per chi non li usa.
+  addormentato, congelato, confuso) stanno sulla scheda con il loro effetto, e il pulsante
+  «fine turno» tira i danni e i tiri salvezza per liberarsene. Gli effetti sono quelli che
+  il sistema P5e descrive nelle proprie abilità e mosse — *Dentistretti* (svantaggio,
+  riduzione dei danni, danni a fine turno), *Velencura*, *Tossina* (il doppio), *Gelamento*
+  (velocità 0), *Sveglialampo* — mentre i numeri, che il database non riporta, si regolano
+  da **Impostazioni → Stati**. Ogni mossa negli slot ha i suoi PP, che si consumano usandola
+  e si ricaricano con Etere, Elisir o al Centro; si possono spegnere del tutto.
+- **Usare gli oggetti**: dal Pokémon, «🎒 Usa oggetto» mostra cosa c'è nello zaino che serve
+  davvero in quel momento — pozioni e Acqua Fresca se è ferito, antidoti se ha uno stato,
+  Etere se ha finito i PP — tira la formula di cura scritta sull'oggetto e lo consuma.
+- **Natura scegliibile**: come per l'abilità, l'elenco completo delle 21 nature con i loro
+  modificatori; alla cattura resta sorteggiata.
+- **Tabella MT modificabile**: quale mossa insegna ogni MT si può correggere da
+  Impostazioni → Tabella MT, con ripristino singolo o totale.
 - **Lealtà**: il valore del sistema P5e usato dalle bacche che riducono le caratteristiche e
   dalla Calmanella, ora tracciato sulla scheda; alcune Poké Ball la assegnano alla cattura.
 - **Statistiche del giocatore**: record vittorie/sconfitte con percentuale, Pokémon

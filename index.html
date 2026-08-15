@@ -826,6 +826,8 @@ window.addEventListener('error', function(e){
         <span class="hint" style="margin:0">Versione <b id="app-version"></b> · salvataggi schema <b id="app-schema"></b></span>
         <button class="btn ghost small" onclick="checkForUpdate(true)">🔄 Cerca aggiornamenti</button>
         <button class="btn ghost small" onclick="openBackups()">🛟 Copie di sicurezza</button>
+        <button class="btn ghost small" onclick="openStatusEditor()">🩹 Stati</button>
+        <button class="btn ghost small" onclick="openTMEditor('')">📀 Tabella MT</button>
       </div>
       <p class="hint" style="margin:8px 0 0">Gli aggiornamenti dell'app <b>non cancellano nulla</b>: squadre, Box, zaino e soldi restano dove sono, e prima di ogni cambio di struttura viene messa da parte una copia di sicurezza.</p>
     </div>
@@ -1575,7 +1577,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '3.1';
+const APP_VERSION = '3.2';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -1608,7 +1610,7 @@ function defaultSettings(){
 }
 function defaultState(){
   return {schema:SCHEMA, caught:{}, trainers:[], activeTrainer:null, battles:[],
-    customSpecies:{}, npcs:[], guests:[], settings:defaultSettings()};
+    customSpecies:{}, customStatus:{}, customTM:{}, npcs:[], guests:[], settings:defaultSettings()};
 }
 function defaultTrainerStats(){
   return {wins:0, losses:0, captures:0, battles:0, xpTotal:0, levelUps:0, moves:{}, foes:{}};
@@ -2045,6 +2047,74 @@ function openSpeciesEditor(name, copia){
   </div>`);
 }
 
+/* La tabella delle MT: numero → mossa. Il GM può correggerla o aggiungerne. */
+function buildTM(){
+  if(!P5 || !P5.TM) return;
+  if(!P5.__TM_BASE) P5.__TM_BASE = Object.assign({}, P5.TM);
+  P5.TM = Object.assign({}, P5.__TM_BASE, state.customTM || {});
+}
+let tmFiltro = '';
+function openTMEditor(filtro){
+  if(!P5 || !P5.TM){ alert('La tabella delle MT non è disponibile.'); return; }
+  tmFiltro = (filtro !== undefined) ? filtro : tmFiltro;
+  const q = (tmFiltro||'').trim().toLowerCase();
+  const voci = Object.entries(P5.TM)
+    .filter(([n,m]) => !q || m.toLowerCase().includes(q) || String(n) === q)
+    .sort((a,b)=>a[0]-b[0]);
+  const mostra = voci.slice(0, 80);
+  const righe = mostra.map(([n,m]) => {
+    const md = findMoveData(m);
+    const col = md && TYPES[md.t] ? TYPES[md.t].c : 'var(--line)';
+    const cambiata = (state.customTM||{})[n] !== undefined;
+    return `<div class="row" style="gap:6px; padding:5px 0; border-bottom:1px solid var(--line)">
+      <b style="min-width:56px">MT${n}</b>
+      <span class="tmdot" style="background:${col}"></span>
+      <input id="tm-${n}" list="movelist" value="${esc(m)}" style="flex:1; min-width:130px"/>
+      ${cambiata?`<button class="btn ghost small" title="rimetti la mossa originale" onclick="ripristinaTM(${n})">↩</button>`:''}
+    </div>`;
+  }).join('');
+  showModal(`<div class="sheet">
+    <h3>📀 Tabella delle MT</h3>
+    <p class="hint">Quale mossa insegna ogni MT. Se nella tua campagna una MT è diversa, cambiala qui:
+      vale ovunque, anche nelle schede del dex e nel Poké Market.</p>
+    <div class="row" style="margin-bottom:8px">
+      <input id="tme-cerca" placeholder="cerca per mossa o numero…" value="${esc(tmFiltro||'')}" style="flex:1; min-width:150px"
+        onkeydown="if(event.key==='Enter') salvaTMEditor(this.value)"/>
+      <button class="btn small" onclick="salvaTMEditor(document.getElementById('tme-cerca').value)">Cerca</button>
+    </div>
+    ${righe || '<p class="levelup-gain">Nessuna MT con questo nome.</p>'}
+    ${voci.length > 80 ? `<p class="hint">Mostrate le prime 80 di ${voci.length}: cerca per restringere.</p>` : ''}
+    <div class="mrow">
+      <button class="btn" onclick="salvaTMEditor()">Salva</button>
+      ${Object.keys(state.customTM||{}).length ? `<button class="btn ghost" onclick="ripristinaTM()">↩ Ripristina tutte</button>` : ''}
+      <button class="btn ghost" onclick="closeModal()">Chiudi</button>
+    </div>
+  </div>`);
+}
+function salvaTMEditor(nuovoFiltro){
+  state.customTM = state.customTM || {};
+  let cambi = 0;
+  for(const n of Object.keys(P5.TM)){
+    const el = document.getElementById('tm-'+n);
+    if(!el) continue;
+    const v = el.value.trim();
+    if(!v) continue;
+    if(v !== P5.__TM_BASE[n]){ state.customTM[n] = v; cambi++; }
+    else delete state.customTM[n];
+  }
+  buildTM(); save(); _tmItems = null;
+  if(nuovoFiltro !== undefined){ openTMEditor(nuovoFiltro); return; }
+  closeModal(); renderAll();
+  toast(cambi ? ('📀 Tabella MT aggiornata (' + cambi + ' modificate).') : '📀 Tabella MT invariata.');
+}
+function ripristinaTM(n){
+  if(n === undefined){
+    if(!confirm('Rimettere tutte le MT come nella tabella originale?')) return;
+    state.customTM = {};
+  } else delete (state.customTM||{})[n];
+  buildTM(); save(); _tmItems = null; openTMEditor();
+}
+
 function anteprimaMT(){
   const el = document.getElementById('sp-tm');
   const out = document.getElementById('sp-tm-prev');
@@ -2206,37 +2276,58 @@ function useMove(pid, name){
    Le regole degli stati non sono nel manuale di Aethera: sono regole della casa,
    scritte qui in chiaro e regolabili dal GM nelle impostazioni. */
 
-const STATUS_INFO = {
-  'Avvelenato': {ico:'☠️', col:'#a855f7', dmg:'1d4',
-    eff:'Danni all\'inizio di ogni suo turno; svantaggio ai tiri per colpire.',
-    fine:'Si cura con un Antidoto, o con un TS su Costituzione a fine turno.'},
-  'Iper-avvelenato': {ico:'☣️', col:'#7e22ce', dmg:'2d4',
-    eff:'Come avvelenato ma con il doppio dei danni (è l\'effetto di Tossina).',
-    fine:'Solo Antidoto o Cura Totale: non passa da sé.'},
-  'Scottato': {ico:'🔥', col:'#f97316', dmg:'1d4',
-    eff:'Danni all\'inizio di ogni suo turno; i suoi attacchi basati su Forza infliggono metà danni.',
-    fine:'Si cura con un\'Antiscottatura.'},
-  'Paralizzato': {ico:'⚡', col:'#eab308', dmg:'',
-    eff:'Velocità dimezzata e svantaggio ai tiri salvezza su Destrezza. All\'inizio del turno tira un TS su Costituzione: se fallisce perde l\'azione.',
-    fine:'Si cura con un\'Antiparalisi.'},
-  'Addormentato': {ico:'💤', col:'#60a5fa', dmg:'',
-    eff:'Non può agire e gli attacchi contro di lui hanno vantaggio. Si sveglia se subisce danni.',
-    fine:'TS su Costituzione a fine turno, oppure un Risveglio.'},
-  'Congelato': {ico:'🧊', col:'#38bdf8', dmg:'',
-    eff:'Non può agire. Si scongela subito se viene colpito da una mossa di tipo Fuoco.',
-    fine:'TS su Costituzione all\'inizio del turno, oppure un Antigelo.'},
-  'Confuso': {ico:'💫', col:'#f472b6', dmg:'',
+/* Gli effetti degli stati sono quelli che il sistema P5e descrive nelle proprie
+   abilità e mosse, non regole inventate qui:
+     · «Dentistretti»: quando è scottato o avvelenato, questo Pokémon non subisce
+       lo svantaggio né la riduzione dei danni; subisce comunque i danni a fine turno
+     · «Velencura»: non subisce gli svantaggi dell'avvelenamento e recupera metà dei
+       danni da veleno, compresi quelli di fine turno
+     · «Tossina» e «Velenodenti»: il doppio dei normali danni da veleno alla fine di
+       ogni suo turno
+     · «Gelamento»: se la velocità arriva a 0 il bersaglio è congelato; può usare
+       un'azione per scaldarsi
+     · «Sveglialampo»: vantaggio ai tiri per svegliarsi dal sonno
+   Il PHB non è nel database, quindi i NUMERI (quanti danni, con che CD ci si libera)
+   restano regolabili dal GM: Impostazioni → Stati. */
+const STATUS_BASE = {
+  'Avvelenato': {ico:'☠️', col:'#a855f7', dmg:'1d4', tiro:false,
+    eff:'Svantaggio ai tiri per colpire e alle prove di caratteristica, e riduzione dei danni inflitti. Alla fine di ogni suo turno subisce i danni da veleno.',
+    fine:'Antidoto, Baccapecha o una mossa che cura l\'avvelenamento.'},
+  'Iper-avvelenato': {ico:'☣️', col:'#7e22ce', dmg:'2d4', tiro:false,
+    eff:'Come avvelenato, ma alla fine di ogni suo turno subisce il doppio dei normali danni da veleno (è l\'effetto di Tossina e Velenodenti).',
+    fine:'Antidoto o Cura Totale: da sé non passa.'},
+  'Scottato': {ico:'🔥', col:'#f97316', dmg:'1d4', tiro:false,
+    eff:'Svantaggio ai tiri per colpire e riduzione dei danni inflitti. Alla fine di ogni suo turno subisce i danni da scottatura.',
+    fine:'Antiscottatura, Baccarawst o una mossa che cura la scottatura.'},
+  'Paralizzato': {ico:'⚡', col:'#eab308', dmg:'', tiro:true,
+    eff:'Fatica a muoversi e ad agire: alla fine del turno tira un TS su Costituzione per riprendersi.',
+    fine:'Antiparalisi, Baccaliegia o il tiro salvezza riuscito.'},
+  'Addormentato': {ico:'💤', col:'#60a5fa', dmg:'', tiro:true,
+    eff:'Non agisce; può usare solo le mosse che si attivano nel sonno (Russare, Sonnolalia). Alla fine del turno tira per svegliarsi — con vantaggio se ha Sveglialampo.',
+    fine:'Risveglio, Baccachesto, i danni subiti o il tiro riuscito.'},
+  'Congelato': {ico:'🧊', col:'#38bdf8', dmg:'', tiro:true,
+    eff:'Velocità ridotta a 0. Può spendere un\'azione per scaldarsi, oppure tirare un TS su Costituzione alla fine del turno.',
+    fine:'Antigelo, Baccaaspear, una mossa di tipo Fuoco o il tiro riuscito.'},
+  'Confuso': {ico:'💫', col:'#f472b6', dmg:'', tiro:false, d4:true,
     eff:'All\'inizio del turno tira 1d4: con 1 attacca sé stesso invece di agire.',
-    fine:'Passa da sé dopo qualche round, oppure con una Cura Totale.'}
+    fine:'Baccakì, Cura Totale, oppure passa da sé dopo qualche round.'}
 };
-const ALL_STATUSES = Object.keys(STATUS_INFO);
+/* il GM può correggere qualsiasi voce: le modifiche restano nei salvataggi */
+let STATUS_INFO = {};
+function buildStatus(){
+  STATUS_INFO = {};
+  for(const [k,v] of Object.entries(STATUS_BASE))
+    STATUS_INFO[k] = Object.assign({}, v, (state.customStatus||{})[k] || {});
+}
+const ALL_STATUSES = Object.keys(STATUS_BASE);
+buildStatus();
 
 function rollDice(expr){
-  const m = String(expr||'').match(/^(\d+)d(\d+)$/);
-  if(!m) return {tot:0, tiri:[]};
-  const n = +m[1], f = +m[2], tiri = [];
+  const m = String(expr||'').replace(/\s/g,'').match(/^(\d+)d(\d+)([+-]\d+)?$/);
+  if(!m) return {tot:0, tiri:[], bonus:0};
+  const n = +m[1], f = +m[2], bonus = m[3] ? +m[3] : 0, tiri = [];
   for(let i=0;i<n;i++) tiri.push(1 + Math.floor(Math.random()*f));
-  return {tot: tiri.reduce((a,b)=>a+b,0), tiri};
+  return {tot: tiri.reduce((a,b)=>a+b,0) + bonus, tiri, bonus};
 }
 
 /* ---- punti potere ---- */
@@ -2262,6 +2353,118 @@ function spendPP(p, name, n){
 function restorePP(p, name){
   if(!p.pp) return;
   if(name) delete p.pp[name]; else p.pp = {};
+}
+
+/* ---- usare un oggetto su un Pokémon ----
+   Gli effetti sono quelli scritti nel catalogo: se lì c'è «recupera 2d4+2 PF»,
+   qui tira 2d4+2 e li aggiunge. */
+const ITEM_USE = {
+  'Pozione':        {heal:'2d4+2'},
+  'Superpozione':   {heal:'4d4+4'},
+  'Iperpozione':    {heal:'8d4+8'},
+  'Pozione Max':    {healFull:true},
+  'Acqua Fresca':   {heal:'1d10+5'},
+  'Bibita Gassata': {heal:'2d10+5'},
+  'Ricarica':       {revive:0.5},
+  'Ricarica Max':   {revive:1},
+  'Antidoto':       {cure:['Avvelenato','Iper-avvelenato']},
+  'Antiscottatura': {cure:['Scottato']},
+  'Antigelo':       {cure:['Congelato']},
+  'Antiparalisi':   {cure:['Paralizzato']},
+  'Risveglio':      {cure:['Addormentato']},
+  'Cura Totale':    {cureAll:true},
+  'Etere':          {pp:10},
+  'Elisir':         {ppAll:10},
+  'Caramella Rara': {level:1},
+  'Proteina':   {stat:'FOR'}, 'Ferro':   {stat:'COS'}, 'Carburante': {stat:'DES'},
+  'Calcio':     {stat:'INT'}, 'Zinco':   {stat:'SAG'}, 'Punto Su':   {stat:'CAR'},
+  'Calmanella': {loyalty:0}
+};
+
+function openItemUse(pid){
+  const [t,p] = findPkm(pid); if(!t||!p) return;
+  const zaino = Object.entries(t.bag||{}).filter(([n,q]) => q>0 && ITEM_USE[n]);
+  const mx = maxPF(p), cur = p.curPF ?? mx;
+  if(!zaino.length){
+    showModal(`<h3>🎒 Niente da usare</h3>
+      <p class="levelup-gain">Nello zaino di ${esc(t.name)} non c'è nulla che si possa usare su un Pokémon.</p>
+      <p class="hint">Pozioni, Acqua Fresca, Antidoti, Etere e vitamine si comprano al Poké Market.</p>
+      <div class="mrow"><button class="btn" onclick="closeModal(); setTab('market')">🛒 Vai al Market</button>
+      <button class="btn ghost" onclick="closeModal()">Chiudi</button></div>`);
+    return;
+  }
+  const card = zaino.map(([n,q]) => {
+    const u = ITEM_USE[n];
+    const info = marketByName()[n] || {};
+    let utile = true, perche = '';
+    if((u.heal || u.healFull) && cur >= mx){ utile = false; perche = 'ha già tutti i PF'; }
+    if(u.revive && cur > 0){ utile = false; perche = 'non è esausto'; }
+    if((u.cure || u.cureAll) && !(p.status||[]).length){ utile = false; perche = 'non ha stati addosso'; }
+    if(u.cure && (p.status||[]).length && !u.cure.some(x=>(p.status||[]).includes(x))){ utile = false; perche = 'non ha quello stato'; }
+    return `<div class="pick ${utile?'':'taken'}" ${utile?`onclick="usaOggetto('${pid}','${esc(n).replace(/'/g,"\\'")}')"`:''}>
+      <div class="row" style="gap:6px"><b>${esc(n)}</b> <span class="mini">×${q}</span>
+        ${utile?'':`<span class="mini">${perche}</span>`}</div>
+      <div class="slot-meta">${esc(String(info.e||'').slice(0,90))}</div>
+    </div>`;
+  }).join('');
+  showModal(`<div class="sheet">
+    <h3>🎒 Usa un oggetto su ${esc(p.nick)}</h3>
+    <p class="hint">PF ${cur}/${mx}${(p.status||[]).length?` · ${p.status.join(', ')}`:''}</p>
+    <div class="pickgrid">${card}</div>
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Chiudi</button></div>
+  </div>`);
+}
+
+function usaOggetto(pid, nome){
+  const [t,p] = findPkm(pid); if(!t||!p) return;
+  const u = ITEM_USE[nome];
+  if(!u || !(t.bag[nome] > 0)) return;
+  const mx = maxPF(p);
+  let esito = '';
+
+  if(u.heal){
+    const r = rollDice(u.heal);
+    const prima = p.curPF ?? mx;
+    p.curPF = Math.min(mx, prima + r.tot);
+    esito = `🎲 ${u.heal} → [${r.tiri.join(', ')}]${r.bonus?` ${fmtMod(r.bonus)}`:''} = <b>+${p.curPF - prima} PF</b> → ${p.curPF}/${mx}`;
+  } else if(u.healFull){
+    p.curPF = mx; esito = `💗 PF al massimo: <b>${mx}</b>`;
+  } else if(u.revive){
+    p.curPF = Math.max(1, Math.round(mx * u.revive));
+    esito = `✨ Rianimato con <b>${p.curPF}/${mx} PF</b>`;
+  } else if(u.cureAll){
+    const via = (p.status||[]).join(', ');
+    p.status = []; esito = via ? `🩹 Curati: <b>${via}</b>` : '🩹 Nessuno stato da curare';
+  } else if(u.cure){
+    const via = (p.status||[]).filter(x=>u.cure.includes(x));
+    p.status = (p.status||[]).filter(x=>!u.cure.includes(x));
+    esito = via.length ? `🩹 Curato: <b>${via.join(', ')}</b>` : '🩹 Non aveva quello stato';
+  } else if(u.pp){
+    const slot = (p.slots||[]).filter(Boolean).filter(m => ppLeft(p,m) !== null && ppLeft(p,m) < ppMax(m));
+    if(!slot.length){ toast('Le mosse hanno già tutti i PP.'); return; }
+    p.pp = p.pp || {};
+    p.pp[slot[0]] = Math.max(0, (p.pp[slot[0]]||0) - u.pp);
+    esito = `🧪 <b>${esc(slot[0])}</b> recupera ${u.pp} PP → ${ppLeft(p,slot[0])}/${ppMax(slot[0])}`;
+  } else if(u.ppAll){
+    for(const k of Object.keys(p.pp||{})) p.pp[k] = Math.max(0, p.pp[k] - u.ppAll);
+    esito = `🧴 Tutte le mosse recuperano ${u.ppAll} PP`;
+  } else if(u.level){
+    levelUp(pid, true);
+    esito = `🍬 Sale al livello <b>${p.level}</b>`;
+  } else if(u.stat){
+    p.stats[u.stat] = Math.min(20, (p.stats[u.stat]||10) + 1);
+    esito = `💪 <b>${u.stat}</b> sale a ${p.stats[u.stat]}`;
+  } else if(u.loyalty !== undefined){
+    p.loyalty = u.loyalty; esito = `🔔 Lealtà riportata a <b>${fmtMod(p.loyalty)}</b>`;
+  }
+
+  t.bag[nome]--; if(!t.bag[nome]) delete t.bag[nome];
+  save(); renderSquad();
+  showModal(`<h3>${esc(nome)}</h3>
+    <p class="levelup-gain">${esito}</p>
+    <p class="hint">Ne restano ${t.bag[nome]||0} nello zaino.</p>
+    <div class="mrow"><button class="btn" onclick="closeModal()">OK</button>
+    <button class="btn ghost" onclick="openItemUse('${pid}')">Usane un altro</button></div>`);
 }
 
 /* ---- Lealtà: la usano le bacche e la Calmanella del dex P5e ---- */
@@ -2375,33 +2578,89 @@ function statusTurn(pid){
   if(!sts.length){ toast('Nessuno stato attivo su ' + p.nick + '.'); return; }
   const righe = [];
   let danni = 0;
+  const cd = state.settings.statusDC || 10;
   for(const st of sts){
     const info = STATUS_INFO[st]; if(!info) continue;
     if(info.dmg){
       const r = rollDice(info.dmg);
       danni += r.tot;
       righe.push(`${info.ico} <b>${st}</b>: ${info.dmg} → [${r.tiri.join(', ')}] = <b>${r.tot}</b> danni`);
-    } else if(st === 'Confuso'){
+    }
+    if(info.d4){
       const r = rollDice('1d4');
-      righe.push(`${info.ico} <b>Confuso</b>: 1d4 → <b>${r.tot}</b> — ${r.tot===1?'si colpisce da solo, niente azione':'agisce normalmente'}`);
-    } else {
+      righe.push(`${info.ico} <b>${st}</b>: 1d4 → <b>${r.tot}</b> — ${r.tot===1?'attacca sé stesso, niente azione':'agisce normalmente'}`);
+    }
+    if(info.tiro){
       const r = rollDice('1d20');
-      const cd = state.settings.statusDC || 10;
       const ok = r.tot >= cd;
-      righe.push(`${info.ico} <b>${st}</b>: TS su COS ${r.tot} contro CD ${cd} → ${ok?'<b>si libera</b>':'resta così'}`);
+      righe.push(`${info.ico} <b>${st}</b>: TS su COS ${r.tot} contro CD ${cd} → ${ok?'<b>si riprende</b>':'resta così'}`);
       if(ok) p.status = p.status.filter(x=>x!==st);
     }
   }
-  if(danni){
-    p.curPF = Math.max(0, (p.curPF ?? maxPF(p)) - danni);
-  }
+  if(danni) p.curPF = Math.max(0, (p.curPF ?? maxPF(p)) - danni);
   save(); renderSquad();
-  showModal(`<h3>${esc(p.nick)} — inizio del turno</h3>
+  showModal(`<h3>${esc(p.nick)} — fine del turno</h3>
     ${righe.map(r=>`<p class="levelup-gain">${r}</p>`).join('')}
     ${danni?`<p class="levelup-gain">💔 Totale <b>${danni} danni</b> → ${p.curPF}/${maxPF(p)} PF</p>`:''}
-    <p class="hint">Regole della casa: si cambiano da Impostazioni.</p>
+    <p class="hint">Danni e tiri seguono le regole del sistema; i numeri si regolano da Impostazioni → Stati.</p>
     <button class="btn" onclick="closeModal()">OK</button>`);
 }
+function openStatusEditor(){
+  const righe = ALL_STATUSES.map(st => {
+    const i = STATUS_INFO[st], b = STATUS_BASE[st];
+    const cambiato = !!(state.customStatus||{})[st];
+    return `<div class="panel sub">
+      <div class="row"><b>${i.ico} ${st}</b>
+        ${cambiato?'<span class="mini" style="color:var(--accent)">modificato</span>':''}
+        ${cambiato?`<button class="btn ghost small" style="margin-left:auto" onclick="ripristinaStato('${st}')">↩ Originale</button>`:''}
+      </div>
+      <div class="row" style="margin-top:6px">
+        <label>Danni a fine turno<br/><input id="st-dmg-${st}" value="${esc(i.dmg||'')}" placeholder="es. 1d4 o vuoto" style="width:110px"/></label>
+        <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="st-tiro-${st}" ${i.tiro?'checked':''}/> tiro salvezza per liberarsi</label>
+      </div>
+      <label style="display:block; margin-top:6px">Effetto<br/>
+        <textarea id="st-eff-${st}" style="min-height:54px">${esc(i.eff||'')}</textarea></label>
+    </div>`;
+  }).join('');
+  showModal(`<div class="sheet">
+    <h3>🩹 Stati — regole in uso</h3>
+    <p class="hint">Gli effetti qui sotto vengono da quello che il sistema P5e scrive nelle sue abilità e mosse
+      (Dentistretti, Velencura, Tossina, Gelamento, Sveglialampo). I numeri, che il database non riporta,
+      puoi metterli come dice il tuo PHB: valgono per tutti i Pokémon.</p>
+    <div class="row"><label>CD per liberarsi dagli stati
+      <input type="number" id="st-cd" min="1" max="30" value="${state.settings.statusDC||10}" style="width:70px"/></label></div>
+    ${righe}
+    <div class="mrow">
+      <button class="btn" onclick="salvaStati()">Salva</button>
+      <button class="btn ghost" onclick="closeModal()">Annulla</button>
+    </div>
+  </div>`);
+}
+function salvaStati(){
+  const v = id => (document.getElementById(id)||{}).value;
+  const c = id => !!(document.getElementById(id)||{}).checked;
+  state.customStatus = state.customStatus || {};
+  for(const st of ALL_STATUSES){
+    const b = STATUS_BASE[st];
+    const diff = {};
+    const dmg = (v('st-dmg-'+st)||'').trim();
+    const eff = (v('st-eff-'+st)||'').trim();
+    const tiro = c('st-tiro-'+st);
+    if(dmg !== (b.dmg||'')) diff.dmg = dmg;
+    if(eff !== (b.eff||'')) diff.eff = eff;
+    if(tiro !== !!b.tiro) diff.tiro = tiro;
+    if(Object.keys(diff).length) state.customStatus[st] = diff;
+    else delete state.customStatus[st];
+  }
+  state.settings.statusDC = parseInt(v('st-cd')) || 10;
+  buildStatus(); save(); closeModal(); renderSquad();
+  toast('🩹 Regole degli stati aggiornate.');
+}
+function ripristinaStato(st){
+  if(state.customStatus) delete state.customStatus[st];
+  buildStatus(); save(); openStatusEditor();
+}
+
 function openStatusPicker(pid){
   const [,p] = findPkm(pid); if(!p) return;
   const sts = p.status || [];
@@ -3092,6 +3351,33 @@ function openAbilityPicker(pid){
       <button class="btn ghost small" onclick="closeModal()">Chiudi</button>
     </div>`);
 }
+function openNaturePicker(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const lista = Object.entries(NATURES);
+  if(!lista.length){ alert('Le nature non sono nel database in uso.'); return; }
+  const btns = lista.map(([n,eff]) => {
+    const mods = Object.entries(eff||{}).map(([k,v]) =>
+      `<span class="mini" style="color:${v>0?'var(--ok)':'var(--danger)'}">${fmtMod(v)} ${k}</span>`).join(' ');
+    return `<button class="btn ${n===p.nature?'':'ghost'}" style="text-align:left"
+      onclick="setNature('${pid}','${esc(n).replace(/'/g,"\\'")}')">
+      ${esc(n)}${n===p.nature?' ✓':''} ${mods || '<span class="mini">nessun effetto</span>'}</button>`;
+  }).join('');
+  showModal(`<div class="sheet">
+    <h3>🌱 Natura di ${esc(p.nick)}</h3>
+    <p class="hint">Alla cattura la natura esce a caso, come nei giochi. Qui le vedi tutte e ${lista.length===21?'':''}puoi cambiarla se il GM è d'accordo:
+      la natura modifica i punteggi di caratteristica e quindi anche CA, PF e tiri.</p>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">${btns}</div>
+    <div class="mrow">
+      <button class="btn ghost small" onclick="rerollNature('${pid}'); closeModal()">🎲 A caso</button>
+      <button class="btn ghost small" onclick="closeModal()">Chiudi</button>
+    </div>
+  </div>`);
+}
+function setNature(pid, nome){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.nature = nome; save(); closeModal(); renderSquad();
+}
+
 function rerollNature(pid){
   const [,p] = findPkm(pid); if(!p) return;
   let n = randomNature();
@@ -3678,9 +3964,9 @@ function renderPkm(p){
       <div class="idcard">
         <div class="idrow">
           <span class="idlbl">Natura</span>
-          <b class="idval">${esc(p.nature) || '—'}</b>
+          <b class="idval abil" onclick="openNaturePicker('${p.id}')">${esc(p.nature) || '—'}</b>
           ${natLabel?`<small class="idnat">${natLabel}</small>`:''}
-          <span class="idbtn" title="ritira la natura" onclick="rerollNature('${p.id}')">🎲</span>
+          <span class="idbtn" title="scegli o ritira la natura" onclick="openNaturePicker('${p.id}')">🎲</span>
         </div>
         <div class="idrow">
           <span class="idlbl">Lealtà</span>
@@ -3703,7 +3989,7 @@ function renderPkm(p){
         return `<span class="st-chip ${on?'on':''}" style="${on?`border-color:${inf.col}; color:${inf.col}; background:${inf.col}22`:''}"
           title="${esc(inf.eff)}" onclick="toggleStatus('${p.id}','${st}')">${inf.ico} ${st}</span>`;
       }).join('')}
-      ${(p.status||[]).length ? `<button class="btn small" style="padding:2px 9px" onclick="statusTurn('${p.id}')">☠ Inizio turno</button>` : ''}
+      ${(p.status||[]).length ? `<button class="btn small" style="padding:2px 9px" onclick="statusTurn('${p.id}')">☠ Fine turno</button>` : ''}
       <span class="idbtn" title="cosa fanno gli stati" onclick="openStatusPicker('${p.id}')">❔</span>
     </div>
     ${abChips?`<div class="defline">✨ Possibili: ${abChips}${p.ts?` · <b>TS:</b> ${esc(p.ts)}`:''}</div>`:(p.ts?`<div class="defline"><b>TS:</b> ${esc(p.ts)}</div>`:'')}
@@ -3761,6 +4047,7 @@ function renderPkm(p){
       <button class="btn small" onclick="levelUp('${p.id}')">⬆ +1 livello</button>
       <button class="btn small" onclick="evolvePkm('${p.id}')">🌟 Evolvi</button>
       <button class="btn ghost small" title="${isStarter?'Non è più il tuo iniziale':'Segna come Pokémon iniziale'}" onclick="setStarter('${p.id}')">${isStarter?'⭐':'☆'}</button>
+      <button class="btn small" title="Usa una pozione, un antidoto…" onclick="openItemUse('${p.id}')">🎒 Usa oggetto</button>
       <button class="btn ghost small" title="Sposta nel Box" onclick="toBox('${p.id}')">🗄️ Nel Box</button>
       ${sIdx!=null && SPECIES[sIdx].p5 ? `<button class="btn small ghost" onclick="openSheet(${sIdx})">📜 Scheda dex</button>` : ''}
       <button class="btn danger small" style="margin-left:auto" onclick="removePkm('${p.id}')">Rimuovi</button>
@@ -4821,6 +5108,7 @@ if(!state.npcsInit && !state.npcs.length) loadNPCPresets();
 /* scorciatoie dell'app installata: #squad, #dex, #market… */
 const startTab = (location.hash||'').replace('#','');
 if(TABS.some(([id]) => id === startTab)) activeTab = startTab;
+buildTM();
 initDatalists();
 initDexFilters();
 initDexSort();
