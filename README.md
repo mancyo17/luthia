@@ -53,9 +53,11 @@ Esporta/Importa per condividerli).
   con le lotte, le catture e l'esperienza.
 - **Pokédex ordinabile**: per numero, nome, sfida (SR), tipo, PF, CA o livello minimo.
 - **Immagini**: sprite accanto a ogni specie nell'elenco, nelle carte della squadra e del Box,
-  e l'artwork grande nella scheda. Arrivano dall'archivio pubblico PokéAPI in base al numero
-  del dex — non sono nel repository, quindi la prima volta serve connessione e poi restano
-  nella cache del browser. Le forme regionali hanno il numero della specie base: lì compare
+  l'artwork grande nella scheda, e la figura di **ogni oggetto** nel Market, nello zaino e
+  nella schermata «usa oggetto» — le MT prendono l'icona del tipo della mossa che insegnano.
+  Arrivano dall'archivio pubblico PokéAPI, i Pokémon per numero del dex e gli oggetti per
+  nome: non sono nel repository, quindi la prima volta serve connessione e poi restano nella
+  cache del browser. Le forme regionali hanno il numero della specie base, perciò lì compare
   un segnaposto invece di un'immagine sbagliata, e nell'editor della specie c'è un campo per
   incollare l'indirizzo giusto.
 - **Schede modificabili da chiunque**: ogni specie del dex si può correggere — utile
@@ -79,8 +81,11 @@ Esporta/Importa per condividerli).
   già pronti (squadra, formato, regola speciale), modificabili e creabili da zero, con
   apertura rapida della lotta.
 - **Oggetti**: catalogo con Poké Ball, cure, vitamine, pietre evolutive e oggetti chiave
-  (mappa città, canna da pesca, flauto Poké…), più gli strumenti tenuti del dex; ogni
-  giocatore ha zaino con quantità e soldi.
+  (mappa città, canna da pesca, flauto Poké…). Gli **strumenti tenuti** — 93 dal dex, fra cui
+  35 bacche, Avanzi, Corpetto Assalto, Palloncino — ora hanno un prezzo e si comprano al
+  Market; ne ho aggiunti otto che mancavano (Bendascelta, Sciarpascelta, Occhialiscelta,
+  Evolcondensa, Vitasfera, Elmo Ruvido, Vigorcintura, Restipietra) con effetti scritti sulle
+  convenzioni del sistema e correggibili. Ogni giocatore ha zaino con quantità e soldi.
 - **Specie personalizzate**: editor per creare o modificare qualsiasi Pokémon. Le linee di
   Scarlatto/Violetto (iniziali di Paldea, Charcadet→Armarouge/Ceruledge, Frigibax→Baxcalibur)
   restano schede di casa, riconoscibili e modificabili; tutto il resto di gen 8 usa i numeri

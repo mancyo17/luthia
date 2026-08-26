@@ -524,6 +524,18 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
 .sheethead h3{font-size:17px}
 @media (max-width:520px){ .sprite.big{width:104px; height:104px} }
 
+.isprite{
+  width:30px; height:30px; flex:none; object-fit:contain;
+  image-rendering:-webkit-optimize-contrast;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.5));
+}
+.isprite.ko{
+  background:radial-gradient(circle at 50% 45%, rgba(255,255,255,.12), transparent 65%);
+  border:1px solid var(--line); border-radius:8px; filter:none; opacity:.45;
+}
+.si-name .isprite{width:34px; height:34px}
+.bagrow .isprite{width:26px; height:26px}
+
 /* ---------- PP e stati ---------- */
 .pp{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px;
@@ -1105,6 +1117,84 @@ function immagineSpecie(nome, d, grande){
   if(REGIONALI.test(nome||'')) return '';         /* meglio niente che l'immagine sbagliata */
   return SPRITE_BASE + (grande ? 'other/official-artwork/' : '') + d.n + '.png';
 }
+/* ---- immagini degli strumenti ----
+   Stesso archivio dei Pokémon, ma indicizzato per nome inglese. La mappa copre
+   quello che si usa davvero; per il resto compare un segnaposto, mai una figura
+   sbagliata (un indirizzo che non esiste non carica e basta). */
+const ITEM_SLUG = {
+  'Poké Ball':'poke-ball','Mega Ball':'great-ball','Ultra Ball':'ultra-ball','Master Ball':'master-ball',
+  'Ball Rete':'net-ball','Ball Sub':'dive-ball','Ball Nido':'nest-ball','Ball Ripeti':'repeat-ball',
+  'Ball Timer':'timer-ball','Ball Sublime':'premier-ball','Amica Ball':'friend-ball','Ball Lusso':'luxury-ball',
+  'Ball Velox':'quick-ball','Ball Pesante':'heavy-ball','Ball Esca':'lure-ball','Ball Zenith':'dream-ball',
+  'Pozione':'potion','Superpozione':'super-potion','Iperpozione':'hyper-potion','Pozione Max':'max-potion',
+  'Ricarica':'revive','Ricarica Max':'max-revive','Antidoto':'antidote','Antiscottatura':'burn-heal',
+  'Antigelo':'ice-heal','Antiparalisi':'paralyze-heal','Risveglio':'awakening','Cura Totale':'full-heal',
+  'Acqua Fresca':'fresh-water','Bibita Gassata':'soda-pop','Etere':'ether','Elisir':'elixir',
+  'Proteina':'protein','Ferro':'iron','Carburante':'carbos','Calcio':'calcium','Zinco':'zinc',
+  'Punto Su':'hp-up','Caramella Rara':'rare-candy',
+  'Pietrafoco':'fire-stone','Pietraidrica':'water-stone','Pietratuono':'thunder-stone',
+  'Pietrafoglia':'leaf-stone','Pietralunare':'moon-stone','Pietrasolare':'sun-stone',
+  'Pietrabrillo':'shiny-stone','Pietragelo':'ice-stone','Neropietra':'dusk-stone','Pietrasapienza':'dawn-stone',
+  'Mappa Città':'town-map','Canna da Pesca':'old-rod','Super Canna':'super-rod','Flauto Poké':'poke-flute',
+  'Bicicletta':'bicycle','Corda Fuga':'escape-rope','Repellente':'repel','Super Repellente':'super-repel',
+  'Poké Radar':'poke-radar','Cerca Occulti':'dowsing-machine','Condivisore Esperienza':'exp-share',
+  'Pepita':'nugget','Perla':'pearl','Perlissima':'big-pearl','Superesperienza':'lucky-egg',
+  /* strumenti tenuti */
+  'Avanzi':'leftovers','Bandana':'focus-band','Corpetto Assalto':'assault-vest','Palloncino':'air-balloon',
+  'Fortunuovo':'lucky-egg','Grandelente':'wide-lens','Mirino':'scope-lens','Magnete':'magnet',
+  'Carbonella':'charcoal','Miracolseme':'miracle-seed','Sciarpaseta':'silk-scarf','Cinturanera':'black-belt',
+  'Occhialineri':'black-glasses','Cucchiaiotorto':'twisted-spoon','Beccaffilato':'sharp-beak',
+  'Velenaculeo':'poison-barb','Sabbia Soffice':'soft-sand','Pietradura':'hard-stone',
+  'Argenpolvere':'silver-powder','Dragozanna':'dragon-fang','Acquamagica':'mystic-water',
+  'Gelomai':'never-melt-ice','Metalcopertura':'metal-coat','Roccia di Re':'kings-rock',
+  'Osso Spesso':'thick-club','Elettropalla':'light-ball','Metalpolvere':'metal-powder',
+  'Granradice':'big-root','Rapidartigli':'quick-claw','Fortunpugno':'lucky-punch',
+  'Squama Abissale':'deep-sea-scale','Dente Abissale':'deep-sea-tooth','Conchinella':'shell-bell',
+  'Fangopece':'black-sludge','Assorbisfera':'absorb-bulb','Fiammosfera':'flame-orb',
+  'Tossicsfera':'toxic-orb','Caldoroccia':'heat-rock','Umidoroccia':'damp-rock',
+  'Gelidoroccia':'icy-rock','Levigatoroccia':'smooth-rock','Pallafumo':'smoke-ball',
+  'Pulsantefuga':'eject-button','Affilartiglio':'razor-claw','Porro':'leek',
+  'Capsula Abilità':'ability-capsule','Calmanella':'soothe-bell','Lastra di Arceus':'draco-plate',
+  'Megalite':'mega-stone','Gracidea':'gracidea',
+  /* aggiunti da noi */
+  'Bendascelta':'choice-band','Sciarpascelta':'choice-scarf','Occhialiscelta':'choice-specs',
+  'Evolcondensa':'eviolite','Vitasfera':'life-orb','Elmo Ruvido':'rocky-helmet',
+  'Vigorcintura':'focus-sash','Restipietra':'shell-bell',
+  /* ultimi rimasti */
+  'Pokédex':'pokedex','Torcia':'old-gateau','MT (macchina tecnica)':'tm-normal',
+  'MO (macchina occulta)':'hm-normal','Bracciallegro':'soothe-bell','Cuneo DNA':'dna-splicers',
+  'Grigiosfera':'iron-ball','Lunarizzatore N':'lunar-wing','Solarizzatore N':'solar-shard',
+  'Modulo di Genesect':'burn-drive','Spettrotarga':'spooky-plate','Polkadot Bow':'polkadot-bow',
+  'Verispecchio':'lax-incense','Pietramuschio':'leaf-stone'
+};
+const ITEM_SPRITE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/';
+const TIPO_EN = {Nor:'normal',Fuo:'fire',Acq:'water',Erb:'grass',Ele:'electric',Ghi:'ice',
+  Lot:'fighting',Vel:'poison',Ter:'ground',Vol:'flying',Psi:'psychic',Col:'bug',
+  Roc:'rock',Spe:'ghost',Dra:'dragon',Bui:'dark',Acc:'steel',Fol:'fairy'};
+
+function immagineOggetto(nome, it){
+  it = it || marketByName()[nome] || ITEM_BY_NAME()[nome];
+  if(it && it.img) return it.img;
+  /* le MT prendono l'icona del tipo della mossa che insegnano */
+  if(it && it.tm){
+    const md = it.move ? findMoveData(it.move) : null;
+    const t = md && TIPO_EN[md.t];
+    return ITEM_SPRITE + 'tm-' + (t || 'normal') + '.png';
+  }
+  const slug = ITEM_SLUG[nome];
+  if(slug) return ITEM_SPRITE + slug + '.png';
+  /* le bacche seguono tutte lo stesso schema: Baccaoran → oran-berry */
+  const b = /^Bacca(.+)$/.exec(nome || '');
+  if(b) return ITEM_SPRITE + b[1].toLowerCase() + '-berry.png';
+  return '';
+}
+function itemImgHTML(nome, it){
+  const src = immagineOggetto(nome, it);
+  if(!src) return `<span class="isprite ko" aria-hidden="true"></span>`;
+  return `<img class="isprite" src="${esc(src)}" alt="" loading="lazy" decoding="async"
+    onerror="this.classList.add('ko'); this.removeAttribute('src')"/>`;
+}
+
 function imgHTML(nome, d, grande){
   const src = immagineSpecie(nome, d, grande);
   const cls = 'sprite' + (grande ? ' big' : '');
@@ -1484,6 +1574,27 @@ const CATALOG = [
   {n:'MT (macchina tecnica)', c:'Oggetti chiave', p:3000, e:'Insegna una mossa specifica a un Pokémon compatibile (vedi le MT elencate nella sua scheda del dex). Riutilizzabile.'},
   {n:'MO (macchina occulta)', c:'Oggetti chiave', p:100, e:'Insegna una mossa da usare fuori dalla lotta (Surf, Volo, Forza, Spaccaroccia…). Non si dimentica.'},
 
+
+  /* --- STRUMENTI TENUTI aggiunti: mancavano dal dex in uso ---
+     Le regole sono scritte sulle convenzioni del sistema (bonus MOSSA,
+     competenza, vantaggio) e si possono correggere dall'editor degli oggetti. */
+  {n:'Bendascelta', c:'Strumenti tenuti', p:3000, casa:true,
+   e:'Il Pokémon che la tiene aggiunge +2 ai danni delle mosse in mischia, ma finché resta in campo può usare una sola mossa: la prima che sceglie.'},
+  {n:'Sciarpascelta', c:'Strumenti tenuti', p:3000, casa:true,
+   e:'Vantaggio ai tiri per l\'iniziativa, ma finché resta in campo può usare una sola mossa: la prima che sceglie.'},
+  {n:'Occhialiscelta', c:'Strumenti tenuti', p:3000, casa:true,
+   e:'Il Pokémon che li tiene aggiunge +2 ai danni delle mosse a distanza, ma finché resta in campo può usare una sola mossa: la prima che sceglie.'},
+  {n:'Evolcondensa', c:'Strumenti tenuti', p:2500, casa:true,
+   e:'+2 alla CA e ai tiri salvezza, ma solo se il Pokémon che la tiene può ancora evolvere.'},
+  {n:'Vitasfera', c:'Strumenti tenuti', p:3000, casa:true,
+   e:'Aggiunge 1d6 ai danni di ogni mossa che ne infligge; dopo ogni attacco chi la tiene perde PF pari al proprio bonus di competenza.'},
+  {n:'Elmo Ruvido', c:'Strumenti tenuti', p:2000, casa:true,
+   e:'Chi colpisce in mischia il Pokémon che lo tiene subisce danni pari al bonus di competenza di quest\'ultimo.'},
+  {n:'Vigorcintura', c:'Strumenti tenuti', p:2500, casa:true,
+   e:'Una volta per scontro, se il Pokémon che la tiene scenderebbe a 0 PF partendo dal massimo, resta invece con 1 PF.'},
+  {n:'Restipietra', c:'Strumenti tenuti', p:1500, casa:true,
+   e:'Il Pokémon che la tiene recupera PF pari al bonus di competenza al termine di un riposo breve.'},
+
   /* --- PREZIOSI --- */
   {n:'Pepita', c:'Preziosi', p:5000, e:'Si vende. Non ha altri usi.'},
   {n:'Perla', c:'Preziosi', p:1400, e:'Si vende. Non ha altri usi.'},
@@ -1496,9 +1607,12 @@ const CATALOG = [
 
 /* aggiunge il catalogo all'elenco strumenti già presente nel dex */
 const ALL_ITEMS = () => {
+  const gia = new Set(CATALOG.map(i => i.n));
   const out = CATALOG.map(i => ({...i, src:'catalogo'}));
-  if(P5) for(const [n,e] of Object.entries(P5.ITEMS))
-    out.push({n, c:'Strumenti tenuti', p:null, e, src:'dex'});
+  if(P5) for(const [n,e] of Object.entries(P5.ITEMS)){
+    if(gia.has(n)) continue;
+    out.push({n, c:'Strumenti tenuti', p:/^bacca/i.test(n)?PREZZO_BACCA:PREZZO_TENUTI, e, src:'dex'});
+  }
   return out.sort((a,b)=>a.n.localeCompare(b.n));
 };
 const ITEM_BY_NAME = () => Object.fromEntries(ALL_ITEMS().map(i=>[i.n,i]));
@@ -1523,8 +1637,24 @@ function TM_ITEMS(){
   }
   return _tmItems;
 }
-const MARKET_CATS = ['Poké Ball','Cure','Vitamine','Pietre','MT','Preziosi','Oggetti chiave'];
-function MARKET_ITEMS(){ return [...CATALOG, ...TM_ITEMS()]; }
+const MARKET_CATS = ['Poké Ball','Cure','Vitamine','Pietre','Strumenti tenuti','MT','Preziosi','Oggetti chiave'];
+
+/* Gli strumenti che i Pokémon tengono addosso: nel dex ci sono già con i loro
+   effetti, ma non avevano un prezzo e quindi non si potevano comprare. */
+const PREZZO_TENUTI = 1500, PREZZO_BACCA = 200;
+let _tenuti = null;
+function TENUTI(){
+  if(_tenuti) return _tenuti;
+  const gia = new Set(CATALOG.map(i => i.n));
+  _tenuti = [];
+  if(P5) for(const [n,e] of Object.entries(P5.ITEMS)){
+    if(gia.has(n)) continue;
+    _tenuti.push({n, c:'Strumenti tenuti', p: /^bacca/i.test(n) ? PREZZO_BACCA : PREZZO_TENUTI, e, dex:true});
+  }
+  _tenuti.sort((a,b)=>a.n.localeCompare(b.n));
+  return _tenuti;
+}
+function MARKET_ITEMS(){ return [...CATALOG, ...TENUTI(), ...TM_ITEMS()]; }
 function marketByName(){ return Object.fromEntries(MARKET_ITEMS().map(i=>[i.n,i])); }
 function onSale(i){ return !!i.p && !i.nosale; }
 
@@ -1623,7 +1753,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '3.4';
+const APP_VERSION = '3.5';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -2579,7 +2709,7 @@ function openItemUse(pid){
     if((u.cure || u.cureAll) && !(p.status||[]).length){ utile = false; perche = 'non ha stati addosso'; }
     if(u.cure && (p.status||[]).length && !u.cure.some(x=>(p.status||[]).includes(x))){ utile = false; perche = 'non ha quello stato'; }
     return `<div class="pick ${utile?'':'taken'}" ${utile?`onclick="usaOggetto('${pid}','${esc(n).replace(/'/g,"\\'")}')"`:''}>
-      <div class="row" style="gap:6px"><b>${esc(n)}</b> <span class="mini">×${q}</span>
+      <div class="row" style="gap:6px">${itemImgHTML(n, info)}<b>${esc(n)}</b> <span class="mini">×${q}</span>
         ${utile?'':`<span class="mini">${perche}</span>`}</div>
       <div class="slot-meta">${esc(String(info.e||'').slice(0,90))}</div>
     </div>`;
@@ -4178,7 +4308,8 @@ function renderPkm(p){
 
     <div class="row" style="gap:6px">
       <label style="font-size:12.5px; color:var(--muted)">Strumento
-        <input list="itemlist" value="${esc(p.item)}" style="width:150px" onchange="pkmField('${p.id}','item',this.value)"/>
+        <span class="row" style="gap:5px">${p.item?itemImgHTML(p.item):''}
+          <input list="itemlist" value="${esc(p.item)}" style="width:150px" onchange="pkmField('${p.id}','item',this.value)"/></span>
       </label>
       ${itemEff?`<span class="hint" style="margin:0; flex:1">→ ${esc(itemEff)}</span>`:''}
     </div>
@@ -4754,7 +4885,10 @@ function openShopItem(name){
     scheda = `<p class="hint">La scheda P5e di <b>${esc(it.move)}</b> non è nel dex in uso: nome e tipo sono corretti, per danni ed effetti chiedi al GM.</p>`;
   }
 
-  showModal(`<h3>${esc(it.n)}</h3>
+  showModal(`<div class="sheethead">
+      ${itemImgHTML(it.n, it)}
+      <h3 style="margin:0">${esc(it.n)}</h3>
+    </div>
     <p class="hint" style="margin:0 0 8px">${esc(it.c)}${it.cap?` · cattura ${it.cap===99?'automatica':'CD −'+it.cap}`:''}${have?` · nello zaino: ${have}`:''}</p>
     <p style="font-size:14px; margin:0">${esc(it.e)}</p>
     ${scheda}
@@ -4800,7 +4934,7 @@ function renderMarket(){
     return `<div class="shopitem${sale?'':' nosale'}">
       <div class="si-main">
         <div class="si-name">
-          ${col?`<span class="tmdot" style="background:${col}"></span>`:''}
+          ${itemImgHTML(i.n, i)}
           <b class="si-open" onclick="openShopItem('${esc(i.n).replace(/'/g,"\\'")}')" title="apri la scheda">${esc(i.n)}</b>
           ${have?`<span class="mini">ne hai ${have}</span>`:''}
           ${i.cap?`<span class="mini cap">cattura ${i.cap===99?'auto':'+'+i.cap}</span>`:''}
@@ -4866,7 +5000,8 @@ function renderItems(){
     const cap = i.cap ? `<span class="mini" style="color:var(--accent); border-color:rgba(61,139,253,.40)">cattura ${i.cap===99?'automatica':'+'+i.cap}</span>` : '';
     return `<div class="panel">
       <div class="row" style="gap:7px">
-        <b>${esc(i.n)}</b>
+        ${itemImgHTML(i.n, i)}
+        <b class="si-open" onclick="openShopItem('${esc(i.n).replace(/'/g,"\\'")}')">${esc(i.n)}</b>
         <span class="mini">${esc(i.c)}</span>${price}${cap}
         ${t ? `<button class="btn ghost small" style="margin-left:auto" title="aggiungi allo zaino di ${esc(t.name)}"
           onclick="addBagItem('${t.id}','${esc(i.n).replace(/'/g,"\\'")}',1)">+ Zaino</button>` : ''}
@@ -4934,6 +5069,7 @@ function renderBag(t){
       const info = marketByName()[n] || ITEM_BY_NAME()[n];
       const isTM = info && info.tm;
       return `<div class="bagrow">
+        ${itemImgHTML(n, info)}
         <b class="si-open" onclick="openShopItem('${esc(n).replace(/'/g,"\\'")}')">${esc(n)}</b>
         <span class="qty">×${q}</span>
         ${info ? `<span class="hint">${esc(String(info.e).slice(0,80))}${String(info.e).length>80?'…':''}</span>` : '<span class="hint"></span>'}
