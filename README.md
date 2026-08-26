@@ -45,8 +45,20 @@ Esporta/Importa per condividerli).
   per fascia di livello, tiri salvezza, effetti) e segnate come schede di casa.
   Le **voci del Pokédex** delle specie non esistono nel database: si prendono in italiano
   dall'archivio pubblico PokéAPI la prima volta che si apre una scheda e restano poi salvate
-  sul dispositivo. Chi preferisce può scrivere la propria descrizione e la propria categoria
-  dall'editor della specie: quelle hanno sempre la precedenza.
+  sul dispositivo. Ogni gioco ne scrive una riga soltanto, quindi ne mettiamo in fila **tre
+  diverse** — saltando quelle che ripetono la stessa cosa — e in coda dove vive la specie e
+  di che colore è, così la voce è un paragrafo e non mezza frase. Chi preferisce può scrivere
+  la propria descrizione e la propria categoria dall'editor della specie: quelle hanno sempre
+  la precedenza.
+- **Fuori dalla lotta**: ogni mossa, tutte e 766, dice anche a cosa serve **quando non si sta
+  combattendo** — su una zona, su un oggetto, su una persona. Lanciafiamme ripulisce un roveto
+  e accende un fuoco da campo (e in un bosco secco il GM chiede una prova per tenerlo a bada),
+  Terremoto scopre gallerie e fa cadere chi è in equilibrio, Sonnifero addormenta una guardia,
+  Danzaspada apre le feste di paese, Splash non fa assolutamente nulla. Non sono regole nuove:
+  è il testo che il GM legge per dire di sì. Le mosse iconiche — Surf, Volo, Forza, Sub, Fossa,
+  Flash, Taglio, Teletrasporto — hanno il loro uso classico da gioco. Il riquadro compare nella
+  scheda della mossa e in quella delle MT al Market, e si riscrive dall'editor delle mosse come
+  tutto il resto.
 - **MT e mosse modificabili**: da Impostazioni → Tabella MT si corregge quale mossa insegna
   ogni MT, si creano **MT nuove** con un numero libero e si apre l'**editor delle mosse** —
   tipo, PP, attivazione, gittata, danni per fascia di livello e descrizione. Serve soprattutto

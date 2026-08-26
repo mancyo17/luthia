@@ -304,6 +304,16 @@ details.cfg summary{cursor:pointer; font-size:12.5px; color:var(--muted)}
 #modal h3{margin-top:0}
 .levelup-gain{font-size:14px; margin:6px 0}
 .levelup-gain b{color:var(--accent)}
+/* «fuori dalla lotta»: l'uso della mossa nel mondo, non in scontro */
+.fuori{
+  margin:10px 0 0; padding:9px 11px; border-radius:12px;
+  background:var(--blue-dim); border-left:3px solid var(--blue);
+}
+.fuori-t{
+  font-size:11px; letter-spacing:.6px; text-transform:uppercase;
+  color:var(--blue); font-weight:700; margin-bottom:3px;
+}
+.fuori p{margin:0; font-size:13.5px; color:var(--text)}
 .mrow{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0}
 .sheet .statline{display:flex; gap:12px; flex-wrap:wrap; font-size:13.5px; margin:8px 0}
 .sheet .statline div{border:1px solid var(--line); border-radius:9px; padding:4px 9px}
@@ -541,6 +551,7 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
   max-width:420px; font-style:italic;
 }
 .voce b{color:var(--accent); font-style:normal}
+.voce-extra{font-style:normal; opacity:.8}
 .voce .hint{margin:0; display:inline; font-style:normal; opacity:.75}
 .voce.vuota{opacity:.6}
 
@@ -1044,6 +1055,7 @@ window.addEventListener('error', function(e){
 
 <script src="p5e-data.js?v=4"></script>
 <script src="p5e-gen8.js?v=4"></script>
+<script src="p5e-fuori.js?v=1"></script>
 
 <script>
 /* ================= DATI ================= */
@@ -1226,43 +1238,80 @@ function voceDex(nome, d){
   if(!d || !d.n || REGIONALI.test(nome||'')) return null;
   return VOCI[d.n] || null;
 }
+/* Le voci del Pokédex sono una riga sola per gioco, e da sole dicono poco.
+   Ne prendiamo tre diverse e le mettiamo in fila: si legge come un paragrafo. */
+const VOCI_V = 2;   /* chi ha in cache la voce corta della versione 1 se la rifà */
+const HABITAT_IT = {
+  cave:'nelle grotte', forest:'nelle foreste', grassland:'nelle praterie',
+  mountain:'in montagna', rare:'in posti dove quasi nessuno lo incontra',
+  'rough-terrain':'sui terreni impervi', sea:'in mare aperto',
+  urban:'vicino alle case e alle città', 'waters-edge':'sulle rive di fiumi e laghi'
+};
+const COLORI_IT = {
+  black:'nero', blue:'blu', brown:'marrone', gray:'grigio', green:'verde',
+  pink:'rosa', purple:'viola', red:'rosso', white:'bianco', yellow:'giallo'
+};
+function normaVoce(s){
+  return String(s||'').replace(/[\n\f\r\u00ad]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
 function caricaVoce(nome, d, dopo){
   d = d || (P5 && P5.POKEMON[nome]);
   if(!d || !d.n || d.n > 1025 || REGIONALI.test(nome||'')) { dopo && dopo(null); return; }
-  if(VOCI[d.n]){ dopo && dopo(VOCI[d.n]); return; }
-  if(typeof fetch !== 'function'){ dopo && dopo(null); return; }
+  if(VOCI[d.n] && VOCI[d.n].v === VOCI_V){ dopo && dopo(VOCI[d.n]); return; }
+  if(typeof fetch !== 'function'){ dopo && dopo(VOCI[d.n] || null); return; }
   fetch('https://pokeapi.co/api/v2/pokemon-species/' + d.n)
     .then(r => r.ok ? r.json() : Promise.reject())
     .then(j => {
       const it = (j.flavor_text_entries || []).filter(e => e.language && e.language.name === 'it');
       const gen = (j.genera || []).find(g => g.language && g.language.name === 'it');
-      const testo = it.length ? it[it.length-1].flavor_text.replace(/[\n\f\r]+/g, ' ').trim() : '';
+      /* dalle più recenti alle più vecchie, saltando quelle che ripetono la stessa cosa */
+      const viste = {}, pezzi = [];
+      for(let i = it.length - 1; i >= 0 && pezzi.length < 3; i--){
+        const t = normaVoce(it[i].flavor_text);
+        const k = t.toLowerCase().replace(/[^a-zàèéìòù0-9 ]/g, '').slice(0, 60);
+        if(!t || viste[k]) continue;
+        viste[k] = 1; pezzi.push(t);
+      }
+      const testo = pezzi.join(' ');
+      const hab = j.habitat && HABITAT_IT[j.habitat.name];
+      const col = j.color && COLORI_IT[j.color.name];
+      let extra = '';
+      if(hab) extra = 'Vive ' + hab + (col ? ', ed è di colore ' + col : '') + '.';
+      else if(col) extra = 'È di colore ' + col + '.';
+      if(j.is_legendary) extra += (extra ? ' ' : '') + 'È considerato un Pokémon leggendario.';
+      else if(j.is_mythical) extra += (extra ? ' ' : '') + 'È un Pokémon misterioso: in pochi giurano di averlo visto.';
       if(!testo && !gen) return Promise.reject();
-      VOCI[d.n] = {testo, genere: gen ? gen.genus : ''};
+      VOCI[d.n] = {testo, genere: gen ? gen.genus : '', extra, v: VOCI_V};
       salvaVoci();
       dopo && dopo(VOCI[d.n]);
     })
-    .catch(() => { dopo && dopo(null); });
+    .catch(() => { dopo && dopo(VOCI[d.n] || null); });
 }
 /* riquadro della voce, che si riempie da solo quando la descrizione arriva */
 function voceHTML(nome, d){
   const v = voceDex(nome, d);
   const ex = (P5 && P5.EXTRA && d && P5.EXTRA[d.n]) || null;
   const misure = ex ? `<span class="hint">${(ex.h/10).toLocaleString('it')} m · ${(ex.w/10).toLocaleString('it')} kg</span>` : '';
-  if(v) return `<div class="voce">${v.genere?`<b>${esc(v.genere)}</b> `:''}${esc(v.testo||'')} ${misure}</div>`;
+  if(v) return `<div class="voce"><span id="voce-box">${corpoVoce(v)}</span> ${misure}</div>`;
   if(REGIONALI.test(nome||''))
     return `<div class="voce vuota">Le forme regionali non hanno una voce propria nell'archivio: puoi scriverla tu dall'editor della specie. ${misure}</div>`;
-  return `<div class="voce vuota" id="voce-box">Cerco la descrizione… ${misure}</div>`;
+  return `<div class="voce vuota"><span id="voce-box">Cerco la descrizione…</span> ${misure}</div>`;
+}
+function corpoVoce(v){
+  return (v.genere ? `<b>${esc(v.genere)}</b> ` : '') + esc(v.testo || '') +
+    (v.extra ? ` <span class="voce-extra">${esc(v.extra)}</span>` : '');
 }
 function riempiVoce(nome, d){
-  if(voceDex(nome, d)) return;
+  const v0 = voceDex(nome, d);
+  /* già a posto: descrizione scritta a mano, oppure la voce lunga già in cache */
+  if(v0 && (v0.mia || v0.v === VOCI_V)) return;
   caricaVoce(nome, d, v => {
     const box = document.getElementById('voce-box');
     if(!box) return;
     if(v && (v.testo || v.genere)){
-      box.className = 'voce';
-      box.innerHTML = (v.genere?`<b>${esc(v.genere)}</b> `:'') + esc(v.testo||'');
-    } else {
+      if(box.parentNode) box.parentNode.className = 'voce';
+      box.innerHTML = corpoVoce(v);
+    } else if(!v0){
       box.textContent = 'Descrizione non disponibile: serve la connessione la prima volta, oppure scrivila tu dall\'editor della specie.';
     }
   });
@@ -2050,6 +2099,16 @@ function buildSpecies(){
 }
 buildSpecies();
 
+/* Il riquadro «fuori dalla lotta»: a cosa serve la mossa quando non si combatte.
+   È testo narrativo, non una regola: il GM ci mette la CD che gli pare. */
+function fuoriHTML(md){
+  if(!md || !md.fuori) return '';
+  return `<div class="fuori">
+    <div class="fuori-t">🌍 Fuori dalla lotta</div>
+    <p>${esc(md.fuori)}</p>
+  </div>`;
+}
+
 function findMoveData(name){
   if(!P5) return null;
   return P5.MOVES[name] || (P5.ALIAS[name] ? P5.MOVES[P5.ALIAS[name]] : null);
@@ -2366,6 +2425,11 @@ function openMoveEditor(nome, tornaA){
       <textarea id="mv-desc" style="min-height:96px">${esc(m&&m.desc||'')}</textarea>
     </div>
     <div class="mrow" style="flex-direction:column; align-items:stretch">
+      <label>🌍 Fuori dalla lotta</label>
+      <textarea id="mv-fuori" style="min-height:96px" placeholder="A cosa serve questa mossa quando non si sta combattendo: su una zona, su un oggetto, su una persona…">${esc(m&&m.fuori||'')}</textarea>
+      <p class="hint" style="margin:4px 0 0">Il testo che i giocatori leggono quando chiedono «e fuori dallo scontro, a cosa serve?». Riscrivilo come vuoi per la tua Aethera.</p>
+    </div>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">
       <label>Ai livelli superiori (facoltativo)</label>
       <input id="mv-sc" value="${esc(m&&m.sc||'')}" style="width:100%"/>
     </div>
@@ -2394,6 +2458,7 @@ function salvaMossa(origName, tornaA){
   };
   const save_ = v('mv-save').trim(); if(save_) m.save = save_;
   const sc = v('mv-sc').trim(); if(sc) m.sc = sc;
+  const fu = v('mv-fuori').trim(); if(fu) m.fuori = fu;
   m.nodata = false;
   state.customMoves = state.customMoves || {};
   if(origName && origName !== nome) delete state.customMoves[origName];
@@ -2644,6 +2709,7 @@ function openMoveInfo(name, level, pid){
     ${dmg}
     <p style="font-size:14px">${esc(md.desc||'')}</p>
     ${md.sc?`<p class="hint">${esc(md.sc)}</p>`:''}
+    ${fuoriHTML(md)}
     ${count}
     <div class="mrow">${useBtn}
       <button class="btn ghost small" onclick="openMoveEditor('${esc(name).replace(/'/g,"\\'")}')">✏️ Modifica</button>
@@ -4967,6 +5033,7 @@ function openShopItem(name){
       ${dmg?`<p class="levelup-gain" style="margin:6px 0 0">🎲 Danni al livello minimo: <b>${esc(dmg)}</b>${tiers.length>1?' — crescono con il livello':''}</p>`:''}
       <p style="font-size:13.5px; margin:6px 0 0">${esc(md.desc||'')}</p>
       ${md.sc?`<p class="hint" style="margin:6px 0 0">${esc(md.sc)}</p>`:''}
+      ${fuoriHTML(md)}
     </div>`;
   } else if(it.move){
     scheda = `<p class="hint">La scheda P5e di <b>${esc(it.move)}</b> non è nel dex in uso: nome e tipo sono corretti, per danni ed effetti chiedi al GM.</p>`;
