@@ -536,6 +536,14 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
 .si-name .isprite{width:34px; height:34px}
 .bagrow .isprite{width:26px; height:26px}
 
+.voce{
+  font-size:12.5px; line-height:1.5; color:var(--muted); margin-top:5px;
+  max-width:420px; font-style:italic;
+}
+.voce b{color:var(--accent); font-style:normal}
+.voce .hint{margin:0; display:inline; font-style:normal; opacity:.75}
+.voce.vuota{opacity:.6}
+
 /* ---------- PP e stati ---------- */
 .pp{
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px;
@@ -1034,8 +1042,8 @@ window.addEventListener('error', function(e){
 
 <p class="footer-note">Pokédex di Aethera · compagno digitale di «Cronache di Allenatori» · dati P5e dal dex standard · i salvataggi restano su questo dispositivo</p>
 
-<script src="p5e-data.js?v=3"></script>
-<script src="p5e-gen8.js?v=3"></script>
+<script src="p5e-data.js?v=4"></script>
+<script src="p5e-gen8.js?v=4"></script>
 
 <script>
 /* ================= DATI ================= */
@@ -1193,6 +1201,71 @@ function itemImgHTML(nome, it){
   if(!src) return `<span class="isprite ko" aria-hidden="true"></span>`;
   return `<img class="isprite" src="${esc(src)}" alt="" loading="lazy" decoding="async"
     onerror="this.classList.add('ko'); this.removeAttribute('src')"/>`;
+}
+
+/* ---- voci del Pokédex ----
+   Il database P5e ha solo i numeri: le descrizioni delle specie non ci sono.
+   Si prendono in italiano dall'archivio pubblico PokéAPI la prima volta che si
+   apre una scheda, e da lì restano salvate sul dispositivo. Chi preferisce può
+   scriversi la propria dall'editor della specie: quella ha sempre la precedenza. */
+const VOCI_KEY = 'aethera-voci';
+let VOCI = {};
+try{ VOCI = JSON.parse(localStorage.getItem(VOCI_KEY) || '{}'); }catch(e){ VOCI = {}; }
+function salvaVoci(){
+  try{ localStorage.setItem(VOCI_KEY, JSON.stringify(VOCI)); }catch(e){}
+}
+
+function vocePropria(nome, d){
+  d = d || (P5 && P5.POKEMON[nome]);
+  return (d && d.desc) ? {testo:d.desc, genere:d.genus || '', mia:true} : null;
+}
+function voceDex(nome, d){
+  const mia = vocePropria(nome, d);
+  if(mia) return mia;
+  d = d || (P5 && P5.POKEMON[nome]);
+  if(!d || !d.n || REGIONALI.test(nome||'')) return null;
+  return VOCI[d.n] || null;
+}
+function caricaVoce(nome, d, dopo){
+  d = d || (P5 && P5.POKEMON[nome]);
+  if(!d || !d.n || d.n > 1025 || REGIONALI.test(nome||'')) { dopo && dopo(null); return; }
+  if(VOCI[d.n]){ dopo && dopo(VOCI[d.n]); return; }
+  if(typeof fetch !== 'function'){ dopo && dopo(null); return; }
+  fetch('https://pokeapi.co/api/v2/pokemon-species/' + d.n)
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(j => {
+      const it = (j.flavor_text_entries || []).filter(e => e.language && e.language.name === 'it');
+      const gen = (j.genera || []).find(g => g.language && g.language.name === 'it');
+      const testo = it.length ? it[it.length-1].flavor_text.replace(/[\n\f\r]+/g, ' ').trim() : '';
+      if(!testo && !gen) return Promise.reject();
+      VOCI[d.n] = {testo, genere: gen ? gen.genus : ''};
+      salvaVoci();
+      dopo && dopo(VOCI[d.n]);
+    })
+    .catch(() => { dopo && dopo(null); });
+}
+/* riquadro della voce, che si riempie da solo quando la descrizione arriva */
+function voceHTML(nome, d){
+  const v = voceDex(nome, d);
+  const ex = (P5 && P5.EXTRA && d && P5.EXTRA[d.n]) || null;
+  const misure = ex ? `<span class="hint">${(ex.h/10).toLocaleString('it')} m · ${(ex.w/10).toLocaleString('it')} kg</span>` : '';
+  if(v) return `<div class="voce">${v.genere?`<b>${esc(v.genere)}</b> `:''}${esc(v.testo||'')} ${misure}</div>`;
+  if(REGIONALI.test(nome||''))
+    return `<div class="voce vuota">Le forme regionali non hanno una voce propria nell'archivio: puoi scriverla tu dall'editor della specie. ${misure}</div>`;
+  return `<div class="voce vuota" id="voce-box">Cerco la descrizione… ${misure}</div>`;
+}
+function riempiVoce(nome, d){
+  if(voceDex(nome, d)) return;
+  caricaVoce(nome, d, v => {
+    const box = document.getElementById('voce-box');
+    if(!box) return;
+    if(v && (v.testo || v.genere)){
+      box.className = 'voce';
+      box.innerHTML = (v.genere?`<b>${esc(v.genere)}</b> `:'') + esc(v.testo||'');
+    } else {
+      box.textContent = 'Descrizione non disponibile: serve la connessione la prima volta, oppure scrivila tu dall\'editor della specie.';
+    }
+  });
 }
 
 function imgHTML(nome, d, grande){
@@ -1753,7 +1826,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '3.5';
+const APP_VERSION = '3.6';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -2123,6 +2196,7 @@ function openSheet(i){
   const ex = P5.EXTRA[d.n] || {};
   const statCells = STAT_KEYS.map(k=>`<div><b>${k}</b> ${d.attr[k]??10} (${fmtMod(mod(d.attr[k]))})</div>`).join('');
   const ad = autoDefense(s.types);
+  setTimeout(() => riempiVoce(s.name, d), 0);
   const lvls = Object.keys(d.mv.l).map(Number).sort((a,b)=>a-b);
   const mvHTML =
     `<div class="mvgroup"><span class="lbl">Iniziali</span><div class="moves">${d.mv.s.map(m=>moveChipHTML(m,d.min)).join('')}</div></div>` +
@@ -2134,7 +2208,10 @@ function openSheet(i){
   showModal(`<div class="sheet">
     <div class="sheethead">
       ${imgHTML(s.name, d, true)}
-      <h3 style="margin:0">#${d.n} ${esc(s.name)} ${typeChips(s.types)}</h3>
+      <div>
+        <h3 style="margin:0">#${d.n} ${esc(s.name)} ${typeChips(s.types)}</h3>
+        ${voceHTML(s.name, d)}
+      </div>
     </div>
     ${ex.g?`<p class="hint" style="margin:0">${esc(ex.g)}${ex.h?` · ${(ex.h/10).toLocaleString('it')} m · ${(ex.w/10).toLocaleString('it')} kg`:''}</p>`:''}
     ${ex.f?`<p class="flavor">${esc(ex.f)}</p>`:''}
@@ -2205,6 +2282,14 @@ function openSpeciesEditor(name, copia){
     <div class="mrow">
       <label style="flex:1">Immagine — indirizzo di una figura (facoltativo)<br/>
         <input id="sp-img" value="${esc(d&&d.img||'')}" style="width:100%" placeholder="https://…  (serve per le forme regionali)"/></label>
+    </div>
+    <div class="mrow">
+      <label style="flex:1">Categoria<br/>
+        <input id="sp-genus" value="${esc(d&&d.genus||'')}" style="width:100%" placeholder="es. Pokémon Fiamma"/></label>
+    </div>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">
+      <label>Descrizione — se la scrivi, prende il posto di quella dell'archivio</label>
+      <textarea id="sp-desc" style="min-height:70px" placeholder="La voce del Pokédex per questa specie…">${esc(d&&d.desc||'')}</textarea>
     </div>
     <div class="mrow">
       <label style="flex:1">Evolve in<br/><input id="sp-evo" list="specieslist" value="${esc(d&&d.ev?d.ev.into.join(', '):'')}" style="width:100%" placeholder="lascia vuoto se è la forma finale"/></label>
@@ -2492,6 +2577,8 @@ function saveSpeciesEditor(origName){
     size: v('sp-size'),
     ab: v('sp-ab').split(',').map(s=>s.trim()).filter(Boolean),
     img: v('sp-img'),
+    genus: v('sp-genus'),
+    desc: v('sp-desc'),
     hab: v('sp-hab'),
     mv: {s:start, l:lvl,
       tm: v('sp-tm').split(/[,;\s]+/).map(x=>parseInt(x)).filter(x=>x>0 && P5 && P5.TM && P5.TM[x])},

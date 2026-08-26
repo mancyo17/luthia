@@ -40,6 +40,13 @@ Esporta/Importa per condividerli).
   Etere se ha finito i PP — tira la formula di cura scritta sull'oggetto e lo consuma.
 - **Natura scegliibile**: come per l'abilità, l'elenco completo delle 21 nature con i loro
   modificatori; alla cattura resta sorteggiata.
+- **Descrizioni complete**: tutte le **766 mosse** hanno la loro scheda — le 675 del dex più
+  le 91 di gen 8/9 che il dex non riporta, scritte sulle stesse convenzioni (formule di danno
+  per fascia di livello, tiri salvezza, effetti) e segnate come schede di casa.
+  Le **voci del Pokédex** delle specie non esistono nel database: si prendono in italiano
+  dall'archivio pubblico PokéAPI la prima volta che si apre una scheda e restano poi salvate
+  sul dispositivo. Chi preferisce può scrivere la propria descrizione e la propria categoria
+  dall'editor della specie: quelle hanno sempre la precedenza.
 - **MT e mosse modificabili**: da Impostazioni → Tabella MT si corregge quale mossa insegna
   ogni MT, si creano **MT nuove** con un numero libero e si apre l'**editor delle mosse** —
   tipo, PP, attivazione, gittata, danni per fascia di livello e descrizione. Serve soprattutto
