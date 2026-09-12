@@ -27,14 +27,23 @@ Esporta/Importa per condividerli).
   Pokémon che possono impararle.
 - **Centro Pokémon**: un tocco e tutta la squadra torna a PF pieni, senza stati e con i
   PP ricaricati; si può curare solo una cosa alla volta o includere anche il Box.
-- **Stati e PP**: i sette stati (avvelenato, iper-avvelenato, scottato, paralizzato,
-  addormentato, congelato, confuso) stanno sulla scheda con il loro effetto, e il pulsante
-  «fine turno» tira i danni e i tiri salvezza per liberarsene. Gli effetti sono quelli che
-  il sistema P5e descrive nelle proprie abilità e mosse — *Dentistretti* (svantaggio,
-  riduzione dei danni, danni a fine turno), *Velencura*, *Tossina* (il doppio), *Gelamento*
-  (velocità 0), *Sveglialampo* — mentre i numeri, che il database non riporta, si regolano
-  da **Impostazioni → Stati**. Ogni mossa negli slot ha i suoi PP, che si consumano usandola
-  e si ricaricano con Etere, Elisir o al Centro; si possono spegnere del tutto.
+- **Stati**: sono gli **otto** della pagina di riferimento del sistema
+  ([poke5e.app/reference/status-conditions](https://poke5e.app/reference/status-conditions)),
+  tradotti parola per parola — sei **non volatili** (addormentato, scottato, congelato,
+  paralizzato, avvelenato, iper-avvelenato) e due **volatili** (confuso e tentennante).
+  L'app applica da sola le tre regole di contorno: i non volatili stanno **uno alla volta**,
+  i volatili si sommano ma **cadono a fine scontro** o quando il Pokémon rientra nella Ball,
+  e c'è il **periodo di grazia** (chi guarisce non può ricascarci prima della fine del turno
+  successivo). Sa anche le **immunità per tipo** — il Fuoco non si scotta, il Ghiaccio non si
+  congela, l'Elettro non si paralizza, Veleno e Acciaio non si avvelenano — e lo dice invece
+  di lasciartelo sbagliare, con il pulsante per farlo lo stesso se il GM vuole.
+  Il turno è diviso come nelle regole: **▶ inizio turno** tira il d4 della paralisi e il d8
+  della confusione (con la sua tabella), **⏹ fine turno** applica i danni — che sono il
+  **bonus di competenza**, doppio per l'iper-avvelenamento — il d20 per svegliarsi e il TS su
+  FOR contro CD 10 + la competenza di chi ha congelato, e conta i round di durata. Numeri,
+  soglie e durate restano correggibili da **Impostazioni → Stati**.
+- **PP**: ogni mossa negli slot ha i suoi, si consumano usandola e si ricaricano con Etere,
+  Elisir o al Centro; si possono spegnere del tutto.
 - **Usare gli oggetti**: dal Pokémon, «🎒 Usa oggetto» mostra cosa c'è nello zaino che serve
   davvero in quel momento — pozioni e Acqua Fresca se è ferito, antidoti se ha uno stato,
   Etere se ha finito i PP — tira la formula di cura scritta sull'oggetto e lo consuma.

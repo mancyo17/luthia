@@ -862,7 +862,6 @@ window.addEventListener('error', function(e){
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autonat" onchange="saveSettings()"/> natura sorteggiata alla cattura</label>
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autoabil" onchange="saveSettings()"/> abilità sorteggiata alla cattura</label>
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-pp" onchange="saveSettings()"/> tieni conto dei PP delle mosse</label>
-        <label>CD per liberarsi dagli stati <input type="number" id="set-statusdc" min="1" max="30" onchange="saveSettings()"/></label>
         <label>Abilità quando evolve
           <select id="set-evoabil" onchange="saveSettings()">
             <option value="ask">chiede al giocatore</option>
@@ -1850,7 +1849,6 @@ const NPC_PRESETS = [
 const BADGE_NAMES = ['Sentiero','Fioritura','Scintilla','Bastione','Marea','Tossina','Brina','Scaglia'];
 const BADGE_LV = ['2–4','4–7','7–9','9–12','12–14','14–16','16–18','18–20','20–25'];
 const DIE_AVG = {6:4, 8:5, 10:6, 12:7};
-const STATUSES = ['Avvelenato','Paralizzato','Addormentato','Congelato','Scottato','Confuso'];
 const ASI_LEVELS = (P5 && P5.ASI_LEVELS) || [4,8,12,16,20];
 const NATURES = (P5 && P5.NATURES) || {};
 
@@ -1904,7 +1902,7 @@ function defaultSettings(){
   return {needMult:2, defeatMult:1, captureMult:1, autoLevel:true,
     capBase:10, capLevel:true, capHP:true,
     autoNature:true, autoAbility:true, evoAbility:'ask',
-    trackPP:true, statusDC:10};
+    trackPP:true};
 }
 function defaultState(){
   return {schema:SCHEMA, caught:{}, trainers:[], activeTrainer:null, battles:[],
@@ -1942,6 +1940,9 @@ function migratePkm(p, t){
   p.ability = p.ability || ''; p.abNames = p.abNames || [];
   p.uses = p.uses || 0;
   if(!Array.isArray(p.status)) p.status = [];
+  if(!p.stRound || typeof p.stRound !== 'object') p.stRound = {};
+  if(!p.stDC || typeof p.stDC !== 'object') p.stDC = {};
+  if(!p.grazia || typeof p.grazia !== 'object') p.grazia = {};
   if(typeof p.loyalty !== 'number') p.loyalty = 0;
   if(!p.pp || typeof p.pp !== 'object') p.pp = {};
   if(!Array.isArray(p.slots)) p.slots = autoSlots(p);
@@ -2733,44 +2734,63 @@ function useMove(pid, name){
 }
 
 /* ================= STATI, PP E CURE =================
-   Le regole degli stati non sono nel manuale di Aethera: sono regole della casa,
-   scritte qui in chiaro e regolabili dal GM nelle impostazioni. */
+   Gli stati sono quelli della pagina di riferimento del sistema — testi, tiri,
+   durate e immunità arrivano da lì, non sono regole inventate qui:
+   https://poke5e.app/reference/status-conditions
 
-/* Gli effetti degli stati sono quelli che il sistema P5e descrive nelle proprie
-   abilità e mosse, non regole inventate qui:
-     · «Dentistretti»: quando è scottato o avvelenato, questo Pokémon non subisce
-       lo svantaggio né la riduzione dei danni; subisce comunque i danni a fine turno
-     · «Velencura»: non subisce gli svantaggi dell'avvelenamento e recupera metà dei
-       danni da veleno, compresi quelli di fine turno
-     · «Tossina» e «Velenodenti»: il doppio dei normali danni da veleno alla fine di
-       ogni suo turno
-     · «Gelamento»: se la velocità arriva a 0 il bersaglio è congelato; può usare
-       un'azione per scaldarsi
-     · «Sveglialampo»: vantaggio ai tiri per svegliarsi dal sonno
-   Il PHB non è nel database, quindi i NUMERI (quanti danni, con che CD ci si libera)
-   restano regolabili dal GM: Impostazioni → Stati. */
+   Tre cose che le regole dicono e che l'app applica da sola:
+     · i NON VOLATILI stanno uno alla volta (chi è già scottato non può anche
+       essere avvelenato, prima va curato);
+     · i VOLATILI si sommano a quelli, ma finiscono da soli quando finisce lo
+       scontro o quando il Pokémon rientra nella Ball;
+     · c'è un periodo di grazia: appena guarito da uno stato, quello stesso stato
+       non può ripresentarsi fino a dopo la fine del suo turno successivo.
+   I numeri (danni, CD, soglie, round) restano correggibili da Impostazioni →
+   Stati, per chi gioca con varianti della casa. */
 const STATUS_BASE = {
-  'Avvelenato': {ico:'☠️', col:'#a855f7', dmg:'1d4', tiro:false,
-    eff:'Svantaggio ai tiri per colpire e alle prove di caratteristica, e riduzione dei danni inflitti. Alla fine di ogni suo turno subisce i danni da veleno.',
-    fine:'Antidoto, Baccapecha o una mossa che cura l\'avvelenamento.'},
-  'Iper-avvelenato': {ico:'☣️', col:'#7e22ce', dmg:'2d4', tiro:false,
-    eff:'Come avvelenato, ma alla fine di ogni suo turno subisce il doppio dei normali danni da veleno (è l\'effetto di Tossina e Velenodenti).',
-    fine:'Antidoto o Cura Totale: da sé non passa.'},
-  'Scottato': {ico:'🔥', col:'#f97316', dmg:'1d4', tiro:false,
-    eff:'Svantaggio ai tiri per colpire e riduzione dei danni inflitti. Alla fine di ogni suo turno subisce i danni da scottatura.',
+  /* ---- non volatili: uno alla volta ---- */
+  'Addormentato': {
+    ico:'💤', col:'#60a5fa', abbr:'SLP', vol:false, round:3, scala:'fine',
+    tiro:{tipo:'sveglia', quando:'fine', dado:20, soglia:11},
+    eff:'Incapacitato e trattenuto, e tira tutti i tiri salvezza con svantaggio. Dura tre round. Quando subisce un movimento forzato e alla fine di ognuno dei suoi turni tira 1d20: con 11 o più lo stato finisce.',
+    fine:'Risveglio, Baccachesto, il tiro riuscito o i tre round passati.'},
+  'Scottato': {
+    ico:'🔥', col:'#f97316', abbr:'BRN', vol:false, dmg:'COMP', imm:['Fuo'],
+    eff:'Tira due volte tutti i tiri per i danni e tiene il risultato più basso. Finché non è curato o non cade privo di sensi, alla fine di ognuno dei suoi turni subisce danni pari al suo bonus di competenza.',
+    immTesto:'I Pokémon di tipo Fuoco sono immuni a questo stato.',
     fine:'Antiscottatura, Baccarawst o una mossa che cura la scottatura.'},
-  'Paralizzato': {ico:'⚡', col:'#eab308', dmg:'', tiro:true,
-    eff:'Fatica a muoversi e ad agire: alla fine del turno tira un TS su Costituzione per riprendersi.',
-    fine:'Antiparalisi, Baccaliegia o il tiro salvezza riuscito.'},
-  'Addormentato': {ico:'💤', col:'#60a5fa', dmg:'', tiro:true,
-    eff:'Non agisce; può usare solo le mosse che si attivano nel sonno (Russare, Sonnolalia). Alla fine del turno tira per svegliarsi — con vantaggio se ha Sveglialampo.',
-    fine:'Risveglio, Baccachesto, i danni subiti o il tiro riuscito.'},
-  'Congelato': {ico:'🧊', col:'#38bdf8', dmg:'', tiro:true,
-    eff:'Velocità ridotta a 0. Può spendere un\'azione per scaldarsi, oppure tirare un TS su Costituzione alla fine del turno.',
-    fine:'Antigelo, Baccaaspear, una mossa di tipo Fuoco o il tiro riuscito.'},
-  'Confuso': {ico:'💫', col:'#f472b6', dmg:'', tiro:false, d4:true,
-    eff:'All\'inizio del turno tira 1d4: con 1 attacca sé stesso invece di agire.',
-    fine:'Baccakì, Cura Totale, oppure passa da sé dopo qualche round.'}
+  'Congelato': {
+    ico:'🧊', col:'#38bdf8', abbr:'FRZ', vol:false, imm:['Ghi'],
+    tiro:{tipo:'gelo', quando:'fine', car:'FOR', cdBase:10},
+    eff:'Incapacitato e trattenuto. Dura 1 ora, oppure finché non si libera alla fine di uno dei suoi turni con un TS su FOR contro CD 10 + la competenza di chi l\'ha congelato. Finisce se subisce danni di tipo Fuoco o danni da una mossa che può scottare.',
+    immTesto:'I Pokémon di tipo Ghiaccio sono immuni a questo stato.',
+    fine:'Antigelo, Baccaaspear, danni di tipo Fuoco o il TS riuscito.'},
+  'Paralizzato': {
+    ico:'⚡', col:'#eab308', abbr:'PAR', vol:false, imm:['Ele'],
+    tiro:{tipo:'paralisi', quando:'inizio', dado:4, soglia:1},
+    eff:'Svantaggio ai TS su FOR e DES, e si muove a metà velocità. All\'inizio del suo turno tira 1d4: con 1 è incapacitato e trattenuto fino all\'inizio del turno successivo. Questo tiro viene prima di quelli per il sonno e per la confusione.',
+    immTesto:'I Pokémon di tipo Elettro sono immuni a questo stato.',
+    fine:'Antiparalisi, Baccaliegia o una mossa che cura la paralisi.'},
+  'Avvelenato': {
+    ico:'☠️', col:'#a855f7', abbr:'PSN', vol:false, dmg:'COMP', imm:['Vel','Acc'],
+    eff:'Svantaggio a tutte le prove di caratteristica e ai tiri per colpire. Finché non è curato o non cade privo di sensi, alla fine di ognuno dei suoi turni subisce danni pari al suo bonus di competenza.',
+    immTesto:'I Pokémon di tipo Veleno e Acciaio sono immuni a questo stato.',
+    fine:'Antidoto, Baccapecha o una mossa che cura l\'avvelenamento.'},
+  'Iper-avvelenato': {
+    ico:'☣️', col:'#7e22ce', abbr:'PSN', vol:false, dmg:'2xCOMP', imm:['Vel','Acc'],
+    eff:'Svantaggio a tutte le prove di caratteristica e ai tiri per colpire. Finché non è curato o non cade privo di sensi, alla fine di ognuno dei suoi turni subisce danni pari al doppio del suo bonus di competenza.',
+    immTesto:'I Pokémon di tipo Veleno e Acciaio sono immuni a questo stato.',
+    fine:'Antidoto o Cura Totale: da sé non passa.'},
+  /* ---- volatili: si sommano ai non volatili e finiscono con lo scontro ---- */
+  'Confuso': {
+    ico:'💫', col:'#f472b6', abbr:'CON', vol:true, round:3, scala:'inizio',
+    tiro:{tipo:'confusione', quando:'inizio', dado:8},
+    eff:'Non può usare reazioni. Dura tre round. All\'inizio del suo turno tira 1d8 e guarda la tabella: 1 — usa Struggle su sé stesso e colpisce in automatico; 2 — usa Struggle sul bersaglio Pokémon più vicino, e se non ce ne sono di validi lo usa su sé stesso colpendo; 3 — non si muove e non agisce; 4-7 — sceglie lui cosa fare; 8 — lo stato finisce.',
+    fine:'Baccakì, Cura Totale, il tiro di 8, i tre round o la fine dello scontro.'},
+  'Tentennante': {
+    ico:'😵', col:'#94a3b8', abbr:'FLN', vol:true, round:1, scala:'fine',
+    eff:'Svantaggio a tutti i tiri per colpire, alle prove di caratteristica e ai tiri salvezza fino alla fine del suo turno successivo. Se usa un\'azione che richiede un tiro salvezza, i bersagli tirano con vantaggio.',
+    fine:'Passa da sé alla fine del turno successivo, o con la fine dello scontro.'}
 };
 /* il GM può correggere qualsiasi voce: le modifiche restano nei salvataggi */
 let STATUS_INFO = {};
@@ -2780,7 +2800,56 @@ function buildStatus(){
     STATUS_INFO[k] = Object.assign({}, v, (state.customStatus||{})[k] || {});
 }
 const ALL_STATUSES = Object.keys(STATUS_BASE);
+const STATI_NV = () => ALL_STATUSES.filter(s => !STATUS_INFO[s].vol);
+const STATI_VOL = () => ALL_STATUSES.filter(s => STATUS_INFO[s].vol);
 buildStatus();
+
+/* Il danno di fine turno delle regole è il bonus di competenza, raddoppiato per
+   l'iper-avvelenamento: qui «COMP» e «2xCOMP» sono scritti così nel campo danni
+   perché il GM possa comunque metterci una formula di dadi sua. */
+function dannoStato(info, p){
+  const f = String(info.dmg || '').trim();
+  if(!f) return null;
+  const comp = compBonus(p.level || 1);
+  if(/^comp$/i.test(f)) return {tot: comp, testo: 'bonus di competenza ' + comp};
+  if(/^2\s*[x×*]\s*comp$/i.test(f)) return {tot: comp * 2, testo: 'il doppio della competenza (' + comp + '×2)'};
+  const r = rollDice(f);
+  if(r.tiri.length) return {tot: r.tot, testo: f + ' → [' + r.tiri.join(', ') + ']'};
+  const n = parseInt(f, 10);
+  return isNaN(n) ? null : {tot: n, testo: String(n)};
+}
+/* immunità per tipo: Fuoco non si scotta, Ghiaccio non si congela, e così via */
+function immuneA(p, st){
+  const info = STATUS_INFO[st];
+  if(!info || !info.imm || !info.imm.length) return '';
+  const tipi = String(p.types || '').split('/').map(x => x.trim());
+  const hit = info.imm.filter(t => tipi.includes(t));
+  return hit.map(t => (TYPES[t] || {}).n || t).join(' e ');
+}
+function applicaStato(p, st){
+  const info = STATUS_INFO[st]; if(!info) return;
+  p.status = p.status || [];
+  if(!p.status.includes(st)) p.status.push(st);
+  if(info.round){ p.stRound = p.stRound || {}; p.stRound[st] = info.round; }
+  if(p.grazia) delete p.grazia[st];
+}
+/* Chi guarisce entra nel periodo di grazia: quello stesso stato non può tornare
+   fino a dopo la fine del suo turno successivo (il conto lo tiene statusTurn). */
+function rimuoviStato(p, st){
+  p.status = (p.status || []).filter(x => x !== st);
+  if(p.stRound) delete p.stRound[st];
+  if(p.stDC) delete p.stDC[st];
+  p.grazia = p.grazia || {};
+  p.grazia[st] = 1;
+}
+/* quali stati hanno qualcosa da tirare o da applicare in questa metà del turno */
+function statiFase(p, fase){
+  return (p.status || []).filter(st => {
+    const i = STATUS_INFO[st]; if(!i) return false;
+    if(fase === 'inizio') return !!(i.tiro && i.tiro.quando === 'inizio') || i.scala === 'inizio';
+    return !!i.dmg || !!(i.tiro && i.tiro.quando === 'fine') || i.scala === 'fine';
+  });
+}
 
 function rollDice(expr){
   const m = String(expr||'').replace(/\s/g,'').match(/^(\d+)d(\d+)([+-]\d+)?$/);
@@ -2893,11 +2962,12 @@ function usaOggetto(pid, nome){
     p.curPF = Math.max(1, Math.round(mx * u.revive));
     esito = `✨ Rianimato con <b>${p.curPF}/${mx} PF</b>`;
   } else if(u.cureAll){
-    const via = (p.status||[]).join(', ');
-    p.status = []; esito = via ? `🩹 Curati: <b>${via}</b>` : '🩹 Nessuno stato da curare';
+    const via = (p.status||[]).slice();
+    via.forEach(st => rimuoviStato(p, st));
+    esito = via.length ? `🩹 Curati: <b>${via.join(', ')}</b>` : '🩹 Nessuno stato da curare';
   } else if(u.cure){
     const via = (p.status||[]).filter(x=>u.cure.includes(x));
-    p.status = (p.status||[]).filter(x=>!u.cure.includes(x));
+    via.forEach(st => rimuoviStato(p, st));
     esito = via.length ? `🩹 Curato: <b>${via.join(', ')}</b>` : '🩹 Non aveva quello stato';
   } else if(u.pp){
     const slot = (p.slots||[]).filter(Boolean).filter(m => ppLeft(p,m) !== null && ppLeft(p,m) < ppMax(m));
@@ -2994,7 +3064,7 @@ function freePP(pid, name){
 /* ---- Centro Pokémon ---- */
 function healPkm(p, mode){
   if(mode === 'full' || mode === 'hp') p.curPF = maxPF(p);
-  if(mode === 'full' || mode === 'status') p.status = [];
+  if(mode === 'full' || mode === 'status'){ p.status = []; p.stRound = {}; p.stDC = {}; p.grazia = {}; }
   if(mode === 'full' || mode === 'pp') restorePP(p);
 }
 function pokeCenter(tid, mode, quali){
@@ -3025,71 +3095,223 @@ function askPokeCenter(tid){
 }
 
 /* ---- stati sul singolo Pokémon ---- */
-function toggleStatus(pid, st){
+function toggleStatus(pid, st, forza){
   const [,p] = findPkm(pid); if(!p) return;
+  const info = STATUS_INFO[st]; if(!info) return;
   p.status = p.status || [];
-  const i = p.status.indexOf(st);
-  if(i >= 0) p.status.splice(i,1); else p.status.push(st);
-  save(); renderSquad();
-}
-function statusTurn(pid){
-  const [,p] = findPkm(pid); if(!p) return;
-  const sts = p.status || [];
-  if(!sts.length){ toast('Nessuno stato attivo su ' + p.nick + '.'); return; }
-  const righe = [];
-  let danni = 0;
-  const cd = state.settings.statusDC || 10;
-  for(const st of sts){
-    const info = STATUS_INFO[st]; if(!info) continue;
-    if(info.dmg){
-      const r = rollDice(info.dmg);
-      danni += r.tot;
-      righe.push(`${info.ico} <b>${st}</b>: ${info.dmg} → [${r.tiri.join(', ')}] = <b>${r.tot}</b> danni`);
-    }
-    if(info.d4){
-      const r = rollDice('1d4');
-      righe.push(`${info.ico} <b>${st}</b>: 1d4 → <b>${r.tot}</b> — ${r.tot===1?'attacca sé stesso, niente azione':'agisce normalmente'}`);
-    }
-    if(info.tiro){
-      const r = rollDice('1d20');
-      const ok = r.tot >= cd;
-      righe.push(`${info.ico} <b>${st}</b>: TS su COS ${r.tot} contro CD ${cd} → ${ok?'<b>si riprende</b>':'resta così'}`);
-      if(ok) p.status = p.status.filter(x=>x!==st);
+  if(p.status.includes(st)){ rimuoviStato(p, st); save(); renderSquad(); return; }
+  if(!forza){
+    const imm = immuneA(p, st);
+    if(imm) return avvisoStato(pid, st,
+      `${esc(p.nick)} è di tipo <b>${esc(imm)}</b>, e le regole lo dicono immune a «${esc(st)}».`);
+    if(p.grazia && p.grazia[st]) return avvisoStato(pid, st,
+      `${esc(p.nick)} si è appena ripreso da «${esc(st)}». Per il <b>periodo di grazia</b> non può ricascarci prima della fine del suo turno successivo.`);
+    if(!info.vol){
+      const altro = p.status.find(s => STATUS_INFO[s] && !STATUS_INFO[s].vol);
+      if(altro) return avvisoStato(pid, st,
+        `${esc(p.nick)} è già <b>${esc(altro)}</b>. Gli stati non volatili stanno uno alla volta: prima va curato quello.`,
+        altro);
     }
   }
-  if(danni) p.curPF = Math.max(0, (p.curPF ?? maxPF(p)) - danni);
+  applicaStato(p, st);
   save(); renderSquad();
-  showModal(`<h3>${esc(p.nick)} — fine del turno</h3>
-    ${righe.map(r=>`<p class="levelup-gain">${r}</p>`).join('')}
-    ${danni?`<p class="levelup-gain">💔 Totale <b>${danni} danni</b> → ${p.curPF}/${maxPF(p)} PF</p>`:''}
-    <p class="hint">Danni e tiri seguono le regole del sistema; i numeri si regolano da Impostazioni → Stati.</p>
+  if(st === 'Congelato' && !forza) chiediCompGelo(pid);
+}
+/* Quando le regole dicono di no, lo diciamo e spieghiamo perché — ma al tavolo
+   comanda il GM, quindi resta sempre il pulsante per farlo lo stesso. */
+function avvisoStato(pid, st, perche, sostituisce){
+  const i = STATUS_INFO[st];
+  showModal(`<h3>${i.ico} ${esc(st)}</h3>
+    <p style="font-size:14px">${perche}</p>
+    <div class="mrow">
+      ${sostituisce ? `<button class="btn" onclick="sostituisciStato('${pid}','${esc(sostituisce)}','${esc(st)}')">Sostituisci ${esc(sostituisce)}</button>` : ''}
+      <button class="btn ghost" onclick="closeModal(); toggleStatus('${pid}','${esc(st)}',1)">Mettilo lo stesso</button>
+      <button class="btn ghost" onclick="closeModal()">Lascia stare</button>
+    </div>`);
+}
+function sostituisciStato(pid, vecchio, nuovo){
+  const [,p] = findPkm(pid); if(!p) return;
+  p.status = (p.status || []).filter(x => x !== vecchio);
+  if(p.stRound) delete p.stRound[vecchio];
+  if(p.stDC) delete p.stDC[vecchio];
+  applicaStato(p, nuovo);
+  save(); closeModal(); renderSquad();
+  if(nuovo === 'Congelato') chiediCompGelo(pid);
+}
+/* Il TS per scongelarsi è CD 10 + la competenza di CHI ha congelato, che l'app
+   non può sapere: la chiediamo una volta e resta attaccata allo stato. */
+function chiediCompGelo(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const def = compBonus(p.level || 1);
+  showModal(`<h3>🧊 Chi l'ha congelato?</h3>
+    <p class="hint">Per liberarsi serve un TS su FOR contro <b>CD 10 + la competenza di chi ha congelato</b>.
+      Se non la sai, lascia pure quella suggerita.</p>
+    <div class="row"><label>Competenza di chi ha congelato
+      <input type="number" id="gelo-comp" min="0" max="10" value="${def}" style="width:70px"/></label></div>
+    <div class="mrow">
+      <button class="btn" onclick="salvaCompGelo('${pid}')">Va bene</button>
+      <button class="btn ghost" onclick="closeModal()">Poi</button>
+    </div>`);
+}
+function salvaCompGelo(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const v = parseInt((document.getElementById('gelo-comp') || {}).value, 10);
+  p.stDC = p.stDC || {};
+  p.stDC['Congelato'] = isNaN(v) ? compBonus(p.level || 1) : v;
+  save(); closeModal(); renderSquad();
+}
+/* «Volatile conditions immediately end outside of combat or when switched out» */
+function cadonoVolatili(p){
+  if(!p) return;
+  for(const st of (p.status || []).slice())
+    if(STATUS_INFO[st] && STATUS_INFO[st].vol) rimuoviStato(p, st);
+}
+function fineScontro(tid){
+  const t = tid ? state.trainers.find(x => x.id === tid) : getActiveTrainer();
+  if(!t) return;
+  const via = [];
+  for(const p of allPkm(t))
+    for(const st of (p.status || []).slice())
+      if(STATUS_INFO[st] && STATUS_INFO[st].vol){ rimuoviStato(p, st); via.push(p.nick + ' · ' + st); }
+  save(); closeModal(); renderSquad();
+  toast(via.length ? '⚔ Fine dello scontro: ' + via.join(', ') : '⚔ Nessuno stato volatile da togliere.');
+}
+function scongela(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  rimuoviStato(p, 'Congelato');
+  save(); closeModal(); renderSquad();
+  toast('🔥 Il ghiaccio si scioglie: ' + p.nick + ' è libero.');
+}
+/* La tabella della confusione, così com'è scritta nelle regole. */
+const TAB_CONFUSIONE = {
+  1:'usa <b>Struggle su sé stesso</b> e colpisce in automatico',
+  2:'usa <b>Struggle sul Pokémon più vicino</b>; se non ci sono bersagli validi lo usa su sé stesso e colpisce',
+  3:'<b>non si muove e non agisce</b>',
+  4:'sceglie lui cosa fare', 5:'sceglie lui cosa fare',
+  6:'sceglie lui cosa fare', 7:'sceglie lui cosa fare',
+  8:'<b>la confusione finisce</b>'
+};
+/* fase: 'inizio' (paralisi e confusione) oppure 'fine' (danni, sonno, gelo) */
+function statusTurn(pid, fase){
+  fase = fase === 'inizio' ? 'inizio' : 'fine';
+  const [,p] = findPkm(pid); if(!p) return;
+  const attivi = statiFase(p, fase);
+  if(!attivi.length){
+    toast(`Niente da tirare ${fase === 'inizio' ? 'a inizio' : 'a fine'} turno per ${p.nick}.`);
+    return;
+  }
+  /* la paralisi si tira prima del sonno e della confusione, come dicono le regole */
+  const ordine = ALL_STATUSES.filter(st => attivi.includes(st));
+  const righe = [];
+  let danni = 0;
+
+  for(const st of ordine){
+    const info = STATUS_INFO[st]; if(!info) continue;
+    const t = info.tiro;
+    const primaRiga = righe.length;   /* per attaccare i round alla riga del tiro */
+
+    if(fase === 'fine' && info.dmg){
+      const d = dannoStato(info, p);
+      if(d){
+        danni += d.tot;
+        righe.push(`${info.ico} <b>${st}</b>: ${d.testo} = <b>${d.tot}</b> danni`);
+      }
+    }
+    if(t && t.quando === fase){
+      const dado = t.dado || 20;
+      const r = rollDice('1d' + dado);
+      if(t.tipo === 'paralisi'){
+        const bloccato = r.tot <= (t.soglia || 1);
+        righe.push(`${info.ico} <b>${st}</b>: 1d${dado} → <b>${r.tot}</b> — ${bloccato
+          ? 'è <b>incapacitato e trattenuto</b> fino all\'inizio del prossimo turno'
+          : 'agisce, ma a metà velocità'}`);
+      } else if(t.tipo === 'confusione'){
+        righe.push(`${info.ico} <b>${st}</b>: 1d${dado} → <b>${r.tot}</b> — ${TAB_CONFUSIONE[r.tot] || 'sceglie lui cosa fare'}`);
+        if(r.tot >= dado){ rimuoviStato(p, st); continue; }
+      } else if(t.tipo === 'sveglia'){
+        const ok = r.tot >= (t.soglia || 11);
+        righe.push(`${info.ico} <b>${st}</b>: 1d${dado} → <b>${r.tot}</b> contro ${t.soglia || 11} → ${ok ? '<b>si sveglia</b>' : 'dorme ancora'}`);
+        if(ok){ rimuoviStato(p, st); continue; }
+      } else if(t.tipo === 'gelo'){
+        const comp = (p.stDC && p.stDC['Congelato'] != null) ? p.stDC['Congelato'] : compBonus(p.level || 1);
+        const cd = (t.cdBase || 10) + comp;
+        const bonus = mod((p.stats || {})[t.car || 'FOR'] ?? 10);
+        const tot = r.tot + bonus;
+        const ok = tot >= cd;
+        righe.push(`${info.ico} <b>${st}</b>: TS su ${t.car || 'FOR'} 1d20 (${r.tot}) ${fmtMod(bonus)} = <b>${tot}</b> contro CD ${cd} (${t.cdBase || 10} + competenza ${comp}) → ${ok ? '<b>si libera</b>' : 'resta nel ghiaccio'}`);
+        if(ok){ rimuoviStato(p, st); continue; }
+      }
+    }
+    /* durata: «dura tre round» va contato, altrimenti non finisce mai */
+    if(info.round && info.scala === fase){
+      p.stRound = p.stRound || {};
+      const left = (p.stRound[st] != null ? p.stRound[st] : info.round) - 1;
+      const coda = left <= 0
+        ? `i ${info.round === 1 ? 'tempi sono' : info.round + ' round sono'} finiti → <b>lo stato passa</b>`
+        : `ancora <b>${left}</b> round`;
+      if(left <= 0) rimuoviStato(p, st); else p.stRound[st] = left;
+      /* se il tiro ha già scritto una riga per questo stato, la durata le si attacca */
+      if(righe.length > primaRiga) righe[righe.length - 1] += ' · ' + coda;
+      else righe.push(`${info.ico} <b>${st}</b>: ${coda}`);
+    }
+  }
+
+  if(danni) p.curPF = Math.max(0, (p.curPF ?? maxPF(p)) - danni);
+  /* il periodo di grazia scade dopo la fine del turno successivo a quello in cui si è guariti */
+  if(fase === 'fine' && p.grazia){
+    for(const k of Object.keys(p.grazia)){
+      if(p.grazia[k] >= 2) delete p.grazia[k]; else p.grazia[k] = 2;
+    }
+  }
+  save(); renderSquad();
+  const grazie = Object.keys(p.grazia || {});
+  showModal(`<h3>${esc(p.nick)} — ${fase === 'inizio' ? 'inizio' : 'fine'} del turno</h3>
+    ${righe.map(r => `<p class="levelup-gain">${r}</p>`).join('')}
+    ${danni ? `<p class="levelup-gain">💔 Totale <b>${danni} danni</b> → ${p.curPF}/${maxPF(p)} PF</p>` : ''}
+    ${grazie.length ? `<p class="hint">Periodo di grazia su: ${grazie.map(esc).join(', ')} — non può riprenderseli subito.</p>` : ''}
+    <p class="hint">Tiri e durate sono quelli della pagina degli stati del sistema; i numeri si cambiano da Impostazioni → Stati.</p>
     <button class="btn" onclick="closeModal()">OK</button>`);
 }
+/* etichetta del numero che si può cambiare, stato per stato */
+function numeroStato(i){
+  const t = i.tiro;
+  if(!t) return null;
+  if(t.tipo === 'sveglia') return {id:'soglia', lab:'Si sveglia con 1d20 di almeno', val:t.soglia || 11};
+  if(t.tipo === 'paralisi') return {id:'soglia', lab:'Si blocca con 1d' + (t.dado || 4) + ' fino a', val:t.soglia || 1};
+  if(t.tipo === 'gelo') return {id:'cdBase', lab:'CD base per scongelarsi (+ competenza)', val:t.cdBase || 10};
+  if(t.tipo === 'confusione') return {id:'dado', lab:'Dado della confusione (finisce col massimo)', val:t.dado || 8};
+  return null;
+}
 function openStatusEditor(){
-  const righe = ALL_STATUSES.map(st => {
-    const i = STATUS_INFO[st], b = STATUS_BASE[st];
+  const blocco = (titolo, nota, lista) => `<h4 style="margin:14px 0 4px">${titolo}</h4>
+    <p class="hint" style="margin:0 0 8px">${nota}</p>` + lista.map(st => {
+    const i = STATUS_INFO[st];
     const cambiato = !!(state.customStatus||{})[st];
+    const num = numeroStato(i);
     return `<div class="panel sub">
-      <div class="row"><b>${i.ico} ${st}</b>
+      <div class="row"><b>${i.ico} ${esc(st)}</b> <span class="mini">${esc(i.abbr||'')}</span>
         ${cambiato?'<span class="mini" style="color:var(--accent)">modificato</span>':''}
-        ${cambiato?`<button class="btn ghost small" style="margin-left:auto" onclick="ripristinaStato('${st}')">↩ Originale</button>`:''}
+        ${cambiato?`<button class="btn ghost small" style="margin-left:auto" onclick="ripristinaStato('${esc(st)}')">↩ Originale</button>`:''}
       </div>
       <div class="row" style="margin-top:6px">
-        <label>Danni a fine turno<br/><input id="st-dmg-${st}" value="${esc(i.dmg||'')}" placeholder="es. 1d4 o vuoto" style="width:110px"/></label>
-        <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="st-tiro-${st}" ${i.tiro?'checked':''}/> tiro salvezza per liberarsi</label>
+        <label>Danni a fine turno<br/><input id="st-dmg-${st}" value="${esc(i.dmg||'')}" placeholder="vuoto" style="width:110px"/></label>
+        ${num?`<label>${esc(num.lab)}<br/><input type="number" id="st-num-${st}" value="${num.val}" style="width:80px"/></label>`:''}
+        ${i.round?`<label>Round di durata<br/><input type="number" id="st-round-${st}" min="1" max="20" value="${i.round}" style="width:80px"/></label>`:''}
       </div>
+      ${i.immTesto?`<p class="hint" style="margin:6px 0 0">🛡 ${esc(i.immTesto)}</p>`:''}
       <label style="display:block; margin-top:6px">Effetto<br/>
-        <textarea id="st-eff-${st}" style="min-height:54px">${esc(i.eff||'')}</textarea></label>
+        <textarea id="st-eff-${st}" style="min-height:66px">${esc(i.eff||'')}</textarea></label>
     </div>`;
   }).join('');
   showModal(`<div class="sheet">
     <h3>🩹 Stati — regole in uso</h3>
-    <p class="hint">Gli effetti qui sotto vengono da quello che il sistema P5e scrive nelle sue abilità e mosse
-      (Dentistretti, Velencura, Tossina, Gelamento, Sveglialampo). I numeri, che il database non riporta,
-      puoi metterli come dice il tuo PHB: valgono per tutti i Pokémon.</p>
-    <div class="row"><label>CD per liberarsi dagli stati
-      <input type="number" id="st-cd" min="1" max="30" value="${state.settings.statusDC||10}" style="width:70px"/></label></div>
-    ${righe}
+    <p class="hint">Sono gli stati della pagina di riferimento del sistema, tradotti: effetti, tiri, durate e
+      immunità per tipo. Nel campo dei danni <b>COMP</b> vale «bonus di competenza» e <b>2xCOMP</b> il doppio,
+      che è quello che dicono le regole; al loro posto puoi scrivere una formula di dadi tua.</p>
+    <p class="hint">Vale anche il <b>periodo di grazia</b>: chi guarisce da uno stato non può riprenderselo
+      fino a dopo la fine del suo turno successivo.</p>
+    ${blocco('Stati non volatili', 'Ne regge uno alla volta: per prenderne un altro va prima curato quello che ha.', STATI_NV())}
+    ${blocco('Stati volatili', 'Si sommano a quelli non volatili, e finiscono da soli con lo scontro o rientrando nella Ball.', STATI_VOL())}
     <div class="mrow">
       <button class="btn" onclick="salvaStati()">Salva</button>
       <button class="btn ghost" onclick="closeModal()">Annulla</button>
@@ -3098,21 +3320,26 @@ function openStatusEditor(){
 }
 function salvaStati(){
   const v = id => (document.getElementById(id)||{}).value;
-  const c = id => !!(document.getElementById(id)||{}).checked;
   state.customStatus = state.customStatus || {};
   for(const st of ALL_STATUSES){
     const b = STATUS_BASE[st];
     const diff = {};
     const dmg = (v('st-dmg-'+st)||'').trim();
     const eff = (v('st-eff-'+st)||'').trim();
-    const tiro = c('st-tiro-'+st);
     if(dmg !== (b.dmg||'')) diff.dmg = dmg;
     if(eff !== (b.eff||'')) diff.eff = eff;
-    if(tiro !== !!b.tiro) diff.tiro = tiro;
+    if(b.round){
+      const r = parseInt(v('st-round-'+st), 10);
+      if(r > 0 && r !== b.round) diff.round = r;
+    }
+    const num = numeroStato(b);
+    if(num){
+      const n = parseInt(v('st-num-'+st), 10);
+      if(!isNaN(n) && n !== num.val) diff.tiro = Object.assign({}, b.tiro, {[num.id]: n});
+    }
     if(Object.keys(diff).length) state.customStatus[st] = diff;
     else delete state.customStatus[st];
   }
-  state.settings.statusDC = parseInt(v('st-cd')) || 10;
   buildStatus(); save(); closeModal(); renderSquad();
   toast('🩹 Regole degli stati aggiornate.');
 }
@@ -3124,19 +3351,37 @@ function ripristinaStato(st){
 function openStatusPicker(pid){
   const [,p] = findPkm(pid); if(!p) return;
   const sts = p.status || [];
-  const btns = ALL_STATUSES.map(st => {
+  const bottone = st => {
     const i = STATUS_INFO[st];
     const on = sts.includes(st);
-    return `<button class="btn ${on?'':'ghost'}" style="text-align:left" onclick="toggleStatus('${pid}','${st}'); openStatusPicker('${pid}')">
-      ${i.ico} <b>${st}</b>${on?' ✓':''}<br/><small style="opacity:.75; font-weight:400">${esc(i.eff)}</small>
-      <br/><small style="opacity:.55; font-weight:400">${esc(i.fine)}</small></button>`;
-  }).join('');
-  showModal(`<h3>Stati di ${esc(p.nick)}</h3>
-    <div class="mrow" style="flex-direction:column; align-items:stretch">${btns}</div>
+    const imm = immuneA(p, st);
+    const grazia = !on && p.grazia && p.grazia[st];
+    const round = on && p.stRound && p.stRound[st] != null ? ` · ancora ${p.stRound[st]} round` : '';
+    return `<button class="btn ${on?'':'ghost'}" style="text-align:left; ${imm&&!on?'opacity:.55':''}"
+      onclick="closeModal(); toggleStatus('${pid}','${esc(st)}')">
+      ${i.ico} <b>${esc(st)}</b> <small style="opacity:.6; font-weight:400">${esc(i.abbr||'')}</small>${on?' ✓':''}${round}
+      <br/><small style="opacity:.75; font-weight:400">${esc(i.eff)}</small>
+      ${imm?`<br/><small style="opacity:.7; font-weight:400; color:var(--ok)">🛡 immune: è di tipo ${esc(imm)}</small>`:''}
+      ${grazia?'<br/><small style="opacity:.7; font-weight:400; color:var(--warn)">⏳ periodo di grazia: non può ripresentarsi adesso</small>':''}
+      <br/><small style="opacity:.55; font-weight:400">Finisce con: ${esc(i.fine)}</small></button>`;
+  };
+  const nv = sts.find(s => STATUS_INFO[s] && !STATUS_INFO[s].vol);
+  showModal(`<div class="sheet">
+    <h3>Stati di ${esc(p.nick)}</h3>
+    <h4 style="margin:10px 0 2px">Non volatili</h4>
+    <p class="hint" style="margin:0 0 6px">Uno alla volta.${nv?` Adesso ha <b>${esc(nv)}</b>.`:''}</p>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">${STATI_NV().map(bottone).join('')}</div>
+    <h4 style="margin:12px 0 2px">Volatili</h4>
+    <p class="hint" style="margin:0 0 6px">Si sommano ai non volatili e finiscono con lo scontro.</p>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">${STATI_VOL().map(bottone).join('')}</div>
     <div class="mrow">
-      ${sts.length?`<button class="btn" onclick="closeModal(); statusTurn('${pid}')">☠ Applica inizio turno</button>`:''}
+      ${statiFase(p,'inizio').length?`<button class="btn" onclick="closeModal(); statusTurn('${pid}','inizio')">▶ Inizio turno</button>`:''}
+      ${statiFase(p,'fine').length?`<button class="btn" onclick="closeModal(); statusTurn('${pid}','fine')">⏹ Fine turno</button>`:''}
+      ${sts.includes('Congelato')?`<button class="btn ghost" onclick="scongela('${pid}')">🔥 Danni di Fuoco → si scongela</button>`:''}
+      ${sts.some(s=>STATUS_INFO[s]&&STATUS_INFO[s].vol)?`<button class="btn ghost" onclick="fineScontro()">⚔ Fine dello scontro</button>`:''}
       <button class="btn ghost" onclick="closeModal()">Chiudi</button>
-    </div>`);
+    </div>
+  </div>`);
 }
 
 /* ================= SQUADRE ================= */
@@ -3267,6 +3512,7 @@ function toBox(pid){
   const [t,p,where] = findPkm(pid);
   if(!t || where !== 'team') return;
   if(t.team.length <= 1){ alert('Deve restare almeno un Pokémon in squadra.'); return; }
+  cadonoVolatili(p);
   t.team.splice(t.team.indexOf(p), 1);
   t.box.unshift(p);
   if(t.starter === p.id && t.team.length) t.starter = t.team[0].id;
@@ -3289,6 +3535,7 @@ function swapWithTeam(pid, outId){
   const out = t.team.find(x => x.id === outId);
   if(!out) return;
   const i = t.team.indexOf(out);
+  cadonoVolatili(out);
   t.team[i] = p;
   t.box[t.box.indexOf(p)] = out;
   if(t.starter === out.id) t.starter = p.id;
@@ -4452,7 +4699,8 @@ function renderPkm(p){
         return `<span class="st-chip ${on?'on':''}" style="${on?`border-color:${inf.col}; color:${inf.col}; background:${inf.col}22`:''}"
           title="${esc(inf.eff)}" onclick="toggleStatus('${p.id}','${st}')">${inf.ico} ${st}</span>`;
       }).join('')}
-      ${(p.status||[]).length ? `<button class="btn small" style="padding:2px 9px" onclick="statusTurn('${p.id}')">☠ Fine turno</button>` : ''}
+      ${statiFase(p,'inizio').length ? `<button class="btn small" style="padding:2px 9px" onclick="statusTurn('${p.id}','inizio')">▶ Inizio turno</button>` : ''}
+      ${statiFase(p,'fine').length ? `<button class="btn small" style="padding:2px 9px" onclick="statusTurn('${p.id}','fine')">⏹ Fine turno</button>` : ''}
       <span class="idbtn" title="cosa fanno gli stati" onclick="openStatusPicker('${p.id}')">❔</span>
     </div>
     ${abChips?`<div class="defline">✨ Possibili: ${abChips}${p.ts?` · <b>TS:</b> ${esc(p.ts)}`:''}</div>`:(p.ts?`<div class="defline"><b>TS:</b> ${esc(p.ts)}</div>`:'')}
@@ -4769,7 +5017,7 @@ function renderBattles(){
     const pct = b.pfMax>0 ? Math.round(100*b.pf/b.pfMax) : 0;
     const hpColor = pct>50 ? 'var(--ok)' : pct>25 ? 'var(--warn)' : 'var(--danger)';
     const {dc, parts} = captureDC(b);
-    const sts = STATUSES.map(s =>
+    const sts = ALL_STATUSES.map(s =>
       `<span class="status-chip ${b.statuses.includes(s)?'on':''}" onclick="battleStatus('${b.id}','${s}')">${s}</span>`).join('');
     const sIdx = SPECIES_IDX.get(b.species);
     return `<div class="battle">
@@ -5295,7 +5543,6 @@ function renderSettings(){
   document.getElementById('set-autoabil').checked = s.autoAbility !== false;
   document.getElementById('set-evoabil').value = s.evoAbility || 'ask';
   document.getElementById('set-pp').checked = s.trackPP !== false;
-  document.getElementById('set-statusdc').value = s.statusDC || 10;
   document.getElementById('app-version').textContent = APP_VERSION;
   document.getElementById('app-schema').textContent = SCHEMA;
 }
@@ -5324,7 +5571,6 @@ function saveSettings(){
   s.autoAbility = document.getElementById('set-autoabil').checked;
   s.evoAbility = document.getElementById('set-evoabil').value;
   s.trackPP = document.getElementById('set-pp').checked;
-  s.statusDC = parseInt(document.getElementById('set-statusdc').value) || 10;
   s.needMult = g('set-need')||2;
   s.defeatMult = isNaN(g('set-defeat'))?1:g('set-defeat');
   s.captureMult = isNaN(g('set-capture'))?1:g('set-capture');
