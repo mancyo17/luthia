@@ -862,6 +862,11 @@ window.addEventListener('error', function(e){
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autonat" onchange="saveSettings()"/> natura sorteggiata alla cattura</label>
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autoabil" onchange="saveSettings()"/> abilità sorteggiata alla cattura</label>
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-pp" onchange="saveSettings()"/> tieni conto dei PP delle mosse</label>
+        <label>PP delle mosse
+          <select id="set-ppfonte" onchange="saveSettings()">
+            <option value="giochi">come nei videogiochi</option>
+            <option value="p5e">come nel manuale P5e</option>
+          </select></label>
         <label>Abilità quando evolve
           <select id="set-evoabil" onchange="saveSettings()">
             <option value="ask">chiede al giocatore</option>
@@ -1054,7 +1059,8 @@ window.addEventListener('error', function(e){
 
 <script src="p5e-data.js?v=4"></script>
 <script src="p5e-gen8.js?v=4"></script>
-<script src="p5e-fuori.js?v=1"></script>
+<script src="p5e-2024.js?v=1"></script>
+<script src="p5e-fuori.js?v=2"></script>
 
 <script>
 /* ================= DATI ================= */
@@ -1199,6 +1205,11 @@ function immagineOggetto(nome, it){
     const md = it.move ? findMoveData(it.move) : null;
     const t = md && TIPO_EN[md.t];
     return ITEM_SPRITE + 'tm-' + (t || 'normal') + '.png';
+  }
+  if(it && it.mn){
+    const md = it.move ? findMoveData(it.move) : null;
+    const t = md && TIPO_EN[md.t];
+    return ITEM_SPRITE + 'hm-' + (['normal','flying','fighting','water'].includes(t) ? t : 'normal') + '.png';
   }
   const slug = ITEM_SLUG[nome];
   if(slug) return ITEM_SPRITE + slug + '.png';
@@ -1758,7 +1769,28 @@ function TM_ITEMS(){
   }
   return _tmItems;
 }
-const MARKET_CATS = ['Poké Ball','Cure','Vitamine','Pietre','Strumenti tenuti','MT','Preziosi','Oggetti chiave'];
+/* --- le MN: le macchine nascoste dei giochi, con le mosse da usare in giro per il mondo.
+   Non si comprano nei negozi (le regala chi le custodisce), quindi hanno il prezzo
+   simbolico degli oggetti chiave; come le MT non si consumano. --- */
+const MN_PRICE = 100;
+function mnItemName(num){ return 'MN' + String(num).padStart(2,'0') + ' — ' + (P5 && P5.MN ? P5.MN[num] : ''); }
+let _mnItems = null;
+function MN_ITEMS(){
+  if(_mnItems) return _mnItems;
+  _mnItems = [];
+  if(P5 && P5.MN){
+    for(const [num, move] of Object.entries(P5.MN)){
+      const md = P5.MOVES[move];
+      _mnItems.push({n: mnItemName(num), c:'MN', p:MN_PRICE, mn:+num, move,
+        t: md ? md.t : null,
+        e: 'Insegna ' + move + ' e non si consuma. Fuori dalla lotta: ' +
+           (md && md.fuori ? String(md.fuori).slice(0,110) + (md.fuori.length>110?'…':'') : 'è una mossa da usare in giro per il mondo.')});
+    }
+    _mnItems.sort((a,b)=>a.mn-b.mn);
+  }
+  return _mnItems;
+}
+const MARKET_CATS = ['Poké Ball','Cure','Vitamine','Pietre','Strumenti tenuti','MT','MN','Preziosi','Oggetti chiave'];
 
 /* Gli strumenti che i Pokémon tengono addosso: nel dex ci sono già con i loro
    effetti, ma non avevano un prezzo e quindi non si potevano comprare. */
@@ -1775,7 +1807,7 @@ function TENUTI(){
   _tenuti.sort((a,b)=>a.n.localeCompare(b.n));
   return _tenuti;
 }
-function MARKET_ITEMS(){ return [...CATALOG, ...TENUTI(), ...TM_ITEMS()]; }
+function MARKET_ITEMS(){ return [...CATALOG, ...TENUTI(), ...TM_ITEMS(), ...MN_ITEMS()]; }
 function marketByName(){ return Object.fromEntries(MARKET_ITEMS().map(i=>[i.n,i])); }
 function onSale(i){ return !!i.p && !i.nosale; }
 
@@ -2286,7 +2318,8 @@ function openSheet(i){
     ${ad ? `<p class="defline">⚠ <b>Vulnerabile:</b> ${ad.vul.join(', ')||'—'}<br/>🛡 <b>Resiste:</b> ${ad.res.join(', ')||'—'}${ad.imm.length?`<br/>✋ <b>Immune:</b> ${ad.imm.join(', ')}`:''}</p>` : ''}
     ${evo}${spots}
     <h3>Mosse</h3>${mvHTML}
-    ${d.mv.tm && d.mv.tm.length ? `<div class="mvgroup"><span class="lbl">MT compatibili</span><div class="moves">${d.mv.tm.map(n => (P5 && P5.TM && P5.TM[n]) ? moveChipHTML(P5.TM[n], d.min, 'MT '+n) : '').join('')}</div></div>` : ''}
+    ${d.mv.tm && d.mv.tm.length ? `<div class="mvgroup"><span class="lbl">MT compatibili (${d.mv.tm.length})</span><div class="moves">${d.mv.tm.map(n => (P5 && P5.TM && P5.TM[n]) ? moveChipHTML(P5.TM[n], d.min, 'MT '+n) : '').join('')}</div></div>` : ''}
+    ${d.mv.mn && d.mv.mn.length ? `<div class="mvgroup"><span class="lbl">MN compatibili</span><div class="moves">${d.mv.mn.map(n => (P5 && P5.MN && P5.MN[n]) ? moveChipHTML(P5.MN[n], d.min, 'MN '+n) : '').join('')}</div></div>` : ''}
     <div class="mrow"><button class="btn" onclick="closeModal(); addFromDex(${i})">+ Aggiungi a una squadra</button>
     <button class="btn ghost" onclick="openSpeciesEditor('${esc(s.name).replace(/'/g,"\\'")}')">✏️ Modifica</button>
     <button class="btn ghost" onclick="openSpeciesEditor('${esc(s.name).replace(/'/g,"\\'")}',1)">📋 Copia</button>
@@ -2363,6 +2396,11 @@ function openSpeciesEditor(name, copia){
       <div class="row" style="margin-top:4px">
         <button class="btn ghost small" onclick="cercaMT()">🔎 Cerca una MT per nome</button>
       </div>
+    </div>
+    <div class="mrow" style="flex-direction:column; align-items:stretch">
+      <label>MN compatibili — i numeri separati da virgola</label>
+      <input id="sp-mn" value="${d?(d.mv.mn||[]).join(', '):''}" placeholder="1, 4, 6"/>
+      <p class="hint" style="margin:4px 0 0">${Object.entries((P5&&P5.MN)||{}).map(([n,m])=>`MN${String(n).padStart(2,'0')} ${esc(m)}`).join(' · ')}</p>
     </div>
     <div class="mrow" style="flex-direction:column; align-items:stretch">
       <label>Mosse — una per riga, «livello nome» (livello 1 = mosse iniziali)</label>
@@ -2647,7 +2685,8 @@ function saveSpeciesEditor(origName){
     desc: v('sp-desc'),
     hab: v('sp-hab'),
     mv: {s:start, l:lvl,
-      tm: v('sp-tm').split(/[,;\s]+/).map(x=>parseInt(x)).filter(x=>x>0 && P5 && P5.TM && P5.TM[x])},
+      tm: v('sp-tm').split(/[,;\s]+/).map(x=>parseInt(x)).filter(x=>x>0 && P5 && P5.TM && P5.TM[x]),
+      mn: v('sp-mn').split(/[,;\s]+/).map(x=>parseInt(x)).filter(x=>x>0 && P5 && P5.MN && P5.MN[x])},
     custom: true
   };
   /* quello che l'editor non tocca resta com'era: sensi, mosse uovo, competenze */
@@ -2706,7 +2745,7 @@ function openMoveInfo(name, level, pid){
     if(n) count = `<p class="hint">L'hai usata ${n} ${n===1?'volta':'volte'} finora.</p>`;
   }
   showModal(`<h3>${esc(name)} ${typeChips([md.t])}</h3>
-    <p class="hint" style="margin:0">${esc(md.time||'')} · gittata: ${esc(md.rng||'—')} · PP ${md.pp||'—'} · durata: ${esc(md.dur||'—')}${md.save?` · TS ${esc(md.save)}`:''}${md.pow&&md.pow.length?` · potenza: ${md.pow.join('/')}`:''}</p>
+    <p class="hint" style="margin:0">${esc(md.time||'')} · gittata: ${esc(md.rng||'—')} · PP ${ppDi(md)||'—'} · durata: ${esc(md.dur||'—')}${md.save?` · TS ${esc(md.save)}`:''}${md.pow&&md.pow.length?` · potenza: ${md.pow.join('/')}`:''}</p>
     ${dmg}
     <p style="font-size:14px">${esc(md.desc||'')}</p>
     ${md.sc?`<p class="hint">${esc(md.sc)}</p>`:''}
@@ -2861,9 +2900,15 @@ function rollDice(expr){
 
 /* ---- punti potere ---- */
 function ppTrack(){ return state.settings.trackPP !== false; }
+/* I PP sono quelli dei videogiochi; chi preferisce quelli del manuale P5e
+   (più bassi, pensati per il tavolo) li sceglie in Impostazioni. */
+function ppDi(md){
+  if(!md) return 0;
+  if(state.settings.ppFonte === 'p5e' && md.ppP5e != null) return md.ppP5e;
+  return md.pp || 0;
+}
 function ppMax(name){
-  const md = findMoveData(name);
-  return md && md.pp ? md.pp : 0;
+  return ppDi(findMoveData(name));
 }
 function ppLeft(p, name){
   const max = ppMax(name);
@@ -3613,7 +3658,7 @@ function learnedMoves(p){
 function tmMoves(p){
   const d = p5data(p.species);
   if(!d || !P5 || !P5.TM) return [];
-  return [...new Set((d.mv.tm||[]).map(n => P5.TM[n]).filter(Boolean))];
+  return [...new Set([...(d.mv.tm||[]).map(n => P5.TM[n]), ...(d.mv.mn||[]).map(n => (P5.MN||{})[n])].filter(Boolean))];
 }
 function autoSlots(p){
   const known = (p.moves||[]).filter(m => m.lv <= p.level)
@@ -3634,7 +3679,7 @@ function openSlotPicker(pid, idx){
       <div class="row" style="gap:6px"><b>${esc(name)}</b>
         ${md?`<span class="type-chip" style="background:${TYPES[md.t].c}">${TYPES[md.t].n}</span>`:''}
         ${taken?'<span class="mini">già in uso</span>':''}${extra||''}</div>
-      ${md?`<div class="slot-meta">${md.dmg?'🎲 '+esc(Object.values(md.dmg)[0])+' · ':''}PP ${md.pp||'—'} · ${esc(String(md.desc||'').slice(0,70))}…</div>`:''}
+      ${md?`<div class="slot-meta">${md.dmg?'🎲 '+esc(Object.values(md.dmg)[0])+' · ':''}PP ${ppDi(md)||'—'} · ${esc(String(md.desc||'').slice(0,70))}…</div>`:''}
     </div>`;
   };
 
@@ -5275,7 +5320,7 @@ function openShopItem(name){
     scheda = `<div class="panel sub" style="margin:10px 0">
       <div class="row" style="gap:6px">
         <b>${esc(it.move)}</b> ${typeChips([md.t])}
-        <span class="mini">PP ${md.pp||'—'}</span>
+        <span class="mini">PP ${ppDi(md)||'—'}</span>
         <span class="mini">${esc(md.rng||'')}</span>
       </div>
       ${dmg?`<p class="levelup-gain" style="margin:6px 0 0">🎲 Danni al livello minimo: <b>${esc(dmg)}</b>${tiers.length>1?' — crescono con il livello':''}</p>`:''}
@@ -5301,7 +5346,7 @@ function openShopItem(name){
       ${sale && t ? `<label>Quantità <input type="number" id="si-qty" min="1" value="1" style="width:70px"/></label>
         <button class="btn ${puo?'':'ghost'}" onclick="compraDaScheda('${esc(name).replace(/'/g,"\\'")}')">🛒 Compra</button>` : ''}
       ${have && t ? `<button class="btn ghost" onclick="closeModal(); sellItem('${esc(name).replace(/'/g,"\\'")}',1)">Vendi 1</button>` : ''}
-      ${it.tm && have && t ? `<button class="btn ghost" onclick="closeModal(); useTMFromBag('${t.id}','${esc(name).replace(/'/g,"\\'")}')">📀 Usala</button>` : ''}
+      ${(it.tm || it.mn) && have && t ? `<button class="btn ghost" onclick="closeModal(); useTMFromBag('${t.id}','${esc(name).replace(/'/g,"\\'")}')">📀 Usala</button>` : ''}
       <button class="btn ghost" onclick="closeModal()">Chiudi</button>
     </div>`);
 }
@@ -5469,7 +5514,7 @@ function renderBag(t){
   const body = shown.map(c => {
     const rows = byPocket[c].sort((a,b)=>a[0].localeCompare(b[0])).map(([n,q]) => {
       const info = marketByName()[n] || ITEM_BY_NAME()[n];
-      const isTM = info && info.tm;
+      const isTM = info && (info.tm || info.mn);
       return `<div class="bagrow">
         ${itemImgHTML(n, info)}
         <b class="si-open" onclick="openShopItem('${esc(n).replace(/'/g,"\\'")}')">${esc(n)}</b>
@@ -5507,16 +5552,17 @@ function renderBag(t){
 function useTMFromBag(tid, itemName){
   const t = state.trainers.find(x=>x.id===tid); if(!t) return;
   const it = marketByName()[itemName];
-  if(!it || !it.tm) return;
+  if(!it || !(it.tm || it.mn)) return;
   const move = it.move;
   const able = allPkm(t).filter(p => {
     const d = p5data(p.species);
-    return d && (d.mv.tm||[]).includes(it.tm);
+    if(!d) return false;
+    return it.mn ? (d.mv.mn||[]).includes(it.mn) : (d.mv.tm||[]).includes(it.tm);
   });
   if(!able.length){
     showModal(`<h3>📀 ${esc(itemName)}</h3>
       <p class="levelup-gain">Nessun Pokémon di ${esc(t.name)} può imparare <b>${esc(move)}</b>.</p>
-      <p class="hint">Le MT funzionano solo con le specie che le hanno nella propria scheda del dex.</p>
+      <p class="hint">${it.mn ? 'Le MN' : 'Le MT'} funzionano solo con le specie che le hanno nella propria scheda del dex.</p>
       <button class="btn" onclick="closeModal()">Chiudi</button>`);
     return;
   }
@@ -5524,7 +5570,7 @@ function useTMFromBag(tid, itemName){
     onclick="closeModal(); teachTM('${p.id}','${esc(move).replace(/'/g,"\\'")}')">
     ${esc(p.nick)} <small>Liv. ${p.level} · ${esc(p.species)}</small></button>`).join('');
   showModal(`<h3>📀 ${esc(itemName)}</h3>
-    <p class="hint">A chi la insegni? Le MT sono riutilizzabili: restano nello zaino.</p>
+    <p class="hint">A chi la insegni? ${it.mn ? 'Le MN' : 'Le MT'} sono riutilizzabili: restano nello zaino.</p>
     <div class="mrow" style="flex-direction:column; align-items:stretch">${btns}</div>
     <div class="mrow"><button class="btn ghost" onclick="closeModal()">Annulla</button></div>`);
 }
@@ -5543,6 +5589,7 @@ function renderSettings(){
   document.getElementById('set-autoabil').checked = s.autoAbility !== false;
   document.getElementById('set-evoabil').value = s.evoAbility || 'ask';
   document.getElementById('set-pp').checked = s.trackPP !== false;
+  document.getElementById('set-ppfonte').value = s.ppFonte === 'p5e' ? 'p5e' : 'giochi';
   document.getElementById('app-version').textContent = APP_VERSION;
   document.getElementById('app-schema').textContent = SCHEMA;
 }
@@ -5571,6 +5618,7 @@ function saveSettings(){
   s.autoAbility = document.getElementById('set-autoabil').checked;
   s.evoAbility = document.getElementById('set-evoabil').value;
   s.trackPP = document.getElementById('set-pp').checked;
+  s.ppFonte = document.getElementById('set-ppfonte').value === 'p5e' ? 'p5e' : 'giochi';
   s.needMult = g('set-need')||2;
   s.defeatMult = isNaN(g('set-defeat'))?1:g('set-defeat');
   s.captureMult = isNaN(g('set-capture'))?1:g('set-capture');
