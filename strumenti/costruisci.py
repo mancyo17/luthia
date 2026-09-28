@@ -128,8 +128,22 @@ for n, d in ORA['POKEMON'].items():
     mn = sorted(num_mn[x] for x in s if x in num_mn)
     if tm or mn: COMPAT[n] = [tm, mn]
 
+# ---------------- immagini: l'identificativo giusto per le forme ----------------
+# Gli sprite di PokeAPI sono per id del Pokémon, non per numero del dex: le forme
+# regionali e alternative hanno id 10000+. Lo mettiamo solo se l'immagine esiste.
+esistono = set(l.strip() for l in open(os.path.join(S, 'sprite_files.txt')))
+def ha(pid, dove):
+    return ('sprites/pokemon/%s%s.png' % (dove, pid)) in esistono
+IMG = {}
+for n, d in ORA['POKEMON'].items():
+    pid = pokeapi_id(n, d)
+    if not pid or str(pid) == str(d.get('n')): continue
+    if ha(pid, 'other/home/') or ha(pid, '') or ha(pid, 'other/official-artwork/'):
+        IMG[n] = int(pid)
+out_img = IMG
+
 # ---------------- scrittura ----------------
-out = {'SPECIE': SPECIE, 'NUOVE': NUOVE, 'PP': PP, 'TM': TM_EXTRA, 'MN': MN, 'COMPAT': COMPAT}
+out = {'SPECIE': SPECIE, 'NUOVE': NUOVE, 'PP': PP, 'TM': TM_EXTRA, 'MN': MN, 'COMPAT': COMPAT, 'IMG': IMG}
 APPLICA = r"""
 window.P5E_2024 = D;
 var P = window.P5E;
@@ -160,6 +174,8 @@ for(var n in D.COMPAT){
   s.mv.tm = tm.sort(function(a, b){ return a - b; });
   s.mv.mn = D.COMPAT[n][1].slice();
 }
+/* 5. l'id dell'immagine giusta per le forme (regionali comprese) */
+for(var n in D.IMG) if(P.POKEMON[n]) P.POKEMON[n].pid = D.IMG[n];
 P.VERSIONE_DATI = '2024';
 """
 js = ("/* Correzione del Pokédex — generato da costruisci.py, non modificare a mano.\n"
@@ -172,4 +188,5 @@ open('/home/user/luthia/p5e-2024.js', 'w', encoding='utf-8').write(js)
 print('specie corrette:', len(SPECIE), cambi)
 print('mosse nuove:', len(NUOVE), '| PP cambiati:', len(PP), '| MT extra:', len(TM_EXTRA), min(TM_EXTRA), '-', max(TM_EXTRA), '| MN:', MN)
 print('specie con MT extra o MN:', len(COMPAT), '| senza id PokeAPI:', senza_id)
+print('forme con immagine propria:', len(IMG), sorted(IMG)[:12])
 print('dimensione:', len(js.encode()) // 1024, 'KB')

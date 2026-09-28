@@ -110,16 +110,51 @@ th{color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase
 .tablewrap{overflow-x:auto}
 /* dex */
 .dex-item{
-  border:1px solid var(--line); border-radius:12px; padding:10px 12px;
-  background:rgba(255,255,255,.02); display:flex; flex-direction:column; gap:4px;
+  border:1px solid var(--line); border-radius:14px; padding:8px 10px 8px 8px;
+  background:rgba(255,255,255,.02); display:flex; gap:10px; align-items:center;
 }
-.dex-item .top{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
-.dex-item .top strong{font-size:15px; cursor:pointer}
-.dex-item .top strong:hover{color:var(--accent)}
 .dex-item .num{font-size:11px; color:var(--muted)}
-.dex-item .spots{font-size:12.5px; color:var(--muted)}
-.dex-item .spots b{color:var(--text); font-weight:600}
-.dexgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:10px}
+.dexgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(290px,1fr)); gap:10px}
+/* immagine grande a sinistra, su un disco da Poké Ball */
+.di-img{
+  flex:none; width:84px; height:84px; border-radius:50%; display:grid; place-items:center; cursor:pointer;
+  background:radial-gradient(circle at 50% 50%, rgba(255,255,255,.10) 0 38%, rgba(255,255,255,.03) 39% 100%);
+  border:1px solid var(--line);
+}
+.di-img .sprite{width:76px; height:76px; background:none; border-radius:0}
+.di-img .sprite.px{width:84px; height:84px}
+.di-img .sprite.ko{width:56px; height:56px; border-radius:50%}
+.di-body{display:flex; flex-direction:column; gap:3px; min-width:0; flex:1}
+.di-top{display:flex; align-items:center; gap:7px}
+.di-top strong{font-size:15.5px; cursor:pointer; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.di-top strong:hover{color:var(--accent)}
+.di-types{display:flex; gap:5px; align-items:center; flex-wrap:wrap}
+.di-stat{font-size:12px; color:var(--muted)}
+.di-act{display:flex; gap:6px; flex-wrap:wrap; margin-top:2px}
+.dex-item.preso .di-img{border-color:rgba(255,203,5,.5)}
+/* vista a lista: una riga per specie, immagine piccola */
+.dexgrid.compatta{grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:6px}
+.dexgrid.compatta .dex-item{padding:4px 8px 4px 4px; border-radius:10px}
+.dexgrid.compatta .di-img{width:48px; height:48px}
+.dexgrid.compatta .di-img .sprite{width:44px; height:44px}
+.dexgrid.compatta .di-img .sprite.px{width:48px; height:48px}
+/* filtri */
+.dex-filtri{margin-top:10px; border-top:1px dashed rgba(124,224,180,.25); padding-top:10px}
+.df-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px}
+.df-grid label{display:flex; flex-direction:column; gap:3px; font-size:11.5px; color:var(--muted)}
+.df-grid select,.df-grid input{width:100%; min-width:0}
+.dex-ricerche{display:flex; gap:6px; flex-wrap:wrap; margin-top:8px}
+.dex-ricerche:empty{display:none}
+.dr-chip{display:inline-flex; border:1px solid rgba(255,203,5,.4); border-radius:999px; overflow:hidden}
+.dr-chip button{border:0; background:rgba(255,203,5,.08); color:var(--gold); font:inherit; font-size:12.5px; padding:3px 10px; cursor:pointer}
+.dr-chip button.x{background:transparent; color:var(--muted); padding:3px 8px 3px 4px}
+.dex-attivi{margin-top:6px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.dex-attivi:empty{display:none}
+#dex-ftoggle.on{border-color:var(--gold); color:var(--gold)}
+.df-vista{display:flex; gap:14px; flex-wrap:wrap; margin-top:10px}
+.df-gruppo{display:inline-flex; align-items:center; gap:6px; white-space:nowrap}
+.df-gruppo .hint{margin:0}
+.df-gruppo .pocket{margin:0}
 .caughtbox{display:flex; align-items:center; gap:5px; font-size:12px; color:var(--muted); cursor:pointer; user-select:none}
 .dex-item .caughtbox{margin-left:auto}
 /* scheda pokémon */
@@ -466,6 +501,21 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
   background:linear-gradient(90deg, var(--ball), var(--gold), var(--accent));
   opacity:.75;
 }
+/* ordine in squadra: il primo ha il bordo d'oro */
+.pkm.is-lead{border-color:rgba(255,203,5,.55); box-shadow:0 0 0 1px rgba(255,203,5,.25), 0 6px 24px rgba(255,203,5,.08)}
+.ordine{display:inline-flex; align-items:center; gap:2px; border:1px solid var(--line); border-radius:999px; padding:1px 3px; align-self:center}
+.ordine b{font-size:11.5px; padding:0 4px; color:var(--muted); white-space:nowrap}
+.ordine b.lead{color:var(--gold)}
+.ord-b{border:0; background:transparent; color:var(--text); font-size:14px; line-height:1; padding:3px 6px; border-radius:999px; cursor:pointer}
+.ord-b:hover:not([disabled]){background:var(--accent-dim)}
+.ord-b[disabled]{opacity:.25; cursor:default}
+.ord-row{display:flex; align-items:center; gap:8px; padding:6px 8px; border:1px solid var(--line); border-radius:12px; margin:6px 0; flex-wrap:wrap}
+.ord-row.lead{border-color:rgba(255,203,5,.55); background:rgba(255,203,5,.06)}
+.ord-n{font-weight:800; color:var(--muted); min-width:24px}
+.ord-row.lead .ord-n{color:var(--gold)}
+.ord-nome{display:flex; flex-direction:column; min-width:90px; flex:1}
+.ord-nome small{color:var(--muted); font-size:11.5px}
+.ord-act{display:flex; gap:4px; margin-left:auto}
 .pkm .lvl{
   font-size:15px; font-weight:800; color:#fff; letter-spacing:.3px;
   background:linear-gradient(180deg, var(--ball), var(--ball-dark));
@@ -527,7 +577,7 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
     linear-gradient(180deg, rgba(238,27,46,.30) 0 48%, rgba(255,255,255,.10) 48% 100%);
   border:1px solid var(--line); filter:none; opacity:.5;
 }
-.dex-item .top .sprite{width:38px; height:38px}
+.sprite.px{image-rendering:pixelated; image-rendering:crisp-edges}
 .pkm .head .sprite{width:52px; height:52px; margin-right:2px}
 .boxmon .bm-top .sprite{width:30px; height:30px}
 .sheethead{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:6px}
@@ -635,6 +685,57 @@ button.btn[disabled]{opacity:.45; cursor:not-allowed}
 .pocket span{font-size:10.5px; background:rgba(255,255,255,.09); border-radius:99px; padding:0 6px}
 .pocket:hover{border-color:var(--accent); color:var(--accent)}
 .pocket.on{border-color:var(--gold); color:var(--gold); background:rgba(246,201,69,.1)}
+
+/* ---------- tessera dell'allenatore ---------- */
+.trcard{
+  background:linear-gradient(135deg, rgba(238,27,46,.16), rgba(61,139,253,.10) 60%, rgba(255,203,5,.08)), var(--panel);
+  border-color:rgba(255,203,5,.35); margin-bottom:10px;
+}
+.trcard-head{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+.tr-avatar{
+  width:52px; height:52px; border-radius:50%; flex:none; display:grid; place-items:center;
+  font-size:24px; font-weight:800; color:#fff;
+  background:radial-gradient(circle at 50% 38%, #fff 0 17%, var(--ink) 18% 24%, transparent 25%),
+             linear-gradient(180deg, var(--ball) 0 48%, var(--ink) 48% 54%, #eef2fb 54%);
+  box-shadow:0 2px 12px rgba(238,27,46,.35); text-shadow:0 1px 3px rgba(0,0,0,.8);
+}
+.tr-id{display:flex; flex-direction:column; min-width:150px; flex:1}
+.tr-name{font-weight:800; font-size:17px; background:transparent; border:1px dashed transparent; padding:2px 4px; width:100%; max-width:240px}
+.tr-name:hover,.tr-name:focus{border-color:var(--line)}
+.tr-id small{color:var(--muted); font-size:11.5px; padding-left:4px}
+.tr-level{display:flex; align-items:center; gap:6px}
+.tr-level > div{display:flex; flex-direction:column; align-items:center; line-height:1}
+.tr-level b{font-size:26px; color:var(--gold)}
+.tr-level small{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px}
+.tr-tabs{margin:12px 0 0}
+.tr-sheet .statrow{margin-bottom:10px}
+.tr-pf{border:1px solid var(--line); border-radius:12px; padding:8px 10px; margin:6px 0 12px}
+.tr-pf .hpbar{margin-top:6px}
+.tr-abilities{max-width:560px}
+.tr-ab input{width:50px}
+.tr-ts{
+  border:1px solid var(--line); background:transparent; color:var(--muted);
+  font-size:10.5px; border-radius:999px; padding:1px 6px; cursor:pointer; white-space:nowrap;
+}
+.tr-ts.on{border-color:var(--gold); color:var(--gold); background:rgba(255,203,5,.08)}
+.tr-skills{display:grid; grid-template-columns:repeat(auto-fill, minmax(158px, 1fr)); gap:4px; margin-top:6px}
+.tr-sk{
+  display:flex; align-items:center; gap:7px; text-align:left; cursor:pointer;
+  border:1px solid var(--line); background:rgba(255,255,255,.02); color:var(--text);
+  border-radius:9px; padding:5px 8px; font:inherit; font-size:13px;
+}
+.tr-sk .nm{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.tr-sk small{color:var(--muted); font-size:10.5px}
+.tr-sk b{min-width:28px; text-align:right}
+.tr-sk .dot{width:10px; height:10px; border-radius:50%; border:1.5px solid var(--muted); flex:none}
+.tr-sk.lv1 .dot{background:var(--gold); border-color:var(--gold)}
+.tr-sk.lv2 .dot{background:var(--gold); border-color:var(--gold); box-shadow:0 0 0 2px var(--panel), 0 0 0 3.5px var(--gold)}
+.tr-sk.lv1, .tr-sk.lv2{border-color:rgba(255,203,5,.35)}
+.tr-lv{margin-top:12px; border-top:1px solid var(--line); padding-top:10px; font-size:13.5px}
+.tr-warn{margin-top:6px; color:var(--warn); font-size:13px}
+.tr-campi{margin-top:12px; align-items:flex-end}
+.tr-campi label{display:flex; flex-direction:column; font-size:11.5px; color:var(--muted); gap:3px}
+.tr-campi input{min-width:0}
 .bagpocket{margin-top:10px}
 .bp-lbl{
   font-size:10.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted);
@@ -829,11 +930,14 @@ window.addEventListener('error', function(e){
       <div class="dexscreen">
         <p class="dexcount" id="dex-count"></p>
         <div class="row">
-          <input id="dex-search" placeholder="Cerca specie…" style="flex:1; min-width:120px" oninput="dexShown=DEX_PAGE; renderDex()" />
-          <select id="dex-type" onchange="dexShown=DEX_PAGE; renderDex()"></select>
+          <input id="dex-search" type="search" placeholder="Nome, #numero, tipo o abilità…" style="flex:1; min-width:150px" oninput="dexShown=DEX_PAGE; renderDex()" />
+          <select id="dex-type" onchange="dexCambia('t1', this.value)" title="tipo"></select>
           <select id="dex-sort" onchange="setDexSort(this.value)" title="ordina l'elenco"></select>
-          <label class="caughtbox"><input type="checkbox" id="dex-caught" onchange="dexShown=DEX_PAGE; renderDex()" /> solo catturati</label>
+          <button class="btn small ghost" id="dex-ftoggle" onclick="dexFiltriApri()">🔎 Filtri</button>
         </div>
+        <div id="dex-ricerche" class="dex-ricerche"></div>
+        <div id="dex-filtri" class="dex-filtri" hidden></div>
+        <div id="dex-attivi" class="dex-attivi"></div>
       </div>
     </div>
     <div class="dexgrid" id="dex-list"></div>
@@ -1135,12 +1239,24 @@ const P5 = window.P5E || null;
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/';
 const REGIONALI = / di (Galar|Hisui|Alola|Paldea)\b/;
 
-function immagineSpecie(nome, d, grande){
+/* Tre qualità: l'artwork grande per la scheda; nell'elenco le immagini «HOME»
+   (512 px, nitide anche ingrandite, ~80 KB l'una) oppure gli sprite classici
+   (96 px di pixel-art, leggerissimi) se il giocatore sceglie di risparmiare dati.
+   Le forme hanno un loro id d'immagine (pid): senza, niente figura sbagliata. */
+function idImmagine(nome, d){
+  if(d && d.pid) return d.pid;
+  if(!d || !d.n || d.n > 1025 || d.n < 1) return null;
+  if(REGIONALI.test(nome||'')) return null;       /* meglio niente che l'immagine sbagliata */
+  return d.n;
+}
+function immagineSpecie(nome, d, grande, leggera){
   d = d || (P5 && P5.POKEMON[nome]) || null;
   if(d && d.img) return d.img;                    /* indirizzo messo a mano */
-  if(!d || !d.n || d.n > 1025 || d.n < 1) return '';
-  if(REGIONALI.test(nome||'')) return '';         /* meglio niente che l'immagine sbagliata */
-  return SPRITE_BASE + (grande ? 'other/official-artwork/' : '') + d.n + '.png';
+  const id = idImmagine(nome, d);
+  if(id == null) return '';
+  if(grande) return SPRITE_BASE + 'other/official-artwork/' + id + '.png';
+  if(leggera || state.settings.dexImg === 'sprite') return SPRITE_BASE + id + '.png';
+  return SPRITE_BASE + 'other/home/' + id + '.png';
 }
 /* ---- immagini degli strumenti ----
    Stesso archivio dei Pokémon, ma indicizzato per nome inglese. La mappa copre
@@ -1329,10 +1445,14 @@ function riempiVoce(nome, d){
 
 function imgHTML(nome, d, grande){
   const src = immagineSpecie(nome, d, grande);
-  const cls = 'sprite' + (grande ? ' big' : '');
+  const px = !grande && /\/pokemon\/\d+\.png$/.test(src);   /* sprite classico: pixel netti */
+  const cls = 'sprite' + (grande ? ' big' : '') + (px ? ' px' : '');
   if(!src) return `<span class="${cls} ko" title="immagine non disponibile per questa forma"></span>`;
+  /* se l'immagine HD manca, si ripiega sullo sprite classico, e solo dopo sul segnaposto */
+  const riserva = grande || px ? '' : immagineSpecie(nome, d, false, true);
   return `<img class="${cls}" src="${esc(src)}" alt="" loading="lazy" decoding="async"
-    onerror="this.classList.add('ko'); this.removeAttribute('src')"/>`;
+    ${riserva ? `data-riserva="${esc(riserva)}"` : ''}
+    onerror="if(this.dataset.riserva){this.src=this.dataset.riserva; this.classList.add('px'); delete this.dataset.riserva} else {this.classList.add('ko'); this.removeAttribute('src')}"/>`;
 }
 
 const TYPES = {
@@ -1880,7 +2000,7 @@ const NPC_PRESETS = [
 
 const BADGE_NAMES = ['Sentiero','Fioritura','Scintilla','Bastione','Marea','Tossina','Brina','Scaglia'];
 const BADGE_LV = ['2–4','4–7','7–9','9–12','12–14','14–16','16–18','18–20','20–25'];
-const DIE_AVG = {6:4, 8:5, 10:6, 12:7};
+const DIE_AVG = {6:4, 8:5, 10:6, 12:7, 20:11};   /* media arrotondata per eccesso, come gli altri */
 const ASI_LEVELS = (P5 && P5.ASI_LEVELS) || [4,8,12,16,20];
 const NATURES = (P5 && P5.NATURES) || {};
 
@@ -1905,7 +2025,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '3.6';
+const APP_VERSION = '4.0';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -1991,6 +2111,16 @@ function migratePkm(p, t){
 }
 function migrateTrainer(t){
   t.notes = t.notes || '';
+  /* scheda dell'allenatore come personaggio: arriva con valori neutri e le
+     competenze che la classe Allenatore dà a tutti (TS su CAR, Addestrare Animali) */
+  if(!t.car || typeof t.car !== 'object') t.car = {FOR:10, DES:10, COS:10, INT:10, SAG:10, CAR:10};
+  if(!Array.isArray(t.tsProf)) t.tsProf = ['CAR'];
+  if(!t.skProf || typeof t.skProf !== 'object') t.skProf = {'Addestrare Animali': 1};
+  if(t.pfCur === undefined) t.pfCur = null;
+  if(t.pfMaxMano === undefined) t.pfMaxMano = null;
+  if(t.caMano === undefined) t.caMano = null;
+  t.vel = t.vel || '9 m';
+  t.percorso = t.percorso || ''; t.specs = t.specs || ''; t.origine = t.origine || ''; t.razza = t.razza || '';
   t.created = t.created || Date.now();
   t.stats = Object.assign(defaultTrainerStats(), t.stats||{});
   t.stats.moves = t.stats.moves || {};
@@ -2063,7 +2193,7 @@ function showModal(html){
   document.getElementById('modal').innerHTML = html;
   document.getElementById('modal-bg').classList.add('open');
 }
-function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); }
+function closeModal(){ ordineAperto = null; document.getElementById('modal-bg').classList.remove('open'); }
 let toastTimer = null;
 function toast(msg){
   let el = document.getElementById('toast');
@@ -2158,6 +2288,8 @@ function initDexFilters(){
   const tsel = document.getElementById('dex-type');
   tsel.innerHTML = '<option value="">Tipo: tutti</option>' +
     Object.entries(TYPES).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
+  tsel.value = dexF.t1 || '';
+  renderDexRicerche();
 }
 
 /* ================= POKÉDEX ================= */
@@ -2167,45 +2299,233 @@ let dexShown = DEX_PAGE;
 
 function zoneName(id){ const z = ZONES.find(z=>z.id===id); return z ? z.name.replace(/ — .*/,'') : id; }
 
-function renderDex(){
-  const q = document.getElementById('dex-search').value.trim().toLowerCase();
-  const ft = document.getElementById('dex-type').value;
-  const onlyCaught = document.getElementById('dex-caught').checked;
+/* ---- ricerca avanzata ----
+   Tutti i filtri si combinano. Lo stato vive qui (dexF); le ricerche salvate e
+   le preferenze di vista stanno nel salvataggio, così restano sul dispositivo. */
+const GENERAZIONI = [[1,151,'I · Kanto'],[152,251,'II · Johto'],[252,386,'III · Hoenn'],[387,493,'IV · Sinnoh'],
+  [494,649,'V · Unima'],[650,721,'VI · Kalos'],[722,809,'VII · Alola'],[810,905,'VIII · Galar e Hisui'],[906,1025,'IX · Paldea']];
+const TAGLIE = ['Minuscolo','Piccolo','Medio','Grande','Enorme','Mastodontico'];
+const DEX_F_VUOTO = {t1:'', t2:'', debole:'', gen:'', srDa:'', srA:'', livMax:'', taglia:'', abil:'',
+  mossa:'', come:'', forme:'', evo:'', presi:''};
+let dexF = Object.assign({}, DEX_F_VUOTO);
+let dexFiltriVisibili = false;
 
-  const list = SPECIES.filter(s => {
-    if(q && !s.name.toLowerCase().includes(q)) return false;
-    if(ft && !s.types.split('/').includes(ft)) return false;
-    if(onlyCaught && !state.caught[s.name]) return false;
-    return true;
-  });
+function norm(x){ return String(x||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
+const TIPO_DA_NOME = () => Object.fromEntries(Object.entries(TYPES).map(([k,v]) => [norm(v.n), k]));
+function dexGen(n){ const g = GENERAZIONI.findIndex(([a,b]) => n >= a && n <= b); return g < 0 ? null : g + 1; }
+/* tutte le mosse che la specie può usare, e come le impara */
+function mosseSpecie(d){
+  const liv = new Set([...(d.mv.s||[]), ...Object.values(d.mv.l||{}).flat()]);
+  const mt = new Set((d.mv.tm||[]).map(n => P5 && P5.TM ? P5.TM[n] : null).filter(Boolean));
+  const mn = new Set((d.mv.mn||[]).map(n => P5 && P5.MN ? P5.MN[n] : null).filter(Boolean));
+  return {liv, mt, mn};
+}
+function dexPassa(s, q){
+  const d = s.p5, f = dexF;
+  const tipi = String(s.types||'').split('/').filter(Boolean);
+  if(q){
+    const nq = norm(q).replace(/^#/, '');
+    const perNome = norm(s.name).includes(nq);
+    const perNum = /^\d+$/.test(nq) && d && d.n === parseInt(nq, 10);
+    const tipo = TIPO_DA_NOME()[nq];
+    const perTipo = !!tipo && tipi.includes(tipo);
+    const perAbil = nq.length >= 4 && d && [...(d.ab||[]), d.hab].some(a => a && norm(a) === nq);
+    if(!(perNome || perNum || perTipo || perAbil)) return false;
+  }
+  if(f.t1 && !tipi.includes(f.t1)) return false;
+  if(f.t2 === '-' && tipi.length !== 1) return false;
+  if(f.t2 && f.t2 !== '-' && !tipi.includes(f.t2)) return false;
+  if(f.debole){
+    const ad = autoDefense(s.types);
+    if(!ad || !ad.vul.includes(TYPES[f.debole].n)) return false;
+  }
+  if(f.presi === 'si' && !state.caught[s.name]) return false;
+  if(f.presi === 'no' && state.caught[s.name]) return false;
+  if(f.forme === 'regionali' && !REGIONALI.test(s.name)) return false;
+  if(f.forme === 'base' && REGIONALI.test(s.name)) return false;
+  if(!d) return !(f.gen || f.srDa !== '' || f.srA !== '' || f.livMax || f.taglia || f.abil || f.mossa || f.evo);
+  if(f.gen && dexGen(d.n) !== +f.gen) return false;
+  if(f.srDa !== '' && d.sr < +f.srDa) return false;
+  if(f.srA !== '' && d.sr > +f.srA) return false;
+  if(f.livMax && d.min > +f.livMax) return false;
+  if(f.taglia && d.size !== f.taglia) return false;
+  const evolve = !!(d.ev && d.ev.into && d.ev.into.length);   /* le forme finali hanno ev con into vuoto */
+  if(f.evo === 'evolve' && !evolve) return false;
+  if(f.evo === 'finale' && evolve) return false;
+  if(f.abil){
+    const a = norm(f.abil);
+    if(![...(d.ab||[]), d.hab].some(x => x && norm(x).includes(a))) return false;
+  }
+  if(f.mossa){
+    const m = norm(f.mossa), ms = mosseSpecie(d);
+    const trova = set => [...set].some(x => norm(x) === m);
+    const ok = f.come === 'liv' ? trova(ms.liv) : f.come === 'mt' ? trova(ms.mt) : f.come === 'mn' ? trova(ms.mn)
+      : trova(ms.liv) || trova(ms.mt) || trova(ms.mn);
+    if(!ok) return false;
+  }
+  return true;
+}
+function dexCambia(k, v){
+  dexF[k] = v;
+  if(k === 't1'){ const el = document.getElementById('dex-type'); if(el && el.value !== v) el.value = v; }
+  dexShown = DEX_PAGE; renderDex();
+}
+function dexAzzera(){
+  dexF = Object.assign({}, DEX_F_VUOTO);
+  const q = document.getElementById('dex-search'); if(q) q.value = '';
+  const el = document.getElementById('dex-type'); if(el) el.value = '';
+  dexShown = DEX_PAGE; renderDex(); renderDexFiltri();
+}
+function dexFiltriApri(){
+  dexFiltriVisibili = !dexFiltriVisibili;
+  renderDexFiltri();
+}
+function dexNumFiltri(){
+  return Object.entries(dexF).filter(([k,v]) => v !== '' && !(k === 'come' && !dexF.mossa)).length;
+}
+function renderDexFiltri(){
+  const box = document.getElementById('dex-filtri'); if(!box) return;
+  box.hidden = !dexFiltriVisibili;
+  const btn = document.getElementById('dex-ftoggle');
+  if(btn){ const n = dexNumFiltri(); btn.textContent = '🔎 Filtri' + (n ? ' · ' + n : ''); btn.classList.toggle('on', dexFiltriVisibili); }
+  if(!dexFiltriVisibili) return;
+  const f = dexF;
+  const tipoOpt = (v, vuoto) => `<option value="">${vuoto}</option>` +
+    Object.entries(TYPES).map(([k,x]) => `<option value="${k}" ${v===k?'selected':''}>${x.n}</option>`).join('');
+  const srs = [...new Set(SPECIES.map(x => x.p5 && x.p5.sr).filter(x => x != null))].sort((a,b) => a-b);
+  const srOpt = (v, vuoto) => `<option value="">${vuoto}</option>` + srs.map(x => `<option value="${x}" ${String(v)===String(x)?'selected':''}>${fmtSR(x)}</option>`).join('');
+  const sel = (k, opts) => `<select onchange="dexCambia('${k}', this.value)">${opts.map(([v,l]) =>
+    `<option value="${v}" ${String(f[k])===String(v)?'selected':''}>${l}</option>`).join('')}</select>`;
+  box.innerHTML = `
+    <div class="df-grid">
+      <label>Tipo<select onchange="dexCambia('t1', this.value)">${tipoOpt(f.t1, 'qualsiasi')}</select></label>
+      <label>Secondo tipo<select onchange="dexCambia('t2', this.value)"><option value="">qualsiasi</option>
+        <option value="-" ${f.t2==='-'?'selected':''}>nessuno (un tipo solo)</option>
+        ${Object.entries(TYPES).map(([k,x]) => `<option value="${k}" ${f.t2===k?'selected':''}>${x.n}</option>`).join('')}</select></label>
+      <label>Debole a<select onchange="dexCambia('debole', this.value)">${tipoOpt(f.debole, 'qualsiasi')}</select></label>
+      <label>Generazione${sel('gen', [['','tutte'], ...GENERAZIONI.map((g,i) => [i+1, g[2]])])}</label>
+      <label>SR da<select onchange="dexCambia('srDa', this.value)">${srOpt(f.srDa, '—')}</select></label>
+      <label>SR fino a<select onchange="dexCambia('srA', this.value)">${srOpt(f.srA, '—')}</select></label>
+      <label>Catturabile entro il livello<input type="number" min="1" max="20" value="${esc(f.livMax)}" placeholder="—" onchange="dexCambia('livMax', this.value)"/></label>
+      <label>Taglia${sel('taglia', [['','tutte'], ...TAGLIE.map(t => [t, t])])}</label>
+      <label>Abilità<input list="abil-list" value="${esc(f.abil)}" placeholder="es. Levitazione" onchange="dexCambia('abil', this.value)"/></label>
+      <label>Impara la mossa<input list="movelist" value="${esc(f.mossa)}" placeholder="es. Surf" onchange="dexCambia('mossa', this.value)"/></label>
+      <label>…in che modo${sel('come', [['','in qualsiasi modo'],['liv','salendo di livello'],['mt','con una MT'],['mn','con una MN']])}</label>
+      <label>Forme${sel('forme', [['','tutte'],['base','senza forme regionali'],['regionali','solo forme regionali']])}</label>
+      <label>Evoluzione${sel('evo', [['','tutte'],['evolve','può ancora evolvere'],['finale','forma finale']])}</label>
+      <label>Catturati${sel('presi', [['','tutti'],['si','solo catturati'],['no','non ancora catturati']])}</label>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn small ghost" onclick="dexAzzera()">↺ Azzera</button>
+      <button class="btn small" onclick="dexSalvaRicerca()">⭐ Salva questa ricerca</button>
+    </div>
+    <div class="df-vista">
+      <span class="df-gruppo"><span class="hint">Vista</span>
+        ${['schede','lista'].map(v => `<button class="pocket ${dexVista()===v?'on':''}" onclick="dexSetVista('${v}')">${v==='schede'?'▦ schede':'☰ lista'}</button>`).join('')}</span>
+      <span class="df-gruppo"><span class="hint" title="HD: nitide, circa 80 KB l'una · leggere: sprite classici, meno di 1 KB">Immagini</span>
+        ${[['hd','HD'],['sprite','leggere']].map(([v,l]) => `<button class="pocket ${(state.settings.dexImg||'hd')===v?'on':''}" onclick="dexSetImg('${v}')">${l}</button>`).join('')}</span>
+    </div>
+    <datalist id="abil-list">${Object.keys((P5&&P5.ABIL)||{}).sort().map(a => `<option value="${esc(a)}">`).join('')}</datalist>`;
+}
+function dexVista(){ return state.settings.dexVista === 'lista' ? 'lista' : 'schede'; }
+function dexSetVista(v){ state.settings.dexVista = v; save(); renderDex(); renderDexFiltri(); }
+function dexSetImg(v){ state.settings.dexImg = v; save(); renderDex(); renderDexFiltri(); renderSquad(); }
+
+/* ricerche salvate: un tocco e i filtri tornano come li avevi lasciati */
+function dexSalvaRicerca(){
+  const q = (document.getElementById('dex-search') || {}).value || '';
+  if(!q && !dexNumFiltri()){ toast('Imposta prima qualche filtro.'); return; }
+  const nome = prompt('Come chiami questa ricerca?', dexDescrivi(q).slice(0, 40));
+  if(!nome) return;
+  state.dexRicerche = (state.dexRicerche || []).filter(r => r.nome !== nome);
+  state.dexRicerche.push({nome, q, f: Object.assign({}, dexF)});
+  save(); renderDexRicerche();
+  toast('⭐ Ricerca «' + nome + '» salvata.');
+}
+function dexUsaRicerca(i){
+  const r = (state.dexRicerche || [])[i]; if(!r) return;
+  dexF = Object.assign({}, DEX_F_VUOTO, r.f);
+  const q = document.getElementById('dex-search'); if(q) q.value = r.q || '';
+  const el = document.getElementById('dex-type'); if(el) el.value = dexF.t1 || '';
+  dexShown = DEX_PAGE; renderDex(); renderDexFiltri();
+}
+function dexTogliRicerca(i){
+  const r = (state.dexRicerche || [])[i]; if(!r) return;
+  if(!confirm('Togliere la ricerca «' + r.nome + '»?')) return;
+  state.dexRicerche.splice(i, 1);
+  save(); renderDexRicerche();
+}
+function renderDexRicerche(){
+  const box = document.getElementById('dex-ricerche'); if(!box) return;
+  const rr = state.dexRicerche || [];
+  box.innerHTML = rr.map((r, i) => `<span class="dr-chip"><button onclick="dexUsaRicerca(${i})">⭐ ${esc(r.nome)}</button><button class="x" title="togli" onclick="dexTogliRicerca(${i})">×</button></span>`).join('');
+}
+/* la ricerca in parole, per le etichette dei filtri attivi */
+function dexDescrivi(q){
+  const f = dexF, pezzi = [];
+  if(q) pezzi.push('«' + q + '»');
+  if(f.t1) pezzi.push(TYPES[f.t1].n);
+  if(f.t2 === '-') pezzi.push('un tipo solo'); else if(f.t2) pezzi.push('+ ' + TYPES[f.t2].n);
+  if(f.debole) pezzi.push('debole a ' + TYPES[f.debole].n);
+  if(f.gen) pezzi.push('gen ' + GENERAZIONI[f.gen-1][2]);
+  if(f.srDa !== '' || f.srA !== '') pezzi.push('SR ' + (f.srDa !== '' ? fmtSR(+f.srDa) : '0') + '–' + (f.srA !== '' ? fmtSR(+f.srA) : '∞'));
+  if(f.livMax) pezzi.push('entro il liv. ' + f.livMax);
+  if(f.taglia) pezzi.push(f.taglia);
+  if(f.abil) pezzi.push('abilità ' + f.abil);
+  if(f.mossa) pezzi.push('impara ' + f.mossa + ({liv:' salendo di livello', mt:' con MT', mn:' con MN'}[f.come] || ''));
+  if(f.forme) pezzi.push(f.forme === 'regionali' ? 'forme regionali' : 'senza forme regionali');
+  if(f.evo) pezzi.push(f.evo === 'evolve' ? 'possono evolvere' : 'forma finale');
+  if(f.presi) pezzi.push(f.presi === 'si' ? 'catturati' : 'da catturare');
+  return pezzi.join(' · ');
+}
+
+function renderDex(){
+  const q = document.getElementById('dex-search').value.trim();
+  const tsel = document.getElementById('dex-type');
+  if(tsel && tsel.value !== (dexF.t1 || '')) tsel.value = dexF.t1 || '';
+  const list = SPECIES.filter(s => dexPassa(s, q));
   ordinaDex(list);
 
   const caughtCount = SPECIES.filter(s=>state.caught[s.name]).length;
   document.getElementById('dex-count').textContent =
     `${list.length} specie trovate · ${SPECIES.length} nel dex · ${caughtCount} segnate come catturate`;
+  const att = document.getElementById('dex-attivi');
+  if(att){
+    const n = dexNumFiltri();
+    att.innerHTML = n ? `<span class="hint">Filtri: ${esc(dexDescrivi(''))}</span> <button class="btn small ghost" onclick="dexAzzera()">↺ azzera</button>` : '';
+  }
+  const btn = document.getElementById('dex-ftoggle');
+  if(btn){ const n = dexNumFiltri(); btn.textContent = '🔎 Filtri' + (n ? ' · ' + n : ''); }
 
   const shown = list.slice(0, dexShown);
   document.getElementById('dex-more').style.display = list.length > dexShown ? '' : 'none';
+  const lista = dexVista() === 'lista';
+  const griglia = document.getElementById('dex-list');
+  griglia.classList.toggle('compatta', lista);
 
-  document.getElementById('dex-list').innerHTML = shown.map(s => {
+  griglia.innerHTML = shown.length ? shown.map(s => {
     const i = SPECIES_IDX.get(s.name);
+    const d = s.p5;
     const isCaught = !!state.caught[s.name];
-    const num = s.p5 ? `<span class="num">#${s.p5.n}</span>` : '';
-    const sr = s.p5 ? `<span class="num">SR ${s.p5.sr}</span>` : '';
-    return `<div class="dex-item">
-      <div class="top">
-        ${imgHTML(s.name, s.p5)}
-        <strong onclick="openSheet(${i})" title="apri la scheda">${esc(s.name)}</strong> ${num} ${typeChips(s.types)} ${sr}
-        <label class="caughtbox" title="segna come catturato">
-          <input type="checkbox" ${isCaught?'checked':''} onchange="toggleCaught(${i})"/> ◓
-        </label>
-      </div>
-      <div class="row">
-        ${s.p5 ? `<button class="btn small ghost" onclick="openSheet(${i})">📜 Scheda</button>` : ''}
-        <button class="btn small ghost" onclick="addFromDex(${i})">+ Alla mia scheda</button>
+    return `<div class="dex-item${isCaught?' preso':''}">
+      <div class="di-img" onclick="openSheet(${i})" title="apri la scheda">${imgHTML(s.name, d)}</div>
+      <div class="di-body">
+        <div class="di-top">
+          ${d ? `<span class="num">#${String(d.n).padStart(3,'0')}</span>` : ''}
+          <strong onclick="openSheet(${i})" title="apri la scheda">${esc(s.name)}</strong>
+          <label class="caughtbox" title="segna come catturato">
+            <input type="checkbox" ${isCaught?'checked':''} onchange="toggleCaught(${i})"/> ◓
+          </label>
+        </div>
+        <div class="di-types">${typeChips(s.types)} ${d ? `<span class="num">SR ${fmtSR(d.sr)}</span>` : ''}</div>
+        ${d && !lista ? `<div class="di-stat">PF ${d.hp} · CA ${d.ac} · dal liv. ${d.min} · ${esc(d.size||'')}</div>` : ''}
+        ${lista ? '' : `<div class="di-act">
+          ${d ? `<button class="btn small ghost" onclick="openSheet(${i})">📜 Scheda</button>` : ''}
+          <button class="btn small ghost" onclick="addFromDex(${i})">+ Alla mia scheda</button>
+        </div>`}
       </div>
     </div>`;
-  }).join('');
+  }).join('') : `<div class="panel"><p class="hint" style="margin:0">Nessuna specie con questi filtri. <button class="btn small ghost" onclick="dexAzzera()">↺ Azzera</button></p></div>`;
 }
 /* ---- ordinamento del Pokédex ---- */
 const DEX_SORTS = {
@@ -4478,6 +4798,207 @@ function renderProfiles(){
     ${renderGuests()}`;
 }
 
+/* ================= SCHEDA DELL'ALLENATORE =================
+   Le regole sono quelle della classe Allenatore di poke5e.app (edizione 2024):
+   dado vita d6 (6 + COS al 1° livello, poi 4 + COS a livello), TS su Carisma,
+   Addestrare Animali, Pokéslot e SR massima che cambiano col livello. */
+const TR_MAX_LV = 20;
+const TR_SKILLS = [['Acrobazia','DES'],['Addestrare Animali','SAG'],['Arcano','INT'],['Atletica','FOR'],
+  ['Furtività','DES'],['Indagare','INT'],['Inganno','CAR'],['Intimidire','CAR'],['Intrattenere','CAR'],
+  ['Intuizione','SAG'],['Medicina','SAG'],['Natura','INT'],['Percezione','SAG'],['Persuasione','CAR'],
+  ['Rapidità di Mano','DES'],['Religione','INT'],['Sopravvivenza','SAG'],['Storia','INT']];
+const TR_CAR_NOMI = {FOR:'Forza', DES:'Destrezza', COS:'Costituzione', INT:'Intelligenza', SAG:'Saggezza', CAR:'Carisma'};
+/* livello → Pokéslot, SR massima controllabile, privilegi nuovi */
+const TR_TABELLA = [null,
+  [3, 2,  ['Pokémon iniziale','Specializzazione']], [3, 2,  ['Percorso dell\'allenatore']],
+  [3, 5,  ['Controllo potenziato']],                 [3, 5,  ['Aumento dei punteggi di caratteristica']],
+  [4, 5,  ['Privilegio del percorso','Pokéslot']],   [4, 8,  ['Controllo potenziato']],
+  [4, 8,  ['Specializzazione']],                     [4, 10, ['Aumento dei punteggi di caratteristica','Controllo potenziato']],
+  [4, 10, ['Privilegio del percorso']],              [5, 10, ['Risolutezza dell\'allenatore','Pokéslot']],
+  [5, 12, ['Controllo potenziato']],                 [5, 12, ['Aumento dei punteggi di caratteristica']],
+  [5, 12, ['Segugio di Pokémon']],                   [5, 14, ['Controllo potenziato']],
+  [6, 14, ['Privilegio del percorso','Pokéslot']],   [6, 14, ['Aumento dei punteggi di caratteristica']],
+  [6, 15, ['Controllo potenziato']],                 [6, 15, ['Specializzazione']],
+  [6, 15, ['Dono epico']],                           [6, 15, ['Allenatore maestro']]];
+/* per salire di livello: somma dei livelli dei Pokémon migliori, o voci del Pokédex */
+const TR_LV_POKEMON = [0, 0, 3, 6, 9, 12, 20, 24, 28, 32, 36, 50, 55, 60, 65, 70, 90, 96, 102, 108, 114];
+const TR_LV_DEX     = [0, 0, 8, 15, 25, 35, 45, 58, 75, 87, 100, 110, 122, 138, 154, 168, 178, 186, 192, 197, 200];
+
+function trLv(t){ return Math.max(1, Math.min(TR_MAX_LV, t.level || 1)); }
+function trRiga(t){ return TR_TABELLA[trLv(t)]; }
+function trComp(t){ return 2 + Math.floor((trLv(t) - 1) / 4); }
+function trMod(t, k){ return mod((t.car || {})[k] ?? 10); }
+function trPFmax(t){
+  if(t.pfMaxMano) return t.pfMaxMano;
+  const c = trMod(t, 'COS');
+  return Math.max(1, 6 + c + (trLv(t) - 1) * Math.max(1, 4 + c));
+}
+function trPF(t){ return t.pfCur == null ? trPFmax(t) : Math.min(t.pfCur, trPFmax(t)); }
+function trCA(t){ return t.caMano != null ? t.caMano : 10 + trMod(t, 'DES'); }
+function trTS(t, k){ return trMod(t, k) + ((t.tsProf || []).includes(k) ? trComp(t) : 0); }
+function trSkill(t, nome, car){ return trMod(t, car) + ((t.skProf || {})[nome] || 0) * trComp(t); }
+function trSRMax(t){ return trRiga(t)[1]; }
+function trSlot(t){ return trRiga(t)[0]; }
+/* il livello che le due tabelle ufficiali suggeriscono */
+function trLivelloSuggerito(t){
+  const tutti = allPkm(t);
+  let perPokemon = 1;
+  for(let lv = 2; lv <= TR_MAX_LV; lv++){
+    const slot = TR_TABELLA[lv - 1][0];      /* i Pokéslot che si hanno prima di salire */
+    const somma = tutti.map(p => p.level || 0).sort((a, b) => b - a).slice(0, slot).reduce((a, b) => a + b, 0);
+    if(somma >= TR_LV_POKEMON[lv]) perPokemon = lv; else break;
+  }
+  const specie = new Set(tutti.map(p => p5name(p.species) || p.species).filter(Boolean)).size;
+  let perDex = 1;
+  for(let lv = 2; lv <= TR_MAX_LV; lv++) if(specie >= TR_LV_DEX[lv]) perDex = lv;
+  return {perPokemon, perDex, specie};
+}
+
+let trTab = 'scheda';
+function setTrTab(k){ trTab = k; renderSquad(); }
+function trovaTrainer(tid){ return state.trainers.find(x => x.id === tid); }
+function trCar(tid, k, v){
+  const t = trovaTrainer(tid); if(!t) return;
+  t.car[k] = Math.max(1, Math.min(30, parseInt(v, 10) || 10));
+  save(); renderSquad();
+}
+function trToggleTS(tid, k){
+  const t = trovaTrainer(tid); if(!t) return;
+  t.tsProf = t.tsProf.includes(k) ? t.tsProf.filter(x => x !== k) : [...t.tsProf, k];
+  save(); renderSquad();
+}
+/* competenza a tre stati: niente → competente → maestria (doppia) */
+function trToggleSk(tid, nome){
+  const t = trovaTrainer(tid); if(!t) return;
+  const v = ((t.skProf[nome] || 0) + 1) % 3;
+  if(v) t.skProf[nome] = v; else delete t.skProf[nome];
+  save(); renderSquad();
+}
+function trCampo(tid, campo, v, numero){
+  const t = trovaTrainer(tid); if(!t) return;
+  if(numero){ const n = parseInt(v, 10); t[campo] = isNaN(n) || v === '' ? null : n; }
+  else t[campo] = String(v || '').trim();
+  save(); renderSquad();
+}
+function trCura(tid, delta){
+  const t = trovaTrainer(tid); if(!t) return;
+  const cur = trPF(t) + delta;
+  t.pfCur = cur >= trPFmax(t) ? null : Math.max(0, cur);
+  save(); renderSquad();
+}
+function trPortaA(tid, lv){
+  const t = trovaTrainer(tid); if(!t) return;
+  t.level = Math.max(1, Math.min(TR_MAX_LV, lv));
+  save(); renderSquad();
+  toast('🎓 ' + t.name + ' è di livello ' + t.level + '.');
+}
+
+function renderTrainerSheet(t){
+  const comp = trComp(t), pfM = trPFmax(t), pf = trPF(t), pct = Math.round(100 * pf / pfM);
+  const riga = trRiga(t);
+  const sug = trLivelloSuggerito(t);
+  const car = STAT_KEYS.map(k => `<div class="ab tr-ab">
+      <label title="${TR_CAR_NOMI[k]}">${k}</label>
+      <input type="number" min="1" max="30" value="${t.car[k]}" onchange="trCar('${t.id}','${k}',this.value)"/>
+      <small>${fmtMod(trMod(t, k))}</small>
+      <button class="tr-ts ${t.tsProf.includes(k)?'on':''}" title="competenza nel tiro salvezza su ${TR_CAR_NOMI[k]}"
+        onclick="trToggleTS('${t.id}','${k}')">TS ${fmtMod(trTS(t, k))}</button>
+    </div>`).join('');
+  const skills = TR_SKILLS.map(([nome, c]) => {
+    const liv = t.skProf[nome] || 0;
+    return `<button class="tr-sk lv${liv}" title="${liv===2?'maestria':liv?'competente':'nessuna competenza'} — tocca per cambiare"
+      onclick="trToggleSk('${t.id}','${esc(nome).replace(/'/g,"\\'")}')">
+      <span class="dot"></span><span class="nm">${esc(nome)}</span><small>${c}</small><b>${fmtMod(trSkill(t, nome, c))}</b></button>`;
+  }).join('');
+  const percPass = 10 + trSkill(t, 'Percezione', 'SAG');
+  const suggerito = Math.max(sug.perPokemon, sug.perDex);
+  const fuoriControllo = t.team.filter(p => { const d = p5data(p.species); return d && d.sr > trSRMax(t); });
+
+  return `<div class="tr-sheet">
+    <div class="statrow">
+      <div class="stat"><b>+${comp}</b><span>Competenza</span></div>
+      <div class="stat"><b>${trCA(t)}</b><span>CA</span></div>
+      <div class="stat"><b>${fmtMod(trMod(t,'DES'))}</b><span>Iniziativa</span></div>
+      <div class="stat"><b>${esc(t.vel)}</b><span>Velocità</span></div>
+      <div class="stat"><b>${percPass}</b><span>Percezione passiva</span></div>
+      <div class="stat"><b>${riga[0]}</b><span>Pokéslot</span></div>
+      <div class="stat"><b>${fmtSR(riga[1])}</b><span>SR controllabile</span></div>
+    </div>
+
+    <div class="tr-pf">
+      <div class="row" style="gap:8px">
+        <b>❤️ PF ${pf} / ${pfM}</b>
+        <button class="btn ghost small" onclick="trCura('${t.id}',-1)">−1</button>
+        <button class="btn ghost small" onclick="trCura('${t.id}',-5)">−5</button>
+        <button class="btn ghost small" onclick="trCura('${t.id}',5)">+5</button>
+        <button class="btn ghost small" onclick="trCura('${t.id}',999)">Pieni</button>
+        <span class="hint" style="margin:0 0 0 auto">d6 · 6 + COS al 1° livello, poi 4 + COS</span>
+      </div>
+      <div class="hpbar"><i style="width:${pct}%; background:${pct>50?'var(--ok)':pct>25?'var(--warn)':'var(--danger)'}"></i></div>
+    </div>
+
+    <div class="abilities tr-abilities">${car}</div>
+
+    <div class="sechead" style="margin-top:12px"><h4 style="margin:0">Abilità</h4>
+      <span class="hint" style="margin:0">● competente · ◉ maestria — tocca per cambiare</span></div>
+    <div class="tr-skills">${skills}</div>
+
+    <div class="tr-lv">
+      <div><b>Privilegi del ${trLv(t)}° livello:</b> ${riga[2].map(esc).join(', ')}</div>
+      <div class="hint" style="margin:4px 0 0">Per le regole il livello si può dare a tappe della storia, oppure così:
+        <b>${sug.perPokemon}</b> dai livelli dei Pokémon migliori · <b>${sug.perDex}</b> dalle ${sug.specie} specie catturate.
+        ${suggerito > trLv(t) && trLv(t) < TR_MAX_LV ? `<button class="btn small" onclick="trPortaA('${t.id}',${suggerito})">Porta al ${suggerito}°</button>` : ''}</div>
+      ${fuoriControllo.length ? `<div class="tr-warn">⚠ Con SR massima ${fmtSR(trSRMax(t))} non obbediscono: ${fuoriControllo.map(p => `<b>${esc(p.nick)}</b> (SR ${fmtSR(p5data(p.species).sr)})`).join(', ')}.</div>` : ''}
+      ${t.team.length > riga[0] ? `<div class="hint" style="margin:4px 0 0">Nel regolamento a questo livello si portano ${riga[0]} Pokémon; qui la squadra è di ${t.team.length} — decide il GM.</div>` : ''}
+    </div>
+
+    <div class="row tr-campi">
+      <label>Razza / origine<input value="${esc(t.origine)}" placeholder="umano, da Sprigonia…" onchange="trCampo('${t.id}','origine',this.value)"/></label>
+      <label>Percorso<input value="${esc(t.percorso)}" placeholder="dal 2° livello" onchange="trCampo('${t.id}','percorso',this.value)"/></label>
+      <label>Specializzazioni<input value="${esc(t.specs)}" placeholder="tipi (1°, 7°, 18° livello)" onchange="trCampo('${t.id}','specs',this.value)"/></label>
+      <label>Velocità<input value="${esc(t.vel)}" style="width:70px" onchange="trCampo('${t.id}','vel',this.value)"/></label>
+      <label>CA a mano<input type="number" value="${t.caMano ?? ''}" placeholder="${10+trMod(t,'DES')}" style="width:70px" onchange="trCampo('${t.id}','caMano',this.value,1)"/></label>
+      <label>PF max a mano<input type="number" value="${t.pfMaxMano ?? ''}" placeholder="${trPFmax(Object.assign({}, t, {pfMaxMano:null}))}" style="width:80px" onchange="trCampo('${t.id}','pfMaxMano',this.value,1)"/></label>
+    </div>
+  </div>`;
+}
+/* 0.125 → «1/8»: le SR basse si leggono come frazioni */
+function fmtSR(v){
+  return ({0.125:'1/8', 0.25:'1/4', 0.5:'1/2'})[v] || String(v);
+}
+
+function renderTrainerCard(t){
+  const badgeCount = t.badges.filter(Boolean).length;
+  const badges = BADGE_NAMES.map((b,i) =>
+    `<span class="badge ${t.badges[i]?'on':''}" onclick="toggleBadge('${t.id}',${i})"
+       title="${t.badges[i]?'Medaglia '+b+' conquistata':'Medaglia '+b+' non ancora conquistata'}">${b}</span>`).join('');
+  const nZaino = Object.values(t.bag||{}).filter(q => q > 0).length;
+  const tabs = [['scheda','🪪 Scheda'], ['zaino','🎒 Zaino' + (nZaino ? ' · ' + nZaino : '')],
+                ['medaglie','🏅 Medaglie · ' + badgeCount + '/8'], ['statistiche','📊 Statistiche']];
+  if(!tabs.some(([k]) => k === trTab)) trTab = 'scheda';
+  const corpo = trTab === 'zaino' ? renderBag(t)
+    : trTab === 'medaglie' ? `<div class="panel"><div class="badges">${badges}</div>
+        <p class="hint" style="margin:10px 0 0">Livelli dei Pokémon consigliati con ${badgeCount} medagli${badgeCount===1?'a':'e'}: <b style="color:var(--accent)">${BADGE_LV[badgeCount]}</b></p></div>`
+    : trTab === 'statistiche' ? renderStats(t)
+    : `<div class="panel">${renderTrainerSheet(t)}</div>`;
+  return `<div class="panel trcard">
+      <div class="trcard-head">
+        <div class="tr-avatar">${esc((t.name||'?').trim().charAt(0).toUpperCase())}</div>
+        <div class="tr-id">
+          <input value="${esc(t.name)}" onchange="renameTrainer('${t.id}',this.value)" class="tr-name"/>
+          <small>Tessera Allenatore · ${badgeCount} medagli${badgeCount===1?'a':'e'} · ${fmtMoney(t.money||0)}</small>
+        </div>
+        <div class="tr-level">
+          <button class="btn ghost small" onclick="trPortaA('${t.id}',${trLv(t)-1})" ${trLv(t)<=1?'disabled':''}>−</button>
+          <div><b>${t.level}</b><small>livello</small></div>
+          <button class="btn ghost small" onclick="trPortaA('${t.id}',${trLv(t)+1})" ${trLv(t)>=TR_MAX_LV?'disabled':''}>+</button>
+        </div>
+      </div>
+      <div class="pockets tr-tabs">${tabs.map(([k,l]) => `<button class="pocket ${trTab===k?'on':''}" onclick="setTrTab('${k}')">${l}</button>`).join('')}</div>
+    </div>
+    ${corpo}`;
+}
+
 function renderSquad(){
   refreshBoxSheet();
   const view = document.getElementById('squad-view');
@@ -4498,11 +5019,6 @@ function renderSquad(){
   title.textContent = `Scheda di ${t.name}`;
   intro.textContent = 'Squadra, mosse ed esperienza di questo giocatore. Le statistiche si aggiornano da sole con le lotte e le catture.';
 
-  const badgeCount = t.badges.filter(Boolean).length;
-  const badges = BADGE_NAMES.map((b,i) =>
-    `<span class="badge ${t.badges[i]?'on':''}" onclick="toggleBadge('${t.id}',${i})"
-       title="${t.badges[i]?'Medaglia '+b+' conquistata':'Medaglia '+b+' non ancora conquistata'}">${b}</span>`).join('');
-
   const team = t.team.map(p => renderPkm(p)).join('');
 
   view.innerHTML = `
@@ -4511,30 +5027,64 @@ function renderSquad(){
       <button class="btn small" onclick="askPokeCenter('${t.id}')">🏥 Centro Pokémon</button>
       <button class="btn small" onclick="openShareCode('${t.id}')">📨 Manda al GM</button>
       <button class="btn ghost small" onclick="exportTrainer('${t.id}')">⬇ Esporta</button>
+      <button class="btn danger small" style="margin-left:auto" onclick="removeTrainer('${t.id}')">Elimina</button>
     </div>
-    <div class="panel">
-      <div class="row">
-        <input value="${esc(t.name)}" onchange="renameTrainer('${t.id}',this.value)" style="font-weight:700; font-size:15px; width:170px"/>
-        <label>Livello allenatore <input type="number" min="1" max="25" value="${t.level}" onchange="trainerLevel('${t.id}',this.value)"/></label>
-        <span class="hint" style="margin:0">livelli consigliati con ${badgeCount} medagli${badgeCount===1?'a':'e'}: <b style="color:var(--accent)">${BADGE_LV[badgeCount]}</b></span>
-        <button class="btn danger small" style="margin-left:auto" onclick="removeTrainer('${t.id}')">Elimina</button>
-      </div>
-      <div class="badges" style="margin-top:10px">${badges}</div>
-    </div>
-    ${renderStats(t)}
-    ${renderBag(t)}
+    ${renderTrainerCard(t)}
     <div class="sechead">
       <h3>◓ Squadra</h3>
       <span class="counter ${t.team.length>=MAX_TEAM?'full':''}">${t.team.length}/${MAX_TEAM}</span>
-      <div class="ballrow">${[0,1,2,3,4,5].map(i=>{
+      <div class="ballrow" onclick="openOrdineSquadra('${t.id}')" title="cambia l'ordine della squadra" style="cursor:pointer">${[0,1,2,3,4,5].map(i=>{
         const p = t.team[i];
-        return `<span class="ballslot ${p?'on':''}" title="${p?esc(p.nick)+' · Liv. '+p.level:'posto libero'}"></span>`;
+        return `<span class="ballslot ${p?'on':''}" title="${p?(i+1)+'° · '+esc(p.nick)+' · Liv. '+p.level:'posto libero'}"></span>`;
       }).join('')}</div>
+      ${t.team.length > 1 ? `<button class="btn ghost small" onclick="openOrdineSquadra('${t.id}')">⇅ Riordina</button>` : ''}
       <button class="btn small" style="margin-left:auto" onclick="addBlankPkm('${t.id}')">+ Aggiungi</button>
     </div>
     <div class="grid">${team}</div>
     ${t.team.length ? '' : '<div class="panel"><p class="hint" style="margin:0">Squadra vuota: aggiungi un Pokémon da qui o dal Pokédex.</p></div>'}
     <div id="box-wrap">${renderBox(t)}</div>`;
+}
+
+/* ---- ordine della squadra: il primo è quello che scende in campo ----
+   Conta davvero: è l'ordine che vede il GM quando gli mandi la scheda e quello
+   con cui la squadra compare al tavolo delle lotte. */
+var ordineAperto = null;   /* var: closeModal lo azzera anche prima che questo punto sia eseguito */
+function spostaInSquadra(pid, delta){
+  const [t,p,where] = findPkm(pid);
+  if(!t || where !== 'team') return;
+  const i = t.team.indexOf(p), j = i + delta;
+  if(j < 0 || j >= t.team.length) return;
+  [t.team[i], t.team[j]] = [t.team[j], t.team[i]];
+  save(); renderSquad();
+  if(ordineAperto === t.id) openOrdineSquadra(t.id);
+}
+function mettiInTesta(pid){
+  const [t,p,where] = findPkm(pid);
+  if(!t || where !== 'team') return;
+  t.team.splice(t.team.indexOf(p), 1);
+  t.team.unshift(p);
+  save(); renderSquad();
+  if(ordineAperto === t.id) openOrdineSquadra(t.id);
+  toast('◓ ' + p.nick + ' scende in campo per primo.');
+}
+function openOrdineSquadra(tid){
+  const t = state.trainers.find(x => x.id === tid); if(!t) return;
+  ordineAperto = tid;
+  const righe = t.team.map((p, i) => `<div class="ord-row${i===0?' lead':''}">
+      <span class="ord-n">${i+1}°</span>
+      ${imgHTML(p5name(p.species)||p.species, p5data(p.species))}
+      <div class="ord-nome"><b>${esc(p.nick)}</b><small>${esc(p.species||'')} · Liv. ${p.level}</small></div>
+      ${typeChips(p.types)}
+      <span class="ord-act">
+        ${i>0?`<button class="btn ghost small" title="in testa" onclick="mettiInTesta('${p.id}')">⤒</button>`:''}
+        <button class="btn ghost small" ${i===0?'disabled':''} onclick="spostaInSquadra('${p.id}',-1)">↑</button>
+        <button class="btn ghost small" ${i===t.team.length-1?'disabled':''} onclick="spostaInSquadra('${p.id}',1)">↓</button>
+      </span>
+    </div>`).join('');
+  showModal(`<h3>⇅ Ordine della squadra</h3>
+    <p class="hint">Il primo è quello che scende in campo; l'ordine è anche quello che vede il GM.</p>
+    <div id="ordine-lista">${righe}</div>
+    <div class="mrow"><button class="btn" onclick="ordineAperto=null; closeModal()">Fatto</button></div>`);
 }
 
 /* ---- Box: tutti i Pokémon catturati oltre ai sei in squadra ---- */
@@ -4695,11 +5245,20 @@ function renderPkm(p){
   const sIdx = SPECIES_IDX.has(p5name(p.species)||p.species) ? SPECIES_IDX.get(p5name(p.species)||p.species) : null;
 
   const dexData = p5data(p.species);
-  return `<div class="pkm">
+  const pos = t0 ? t0.team.indexOf(p) : -1;
+  const ordine = pos >= 0 ? `<span class="ordine" title="posizione in squadra: il primo scende in campo per primo">
+      <button class="ord-b" ${pos===0?'disabled':''} title="più avanti" onclick="spostaInSquadra('${p.id}',-1)">↑</button>
+      <b class="${pos===0?'lead':''}">${pos===0?'1° in campo':(pos+1)+'°'}</b>
+      <button class="ord-b" ${pos===t0.team.length-1?'disabled':''} title="più indietro" onclick="spostaInSquadra('${p.id}',1)">↓</button>
+    </span>` : '';
+  return `<div class="pkm${pos===0?' is-lead':''}">
     <div class="head">
+      ${ordine}
       ${imgHTML(p5name(p.species)||p.species, dexData)}
       <input class="nick" value="${esc(p.nick)}" onchange="pkmField('${p.id}','nick',this.value)"/>
       ${isStarter?`<span class="mini" style="color:var(--warn); border-color:rgba(246,224,94,.4)" title="Pokémon iniziale">⭐ iniziale</span>`:''}
+      ${pos >= 0 && dexData && dexData.sr > trSRMax(t0) ? `<span class="mini" style="color:var(--danger); border-color:rgba(255,90,90,.4)"
+        title="SR ${fmtSR(dexData.sr)}: con il livello ${t0.level} l'allenatore controlla fino a SR ${fmtSR(trSRMax(t0))}">⚠ non obbedisce</span>` : ''}
       <span class="hint" style="margin:0">${esc(p.species && p.species!==p.nick ? p.species : '')}</span>
       ${typeChips(p.types)}
       <span class="lvl">Liv. ${p.level}</span>
