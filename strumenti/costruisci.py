@@ -13,6 +13,7 @@ import sys, json, re
 sys.path.insert(0, '.')
 from carica import *
 from nuove19 import schede, MOSSE as N19
+import nuove45, abil49, aggiunte
 
 m_sp, _ = mappa_specie()
 MM = mappa_mosse()
@@ -22,6 +23,7 @@ for it, s_ in MM.items():
     if s_ not in SLUG2IT or it in ORA['MOVES'] and not ORA['MOVES'][it].get('casa'):
         SLUG2IT[s_] = it
 for s_, v in N19.items(): SLUG2IT[s_] = v[0]
+for s_, v in nuove45.MOSSE.items(): SLUG2IT[s_] = v[0]
 
 DIE = {'d6': 6, 'd8': 8, 'd10': 10, 'd12': 12, 'd20': 20}
 
@@ -65,6 +67,28 @@ for n, d in ORA['POKEMON'].items():
 pp_g = {s_: r['pp'] for s_, r in MOVES_CSV.items()}
 pp_srd = {x['id']: x['pp'] for x in SM}
 NUOVE = schede(pp_g, pp_srd)
+NUOVE.update(nuove45.schede(pp_g, pp_srd))
+
+# ---------------- 2b. specie nuove: gen 9 e forme ufficiali mancanti ----------------
+_ab_id = {r['id']: r['identifier'] for r in rcsv('abilities.csv')}
+AB_IT = {}
+for r in rcsv('ability_names.csv'):
+    if r['local_language_id'] == '8': AB_IT[_ab_id.get(r['ability_id'])] = r['name']
+AB_IT.update(mappa_abilita())                       # i nomi già usati dal dex vincono
+ABIL_NUOVE = {}
+for a, (nome, testo) in abil49.ABIL.items():
+    AB_IT[a] = nome
+    if nome not in ORA['ABIL']: ABIL_NUOVE[nome] = testo
+SPECIE_NUOVE, PID_NUOVE, EVO = aggiunte.costruisci(m_sp, SLUG2IT, AB_IT)
+# evoluzioni che puntano a un nome che nel dex non esiste (es. Espurr → «Meowstic ♂»):
+# le ricolleghiamo alla scheda giusta passando dal nome inglese del SRD
+per_nome_srd = {p['name']: n for n, p in m_sp.items()}
+for n, d in ORA['POKEMON'].items():
+    ev = d.get('ev') or {}
+    into = ev.get('into') or []
+    if any(x not in ORA['POKEMON'] and x not in SPECIE_NUOVE for x in into):
+        giusti = [x if (x in ORA['POKEMON'] or x in SPECIE_NUOVE) else per_nome_srd.get(x, x) for x in into]
+        EVO[n] = dict(EVO.get(n, ev), into=giusti)
 PP = {}
 for it in ORA['MOVES']:
     s_ = MM[it]
@@ -105,10 +129,11 @@ def pokeapi_id(n, d):
     if p: cand += [p['id'], p['id'].replace('-form', ''), p['id'].replace('-forme', '')]
     for c in cand:
         if c in pk_by_ident: return pk_by_ident[c]['id']
+    if n in PID_NUOVE and PID_NUOVE[n] in pk_by_ident: return pk_by_ident[PID_NUOVE[n]]['id']
     base = pk_default.get(d.get('n'))
     return base['id'] if base else None
 
-interessanti = {int(MOVES_CSV[s_]['id']): s_ for s_ in list(extra) + MN_ORDINE}
+interessanti = {int(MOVES_CSV[s_]['id']): s_ for s_ in list(extra) + MN_ORDINE + [t['move'] for t in ST]}
 imparano = {}
 with open(os.path.join(CSV, 'pokemon_moves.csv'), encoding='utf-8') as f:
     for r in csv.DictReader(f):
@@ -118,9 +143,11 @@ with open(os.path.join(CSV, 'pokemon_moves.csv'), encoding='utf-8') as f:
 
 num_extra = {s_: n for n, it in TM_EXTRA.items() for s_ in [MM.get(it) or [k for k, v in N19.items() if v[0] == it][0]]}
 num_mn = {s_: i + 1 for i, s_ in enumerate(MN_ORDINE)}
+num_extra.update({t['move']: t['id'] for t in ST})   # le 256 del sistema: chi le impara nei giochi
 COMPAT = {}
 senza_id = []
-for n, d in ORA['POKEMON'].items():
+TUTTE = dict(ORA['POKEMON']); TUTTE.update(SPECIE_NUOVE)
+for n, d in TUTTE.items():
     pid = pokeapi_id(n, d)
     if not pid: senza_id.append(n); continue
     s = imparano.get(pid, set())
@@ -135,7 +162,7 @@ esistono = set(l.strip() for l in open(os.path.join(S, 'sprite_files.txt')))
 def ha(pid, dove):
     return ('sprites/pokemon/%s%s.png' % (dove, pid)) in esistono
 IMG = {}
-for n, d in ORA['POKEMON'].items():
+for n, d in TUTTE.items():
     pid = pokeapi_id(n, d)
     if not pid or str(pid) == str(d.get('n')): continue
     if ha(pid, 'other/home/') or ha(pid, '') or ha(pid, 'other/official-artwork/'):
@@ -143,8 +170,32 @@ for n, d in ORA['POKEMON'].items():
 out_img = IMG
 
 # ---------------- scrittura ----------------
-out = {'SPECIE': SPECIE, 'NUOVE': NUOVE, 'PP': PP, 'TM': TM_EXTRA, 'MN': MN, 'COMPAT': COMPAT, 'IMG': IMG}
+# le MT di ogni specie, finali (manuale P5e + giochi), come maschera di bit in base64:
+# 351 MT = 44 byte a specie invece di centinaia di numeri
+import base64
+def maschera(nums):
+    bits = bytearray((max(TM_EXTRA) + 8) // 8)
+    for n in nums: bits[(n - 1) // 8] |= 1 << ((n - 1) % 8)
+    return base64.b64encode(bytes(bits)).decode().rstrip('=')
+TMB, MNL = {}, {}
+for n, d in TUTTE.items():
+    if n in SPECIE_NUOVE: base = SPECIE_NUOVE[n]['mv']['tm']
+    elif n in SPECIE and 'mv' in SPECIE[n]: base = SPECIE[n]['mv']['tm']
+    else: base = d['mv'].get('tm', [])
+    tot = set(base) | set(COMPAT.get(n, [[], []])[0])
+    TMB[n] = maschera(tot)
+    if COMPAT.get(n, [[], []])[1]: MNL[n] = COMPAT[n][1]
+for d in list(SPECIE.values()) + list(SPECIE_NUOVE.values()):
+    if 'mv' in d: d['mv'].pop('tm', None)
+COMPAT = None
+out = {'SPECIE': SPECIE, 'NUOVE': NUOVE, 'PP': PP, 'TM': TM_EXTRA, 'MN': MN, 'TMB': TMB, 'MNL': MNL, 'IMG': IMG,
+       'SPECIE_NUOVE': SPECIE_NUOVE, 'ABIL': ABIL_NUOVE, 'EVO': EVO}
 APPLICA = r"""
+function dallaMaschera(b64){
+  var bin = atob(b64 + '==='.slice((b64.length + 3) % 4)), out = [];
+  for(var i = 0; i < bin.length; i++){ var c = bin.charCodeAt(i); for(var k = 0; k < 8; k++) if(c & (1 << k)) out.push(i * 8 + k + 1); }
+  return out;
+}
 window.P5E_2024 = D;
 var P = window.P5E;
 if(!P || !P.POKEMON || !P.MOVES) return;
@@ -161,18 +212,21 @@ for(var n in D.SPECIE){
   var s = P.POKEMON[n]; if(!s) continue;
   var c = D.SPECIE[n];
   for(var k in c) if(k !== 'mv') s[k] = c[k];
-  if(c.mv) s.mv = {s: c.mv.s, l: c.mv.l, tm: c.mv.tm.slice()};
+  if(c.mv) s.mv = {s: c.mv.s, l: c.mv.l, tm: s.mv.tm || []};
 }
-/* 4. MT 257+ dei videogiochi e MN, con chi può impararle */
+/* 3b. gen 9 e forme ufficiali che mancavano, con le loro abilità; chi evolve in loro lo sa */
+P.ABIL = P.ABIL || {};
+for(var n in D.ABIL) if(!P.ABIL[n]) P.ABIL[n] = D.ABIL[n];
+for(var n in D.SPECIE_NUOVE) if(!P.POKEMON[n]) P.POKEMON[n] = D.SPECIE_NUOVE[n];
+for(var n in D.EVO) if(P.POKEMON[n]) P.POKEMON[n].ev = D.EVO[n];
+/* 4. MT 257+ dei videogiochi e MN; per tutte le MT, anche chi le impara nei giochi */
 P.TM = P.TM || {};
 for(var k in D.TM) if(!P.TM[k]) P.TM[k] = D.TM[k];
 P.MN = D.MN;
-for(var n in D.COMPAT){
+for(var n in D.TMB){
   var s = P.POKEMON[n]; if(!s) continue;
-  var tm = s.mv.tm || [], extra = D.COMPAT[n][0];
-  for(var i = 0; i < extra.length; i++) if(tm.indexOf(extra[i]) < 0) tm.push(extra[i]);
-  s.mv.tm = tm.sort(function(a, b){ return a - b; });
-  s.mv.mn = D.COMPAT[n][1].slice();
+  s.mv.tm = dallaMaschera(D.TMB[n]);
+  s.mv.mn = (D.MNL[n] || []).slice();
 }
 /* 5. l'id dell'immagine giusta per le forme (regionali comprese) */
 for(var n in D.IMG) if(P.POKEMON[n]) P.POKEMON[n].pid = D.IMG[n];
@@ -187,6 +241,7 @@ js = ("/* Correzione del Pokédex — generato da costruisci.py, non modificare 
 open('/home/user/luthia/p5e-2024.js', 'w', encoding='utf-8').write(js)
 print('specie corrette:', len(SPECIE), cambi)
 print('mosse nuove:', len(NUOVE), '| PP cambiati:', len(PP), '| MT extra:', len(TM_EXTRA), min(TM_EXTRA), '-', max(TM_EXTRA), '| MN:', MN)
-print('specie con MT extra o MN:', len(COMPAT), '| senza id PokeAPI:', senza_id)
+print('specie con MT:', len(TMB), '| senza id PokeAPI:', senza_id)
 print('forme con immagine propria:', len(IMG), sorted(IMG)[:12])
+print('specie nuove:', len(SPECIE_NUOVE), '| abilità nuove:', len(ABIL_NUOVE), '| evoluzioni aggiornate:', sorted(EVO))
 print('dimensione:', len(js.encode()) // 1024, 'KB')

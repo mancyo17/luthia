@@ -20,10 +20,18 @@ Esporta/Importa per condividerli).
   🎒 Zaino, 🏅 Medaglie, 📊 Statistiche. La scheda segue la classe Allenatore di poke5e.app:
   le sei caratteristiche con i tiri salvezza (Carisma di base), le 18 abilità con competenza e
   maestria, **PF** con il dado d6 (6 + COS al 1° livello, poi 4 + COS), CA, iniziativa,
-  percezione passiva, velocità, e per il livello i **Pokéslot**, la **SR massima
-  controllabile** e i privilegi che si ottengono. Suggerisce il livello con le due tabelle
-  ufficiali (livelli dei Pokémon migliori, specie catturate) e segna «⚠ non obbedisce» sui
-  Pokémon con SR troppo alta. Livello da 1 a 20 con i pulsanti − e +.
+  percezione passiva, velocità, i **Pokéslot** del livello e i privilegi ottenuti. Suggerisce
+  il livello con le due tabelle ufficiali (livelli dei Pokémon migliori, specie catturate).
+  Livello da 1 a 20 con i pulsanti − e +. Nessun limite di obbedienza: i Pokémon obbediscono
+  sempre.
+- **Classi**: la classe è l'Allenatore e si sceglie il **percorso**, cioè la sottoclasse — i 13
+  ufficiali tradotti: Fantallenatore, Hobbista, Poké Mentore, Ricercatore, Collezionista di
+  Pokémon, Infermiere, Maestro di Tipo, Comandante, Recluta, Stratega, Ranger, Guru,
+  Allevapokémon — con i privilegi al 2°, 5°, 9° e 15° livello e la risorsa che ognuno
+  accumula (dadi battaglia, Punti Ombra, Punti Tattica…), calcolata sulle caratteristiche.
+  Più le **18 specializzazioni** di tipo (Pokéfan, Cinturanera, Fuochista, Domadraghi…), con
+  il loro effetto, cumulabili. La tessera elenca tutti i privilegi ottenuti fino al livello
+  attuale, con il testo per intero.
 - **Natura e abilità come nei giochi**: alla cattura escono da sole — natura fra le 21
   ufficiali, abilità sorteggiata fra quelle che quella specie può avere (nascosta compresa).
   Quando il Pokémon evolve l'abilità può cambiare: decide il giocatore (o il GM imposta
@@ -61,10 +69,10 @@ Esporta/Importa per condividerli).
   Etere se ha finito i PP — tira la formula di cura scritta sull'oggetto e lo consuma.
 - **Natura scegliibile**: come per l'abilità, l'elenco completo delle 21 nature con i loro
   modificatori; alla cattura resta sorteggiata.
-- **Descrizioni complete**: tutte le **785 mosse** hanno la loro scheda — le 675 del dex, le
+- **Descrizioni complete**: tutte le **830 mosse** hanno la loro scheda — le 675 del dex, le
   91 di gen 8/9 che il dex non riportava, scritte sulle stesse convenzioni (formule di danno
-  per fascia di livello, tiri salvezza, effetti) e segnate come schede di casa, e 19 mosse
-  ufficiali recenti (Idrotaglio, Prestigiafiore, Canzone Ardente, Invocaluna…) tradotte dal
+  per fascia di livello, tiri salvezza, effetti) e segnate come schede di casa, e 64 mosse
+  ufficiali recenti (Idrotaglio, Corsa all'Oro, Clava di Liane, Teracluster…) tradotte dal
   dataset di poke5e.app con i dadi della sua tabella delle classi di danno.
   Le **voci del Pokédex** delle specie non esistono nel database: si prendono in italiano
   dall'archivio pubblico PokéAPI la prima volta che si apre una scheda e restano poi salvate
@@ -106,22 +114,28 @@ Esporta/Importa per condividerli).
   Market, nello zaino e nella schermata «usa oggetto» — le MT e le MN prendono l'icona del
   tipo della mossa che insegnano. Arrivano dall'archivio pubblico PokéAPI: la prima volta serve
   connessione e poi restano nella cache del browser. Le **forme regionali e alternative**
-  (66: Alola, Galar, Hisui, Rotom, Giratina…) ora hanno la loro immagine; nell'editor della
+  (95: Alola, Galar, Hisui, Paldea, Rotom, Ogerpon…) ora hanno la loro immagine; nell'editor della
   specie resta il campo per incollare un indirizzo a mano.
 - **Schede modificabili da chiunque**: ogni specie del dex si può correggere (MT e MN
   comprese). Dalla schermata «Usa una MT» c'è «Ne manca una?»: si cerca, si aggiunge alla
   specie una volta sola e vale per sempre. Ogni modifica si annulla con **Ripristina** e resta
   sul proprio dispositivo.
-- **Pokédex**: 1043 specie con scheda completa (CA, PF, statistiche, tiri salvezza,
+- **Pokédex**: 1179 specie con scheda completa (CA, PF, statistiche, tiri salvezza,
   abilità, mosse per livello, evoluzioni, MT e MN con numero e nome) — senza indicazioni su
   dove trovarle in Aethera, per non fare spoiler ai giocatori. Comprende le 896 specie
-  del dex P5e standard più le **132 schede di Spada/Scudo, Leggende Arceus e delle forme di
-  Galar e di Hisui**.
+  del dex P5e standard, le **132 schede di Spada/Scudo, Leggende Arceus e delle forme di
+  Galar e di Hisui**, e le **136 schede della nona generazione** (Paldea, Teal Mask e Indigo
+  Disk, fino a Pecharunt) con le forme ufficiali che mancavano (Tauros e Wooper di Paldea,
+  Kyogre e Groudon Archeo, le forme Totem, Zacian e Zamazenta coronati, Calyrex cavalieri,
+  Ursaluna Luna Cremisi, le maschere di Ogerpon…). Con loro 49 abilità nuove tradotte. Le
+  creature inventate dal sito (Droideon, Rookite…) restano fuori.
 - **Dati controllati con poke5e.app**: SR, CA, PF, dado vita, livello minimo, caratteristiche,
   taglia, mosse iniziali e per livello e compatibilità con le MT sono quelli del dataset
   ufficiale che il sito mostra (edizione 2024, [github.com/Auroratide/poke5e](https://github.com/Auroratide/poke5e)).
   716 specie sono state corrette; le gen 8 hanno perso SR e livelli minimi stimati e preso
-  quelli veri. I Pokémon già catturati non cambiano: i loro PF sono copiati sul Pokémon alla
+  quelli veri. Ricontrollo completo: **tutte le 1173 specie che il sito ha** hanno SR, CA, PF e
+  livello minimo identici; solo le taglie Grande/Mini/Maxi di Pumpkaboo e Gourgeist non sono
+  sul sito e restano quelle del dex. I Pokémon già catturati non cambiano: i loro PF sono copiati sul Pokémon alla
   cattura. Il file è `p5e-2024.js`, generato dagli script in `strumenti/`.
 - **Console del GM**: i giocatori mandano la propria scheda con un codice da incollare in
   chat (o il file .json) e il GM vede squadre, livelli, PF, mosse e zaino di tutti.
@@ -143,10 +157,13 @@ Esporta/Importa per condividerli).
   di Scarlatto/Violetto (iniziali di Paldea, Charcadet→Armarouge/Ceruledge,
   Frigibax→Baxcalibur), che prima erano schede di casa, ora hanno i numeri ufficiali.
 - **MT e MN**: le 256 MT del sistema con la **compatibilità completa** (il vecchio dex si
-  fermava alla MT 100: 611 specie hanno guadagnato 17.359 abbinamenti), più le **MT 257–351**
+  fermava alla MT 100: 611 specie hanno guadagnato 17.359 abbinamenti) e in più tutte quelle
+  che i giochi permettono e il manuale non riporta (altre 4.973, es. Pikachu con Calmamente),
+  più le **MT 257–351**
   — le 95 mosse che sono state MT nei videogiochi ma mancano dalla tabella P5e (Megapugno,
   Codacciaio, Bottintesta, Canto…) — e le **MN01–MN11** (Taglio, Volo, Surf, Forza, Flash,
-  Spaccaroccia, Cascata, Sub, Mulinello, Scalaroccia, Scacciabruma). Per MT extra e MN la
+  Spaccaroccia, Cascata, Sub, Mulinello, Scalaroccia, Scacciabruma) — cioè ogni mossa che sia
+  stata MT o MN in un gioco qualsiasi, Scarlatto/Violetto e DLC compresi. Per MT extra e MN la
   compatibilità è quella dei giochi: può impararle chi poteva impararle da macchina. Le MN
   hanno lo scaffale loro al Market a prezzo simbolico e non si consumano.
 - **Calcoli** e **Tipi**: formule P5e e tabella di efficacia in due direzioni.
