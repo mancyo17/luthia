@@ -44,6 +44,8 @@ header{
   display:flex; align-items:center; gap:14px; justify-content:space-between; flex-wrap:wrap;
 }
 .brand{display:flex; flex-direction:column; gap:2px}
+.pf-toggle{font-variant-numeric:tabular-nums; white-space:nowrap; margin-left:auto}
+.pf-toggle[aria-pressed="true"]{background:#2f7d5a; color:#fff}
 .brand strong{font-size:17px}
 .brand span{font-size:12px; color:var(--muted)}
 nav.tabs{display:flex; gap:6px; flex-wrap:wrap}
@@ -914,6 +916,7 @@ window.addEventListener('error', function(e){
     </span>
   </div>
   <nav class="tabs" id="tabs"></nav>
+  <button class="btn small pf-toggle" id="pf-toggle" onclick="cambiaVita()" aria-pressed="false" title="Vita dei Pokémon: tocca per passare da PF ridotti a PF pieni e viceversa">❤ PF 60%</button>
   <button class="btn small" id="install-btn" style="display:none" onclick="installApp()">📱 Installa</button>
 </header>
 
@@ -2096,7 +2099,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '4.4';
+const APP_VERSION = '4.5';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -2233,6 +2236,27 @@ function load(){
   s.trainers.forEach(migrateTrainer);
   if(s.pfDaScalare){ riscalaPFAttuali(s, 100, s.pfDaScalare); delete s.pfDaScalare; }
   return s;
+}
+/* pulsante in testata: passa dalla vita ridotta a quella piena (100%) e ritorno */
+function impostaVita(nuova){
+  const s = state.settings, ora = pfScala();
+  if(nuova === ora) return;
+  if(ora !== 100) s.pfRidotta = ora;
+  riscalaPFAttuali(state, ora, nuova);
+  s.pfScala = nuova;
+  save(); renderSquad(); renderBattles(); renderDex(); renderSettings(); calcPF();
+}
+function cambiaVita(){
+  const nuova = pfScala() === 100 ? (state.settings.pfRidotta || 60) : 100;
+  impostaVita(nuova);
+  toast(nuova === 100 ? '❤ PF pieni (100%): regole del manuale P5e' : `❤ PF ridotti al ${nuova}%: lotte più brevi`);
+}
+function aggiornaPulsanteVita(){
+  const b = document.getElementById('pf-toggle'); if(!b) return;
+  const v = pfScala();
+  b.textContent = '❤ PF ' + v + '%';
+  b.setAttribute('aria-pressed', v === 100 ? 'true' : 'false');
+  b.title = v === 100 ? `PF pieni (manuale P5e). Tocca per tornare al ${state.settings.pfRidotta || 60}%.` : `PF ridotti al ${v}%. Tocca per passare ai PF pieni (100%).`;
 }
 function riscalaPFAttuali(s, da, a){
   for(const t of s.trainers) for(const p of [...(t.team||[]), ...(t.box||[])])
@@ -6402,6 +6426,7 @@ function renderSettings(){
   const selPF = document.getElementById('set-pfscala');
   selPF.innerHTML = SCALE_PF.map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
   selPF.value = String(pfScala());
+  aggiornaPulsanteVita();
   for(const k of ['MT','Pietre','Tenuti','Altro']) document.getElementById('set-molt-' + k).value = (s.molt || {})[k] || 1;
   document.getElementById('app-version').textContent = APP_VERSION;
   document.getElementById('app-schema').textContent = SCHEMA;
@@ -6433,7 +6458,9 @@ function saveSettings(){
   s.trackPP = document.getElementById('set-pp').checked;
   s.ppFonte = document.getElementById('set-ppfonte').value === 'p5e' ? 'p5e' : 'giochi';
   const nuovaPF = parseInt(document.getElementById('set-pfscala').value) || 100;
-  if(nuovaPF !== pfScala()){ riscalaPFAttuali(state, pfScala(), nuovaPF); s.pfScala = nuovaPF; }
+  if(nuovaPF !== pfScala()){ if(pfScala() !== 100) s.pfRidotta = pfScala(); riscalaPFAttuali(state, pfScala(), nuovaPF); s.pfScala = nuovaPF; }
+  if(nuovaPF !== 100) s.pfRidotta = nuovaPF;
+  aggiornaPulsanteVita();
   s.molt = {};
   for(const k of ['MT','Pietre','Tenuti','Altro']){
     const v = parseFloat(String(document.getElementById('set-molt-' + k).value).replace(',', '.'));

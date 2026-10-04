@@ -41,6 +41,8 @@ Esporta/Importa per condividerli).
   schede del dex e calcolatrice. Di base è **al 60%**; si può scegliere piena (100%), 75%, 50% o
   40%. Cambiandola, i PF attuali scendono o salgono nella stessa misura, così chi era ferito
   resta ferito allo stesso modo; i salvataggi di prima della 4.4 vengono portati al 60% da soli.
+  Il pulsante **❤ PF 60%** in alto, sempre visibile, passa al volo ai PF pieni (100%) e torna
+  alla scala ridotta scelta, per esempio per un incontro importante.
 - **Poké Market**: scaffali per categoria con Poké Ball, cure, vitamine, pietre, oggetti
   chiave, **351 MT** e le **11 MN**, ognuno con il suo prezzo. **Prezzi bilanciati**: le MT
   costano quanto dice il sistema (da 2.500 ₽ per le minori a 15.000 per le più forti — Tuono
