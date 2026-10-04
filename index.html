@@ -981,6 +981,8 @@ window.addEventListener('error', function(e){
           pietre <input type="number" id="set-molt-Pietre" min="0.1" step="0.1" style="width:58px" onchange="saveSettings()"/>
           tenuti <input type="number" id="set-molt-Tenuti" min="0.1" step="0.1" style="width:58px" onchange="saveSettings()"/>
           resto <input type="number" id="set-molt-Altro" min="0.1" step="0.1" style="width:58px" onchange="saveSettings()"/></label>
+        <label title="Riduce in proporzione i PF di tutti i Pokémon: squadre, selvatici, dex e calcolatrice. I PF attuali scendono nella stessa misura.">Vita dei Pokémon
+          <select id="set-pfscala" onchange="saveSettings()"></select></label>
         <label>PP delle mosse
           <select id="set-ppfonte" onchange="saveSettings()">
             <option value="giochi">come nei videogiochi</option>
@@ -2081,14 +2083,20 @@ function natAC(p){
 }
 function effStat(p, key){ return (p.stats[key]||10) + natDelta(p,key); }
 function conMod(p){ return p.stats ? mod(effStat(p,'COS')) : (p.con||0); }
+/* Vita dei Pokémon: le regole P5e danno PF alti e lotte lunghe. La scala li
+   riduce tutti in proporzione (squadre, selvatici, dex, calcolatrice), così gli
+   scontri durano meno. 100 = regole del manuale. */
+const SCALE_PF = [[100,'piena (regole P5e)'], [75,'ridotta (75%)'], [60,'bassa (60%, consigliata)'], [50,'metà (50%)'], [40,'molto bassa (40%)']];
+function pfScala(){ let v = 0; try{ v = +state.settings.pfScala; }catch(e){} return v > 0 ? v : 100; }
+function scalaPF(x){ return Math.max(1, Math.round(x * pfScala() / 100)); }
 function maxPF(p){
-  return p.basePF + (p.level - p.minLevel) * (DIE_AVG[p.die] + conMod(p)) + (p.evoBonus||0);
+  return scalaPF(p.basePF + (p.level - p.minLevel) * (DIE_AVG[p.die] + conMod(p)) + (p.evoBonus||0));
 }
 
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '4.3';
+const APP_VERSION = '4.4';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -2117,7 +2125,7 @@ function defaultSettings(){
   return {needMult:2, defeatMult:1, captureMult:1, autoLevel:true,
     capBase:10, capLevel:true, capHP:true,
     autoNature:true, autoAbility:true, evoAbility:'ask',
-    trackPP:true};
+    trackPP:true, pfScala:60};
 }
 function defaultState(){
   return {schema:SCHEMA, caught:{}, trainers:[], activeTrainer:null, battles:[],
@@ -2218,10 +2226,17 @@ function load(){
       s = Object.assign(defaultState(), saved);
       s.settings = Object.assign(defaultSettings(), saved.settings||{});
       s.schema = SCHEMA;
+      /* salvataggi di prima della scala dei PF: i PF attuali scendono in proporzione */
+      if(!(saved.settings && saved.settings.pfScala)) s.pfDaScalare = s.settings.pfScala;
     }
   }catch(e){}
   s.trainers.forEach(migrateTrainer);
+  if(s.pfDaScalare){ riscalaPFAttuali(s, 100, s.pfDaScalare); delete s.pfDaScalare; }
   return s;
+}
+function riscalaPFAttuali(s, da, a){
+  for(const t of s.trainers) for(const p of [...(t.team||[]), ...(t.box||[])])
+    if(p.curPF != null) p.curPF = Math.max(p.curPF > 0 ? 1 : 0, Math.round(p.curPF * a / da));
 }
 function save(){
   state.schema = SCHEMA;
@@ -2584,7 +2599,7 @@ function renderDex(){
           </label>
         </div>
         <div class="di-types">${typeChips(s.types)} ${d ? `<span class="num">SR ${fmtSR(d.sr)}</span>` : ''}</div>
-        ${d && !lista ? `<div class="di-stat">PF ${d.hp} · CA ${d.ac} · dal liv. ${d.min} · ${esc(d.size||'')}</div>` : ''}
+        ${d && !lista ? `<div class="di-stat">PF ${scalaPF(d.hp)} · CA ${d.ac} · dal liv. ${d.min} · ${esc(d.size||'')}</div>` : ''}
         ${lista ? '' : `<div class="di-act">
           ${d ? `<button class="btn small ghost" onclick="openSheet(${i})">📜 Scheda</button>` : ''}
           <button class="btn small ghost" onclick="addFromDex(${i})">+ Alla mia scheda</button>
@@ -2694,7 +2709,7 @@ function openSheet(i){
     ${ex.g?`<p class="hint" style="margin:0">${esc(ex.g)}${ex.h?` · ${(ex.h/10).toLocaleString('it')} m · ${(ex.w/10).toLocaleString('it')} kg`:''}</p>`:''}
     ${ex.f?`<p class="flavor">${esc(ex.f)}</p>`:''}
     <div class="statline">
-      <div><b>CA</b> ${d.ac}</div><div><b>PF</b> ${d.hp} (liv. ${d.min})</div>
+      <div><b>CA</b> ${d.ac}</div><div><b>PF</b> ${scalaPF(d.hp)} (liv. ${d.min})${pfScala() !== 100 ? ` <small style="opacity:.7">· ${d.hp} da manuale</small>` : ''}</div>
       <div><b>Dado Vita</b> d${d.die}</div><div><b>SR</b> ${fmtSR(d.sr)}</div>
       <div><b>Taglia</b> ${esc(d.size)}</div><div><b>Velocità</b> ${esc(d.spd)}</div>
     </div>
@@ -4298,9 +4313,10 @@ function delMove(pid, idx, ev){
 
 function levelUp(pid, silent){
   const [,p] = findPkm(pid); if(!p) return null;
-  const gain = DIE_AVG[p.die] + conMod(p);
   const oldComp = compBonus(p.level), oldStab = stabBonus(p.level);
+  const prima = maxPF(p);
   p.level += 1;
+  const gain = maxPF(p) - prima;
   if(p.curPF!=null) p.curPF += gain;
   const newMoves = p.moves.filter(m=>m.lv===p.level).map(m=>m.name);
   const d = p5data(p.species);
@@ -4422,7 +4438,7 @@ function applyEvolution(pid, newName, pts){
     const sp = SPECIES.find(s=>s.name===newName);
     if(sp) p.types = sp.types;
   }
-  p.curPF = (p.curPF==null) ? maxPF(p) : Math.min(maxPF(p), p.curPF + bonus);
+  p.curPF = (p.curPF==null) ? maxPF(p) : Math.min(maxPF(p), p.curPF + scalaPF(bonus));
 
   /* abilità dopo l'evoluzione: si tiene, si ritira o la sceglie il giocatore */
   const choices = abilityChoices(newName);
@@ -4445,7 +4461,7 @@ function applyEvolution(pid, newName, pts){
   const askAbil = choices.length > 1 && mode === 'ask';
   showModal(`<h3>🌟 Evoluzione!</h3>
     <p class="levelup-gain"><b>${esc(p.nick)}</b> è evoluto in <b>${esc(newName)}</b>!</p>
-    <p class="levelup-gain">💗 PF una tantum: <b>+${bonus}</b> (2 × liv. ${p.level}) → ora ${maxPF(p)} PF</p>
+    <p class="levelup-gain">💗 PF una tantum: <b>+${scalaPF(bonus)}</b> (2 × liv. ${p.level}${pfScala() !== 100 ? ', vita al ' + pfScala() + '%' : ''}) → ora ${maxPF(p)} PF</p>
     ${nd ? `<p class="levelup-gain">📋 Scheda aggiornata dal dex: CA ${nd.ac}, statistiche e mosse della nuova forma.</p>` : ''}
     ${pts ? `<p class="levelup-gain">🎯 Distribuisci <b>+${pts} punti caratteristica</b> (regola ufficiale P5e).</p>` : ''}
     ${abilNote}
@@ -5668,7 +5684,7 @@ function speciesPFat(name, lvl){
   const d = p5data(name);
   if(!d) return null;
   const L = Math.max(lvl, d.min);
-  return d.hp + (L - d.min) * (DIE_AVG[d.die] + mod(d.attr.COS));
+  return scalaPF(d.hp + (L - d.min) * (DIE_AVG[d.die] + mod(d.attr.COS)));
 }
 function nbSpeciesPick(){
   const name = document.getElementById('nb-species').value.trim();
@@ -6383,6 +6399,9 @@ function renderSettings(){
   document.getElementById('set-evoabil').value = s.evoAbility || 'ask';
   document.getElementById('set-pp').checked = s.trackPP !== false;
   document.getElementById('set-ppfonte').value = s.ppFonte === 'p5e' ? 'p5e' : 'giochi';
+  const selPF = document.getElementById('set-pfscala');
+  selPF.innerHTML = SCALE_PF.map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
+  selPF.value = String(pfScala());
   for(const k of ['MT','Pietre','Tenuti','Altro']) document.getElementById('set-molt-' + k).value = (s.molt || {})[k] || 1;
   document.getElementById('app-version').textContent = APP_VERSION;
   document.getElementById('app-schema').textContent = SCHEMA;
@@ -6413,6 +6432,8 @@ function saveSettings(){
   s.evoAbility = document.getElementById('set-evoabil').value;
   s.trackPP = document.getElementById('set-pp').checked;
   s.ppFonte = document.getElementById('set-ppfonte').value === 'p5e' ? 'p5e' : 'giochi';
+  const nuovaPF = parseInt(document.getElementById('set-pfscala').value) || 100;
+  if(nuovaPF !== pfScala()){ riscalaPFAttuali(state, pfScala(), nuovaPF); s.pfScala = nuovaPF; }
   s.molt = {};
   for(const k of ['MT','Pietre','Tenuti','Altro']){
     const v = parseFloat(String(document.getElementById('set-molt-' + k).value).replace(',', '.'));
@@ -6425,7 +6446,7 @@ function saveSettings(){
   s.capBase = isNaN(g('set-capbase'))?10:g('set-capbase');
   s.capLevel = document.getElementById('set-caplevel').checked;
   s.capHP = document.getElementById('set-caphp').checked;
-  save(); renderSquad(); renderBattles();
+  save(); renderSquad(); renderBattles(); renderDex(); calcPF();
 }
 function exportData(){
   const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
@@ -6466,10 +6487,10 @@ function calcPF(){
   const die = parseInt(document.getElementById('c-die').value)||6;
   const con = parseInt(document.getElementById('c-con').value)||0;
   const lvl = parseInt(document.getElementById('c-lvl').value)||min;
-  const pf = base + (lvl-min)*(DIE_AVG[die]+con);
+  const grezzi = base + (lvl-min)*(DIE_AVG[die]+con), pf = scalaPF(grezzi);
   document.getElementById('c-out').textContent = pf + ' PF al livello ' + lvl;
   document.getElementById('c-detail').textContent =
-    ` — ${base} + (${lvl} − ${min}) × (${DIE_AVG[die]} + ${con}) · Competenza +${compBonus(lvl)} · STAB ${stabBonus(lvl)>0?'+'+stabBonus(lvl):'—'}`;
+    ` — ${base} + (${lvl} − ${min}) × (${DIE_AVG[die]} + ${con}) = ${grezzi}${pfScala() !== 100 ? ' × ' + pfScala() + '% (vita dei Pokémon)' : ''} · Competenza +${compBonus(lvl)} · STAB ${stabBonus(lvl)>0?'+'+stabBonus(lvl):'—'}`;
 }
 function calcEvo(){
   const l = parseInt(document.getElementById('c-evo').value)||1;

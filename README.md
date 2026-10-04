@@ -36,6 +36,11 @@ Esporta/Importa per condividerli).
   ufficiali, abilità sorteggiata fra quelle che quella specie può avere (nascosta compresa).
   Quando il Pokémon evolve l'abilità può cambiare: decide il giocatore (o il GM imposta
   «la tiene» / «si ritira sempre»).
+- **Vita dei Pokémon** (Impostazioni → «Vita dei Pokémon»): le regole P5e danno PF alti e lotte
+  lunghe, quindi la scala riduce in proporzione i PF di tutti i Pokémon — squadre, selvatici,
+  schede del dex e calcolatrice. Di base è **al 60%**; si può scegliere piena (100%), 75%, 50% o
+  40%. Cambiandola, i PF attuali scendono o salgono nella stessa misura, così chi era ferito
+  resta ferito allo stesso modo; i salvataggi di prima della 4.4 vengono portati al 60% da soli.
 - **Poké Market**: scaffali per categoria con Poké Ball, cure, vitamine, pietre, oggetti
   chiave, **351 MT** e le **11 MN**, ognuno con il suo prezzo. **Prezzi bilanciati**: le MT
   costano quanto dice il sistema (da 2.500 ₽ per le minori a 15.000 per le più forti — Tuono
