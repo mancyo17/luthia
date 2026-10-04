@@ -2088,7 +2088,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '4.2';
+const APP_VERSION = '4.3';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -4678,7 +4678,7 @@ function recordBattle(tid, kind){
 
 function shareCode(t){
   const light = {
-    v:1, name:t.name, level:t.level, badges:t.badges, money:t.money,
+    v:1, name:t.name, level:t.level, badges:t.badges, money:t.money, path:t.path||'', spec:t.spec||{},
     stats:{wins:t.stats.wins, losses:t.stats.losses, captures:t.stats.captures,
       xpTotal:t.stats.xpTotal, moves:t.stats.moves},
     starter:(allPkm(t).find(p=>p.id===t.starter)||{}).nick || '',
