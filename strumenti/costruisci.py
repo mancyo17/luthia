@@ -116,6 +116,25 @@ MN_ORDINE = ['cut', 'fly', 'surf', 'strength', 'flash', 'rock-smash', 'waterfall
 assert set(MN_ORDINE) == hm_slugs, hm_slugs
 MN = {i + 1: SLUG2IT[s_] for i, s_ in enumerate(MN_ORDINE)}
 
+# prezzi delle MT: quelli ufficiali del sistema per le 256; per le altre la mediana
+# ufficiale delle MT con la stessa classe di danno (le mosse di stato a parte)
+import statistics
+_SMd = {x['id']: x for x in SM}
+def _classe(slug_):
+    m = _SMd.get(slug_, {}); c = (m.get('dice') or {}).get('class')
+    return c if c and c.isdigit() else 'stato'
+_per_classe = {}
+for t in ST: _per_classe.setdefault(_classe(t['move']), []).append(t['cost'])
+_med = {k: int(round(statistics.median(v) / 100.0) * 100) for k, v in _per_classe.items()}
+def _vicina(c):
+    if c in _med: return _med[c]
+    ks = sorted(int(k) for k in _med if k.isdigit()); x = int(c)
+    return _med[str(min(ks, key=lambda k: abs(k - x)))]
+TMCOST = {t['id']: t['cost'] for t in ST}
+for n, it in TM_EXTRA.items():
+    s_ = MM.get(it) or next(k for k, v in list(N19.items()) + list(nuove45.MOSSE.items()) if v[0] == it)
+    TMCOST[n] = _vicina(_classe(s_))
+
 # chi può imparare cosa da macchina, in qualunque gioco
 pk = rcsv('pokemon.csv')
 pk_by_ident = {r['identifier']: r for r in pk}
@@ -189,7 +208,7 @@ for d in list(SPECIE.values()) + list(SPECIE_NUOVE.values()):
     if 'mv' in d: d['mv'].pop('tm', None)
 COMPAT = None
 out = {'SPECIE': SPECIE, 'NUOVE': NUOVE, 'PP': PP, 'TM': TM_EXTRA, 'MN': MN, 'TMB': TMB, 'MNL': MNL, 'IMG': IMG,
-       'SPECIE_NUOVE': SPECIE_NUOVE, 'ABIL': ABIL_NUOVE, 'EVO': EVO}
+       'SPECIE_NUOVE': SPECIE_NUOVE, 'ABIL': ABIL_NUOVE, 'EVO': EVO, 'TMCOST': TMCOST}
 APPLICA = r"""
 function dallaMaschera(b64){
   var bin = atob(b64 + '==='.slice((b64.length + 3) % 4)), out = [];
@@ -223,6 +242,7 @@ for(var n in D.EVO) if(P.POKEMON[n]) P.POKEMON[n].ev = D.EVO[n];
 P.TM = P.TM || {};
 for(var k in D.TM) if(!P.TM[k]) P.TM[k] = D.TM[k];
 P.MN = D.MN;
+P.TM_COSTO = D.TMCOST;   /* prezzo di ogni MT */
 for(var n in D.TMB){
   var s = P.POKEMON[n]; if(!s) continue;
   s.mv.tm = dallaMaschera(D.TMB[n]);
@@ -244,4 +264,5 @@ print('mosse nuove:', len(NUOVE), '| PP cambiati:', len(PP), '| MT extra:', len(
 print('specie con MT:', len(TMB), '| senza id PokeAPI:', senza_id)
 print('forme con immagine propria:', len(IMG), sorted(IMG)[:12])
 print('specie nuove:', len(SPECIE_NUOVE), '| abilità nuove:', len(ABIL_NUOVE), '| evoluzioni aggiornate:', sorted(EVO))
+print('prezzi MT: Tuono', TMCOST[25], '| Iperraggio', TMCOST[15], '| MT257', TM_EXTRA[257], TMCOST[257], '| fascia', min(TMCOST.values()), '-', max(TMCOST.values()))
 print('dimensione:', len(js.encode()) // 1024, 'KB')

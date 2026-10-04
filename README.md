@@ -37,7 +37,14 @@ Esporta/Importa per condividerli).
   Quando il Pokémon evolve l'abilità può cambiare: decide il giocatore (o il GM imposta
   «la tiene» / «si ritira sempre»).
 - **Poké Market**: scaffali per categoria con Poké Ball, cure, vitamine, pietre, oggetti
-  chiave, **351 MT** e le **11 MN**, ognuno con il suo prezzo. Si compra per il giocatore la cui
+  chiave, **351 MT** e le **11 MN**, ognuno con il suo prezzo. **Prezzi bilanciati**: le MT
+  costano quanto dice il sistema (da 2.500 ₽ per le minori a 15.000 per le più forti — Tuono
+  8.400, Iperraggio 10.800; le MT 257–351 prendono il prezzo ufficiale medio della loro classe
+  di danno), le pietre evolutive 8.000 (10.000 quelle di Charcadet), gli strumenti tenuti a
+  fasce (Avanzi, Corpetto Assalto e oggetti «scelta» 8.000, potenziatori di tipo 4.400,
+  tattici 3.000, bacche 200), e gli oggetti legati a un leggendario non si vendono. In
+  Impostazioni il GM ha quattro moltiplicatori (MT, pietre, tenuti, resto) per stringere o
+  allargare l'economia. Si compra per il giocatore la cui
   scheda è aperta: i soldi si scalano da soli, la roba finisce nello zaino e si può
   rivendere a metà prezzo. Ogni articolo ha la sua scheda con la descrizione per intero e,
   per le MT, la scheda completa della mossa: tipo, PP, gittata, danni per livello ed effetti.

@@ -976,6 +976,11 @@ window.addEventListener('error', function(e){
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autonat" onchange="saveSettings()"/> natura sorteggiata alla cattura</label>
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-autoabil" onchange="saveSettings()"/> abilità sorteggiata alla cattura</label>
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-pp" onchange="saveSettings()"/> tieni conto dei PP delle mosse</label>
+        <label title="1 = prezzi del sistema; 1,5 = il 50% più cari; 0,8 = più economici">Prezzi ×
+          MT <input type="number" id="set-molt-MT" min="0.1" step="0.1" style="width:58px" onchange="saveSettings()"/>
+          pietre <input type="number" id="set-molt-Pietre" min="0.1" step="0.1" style="width:58px" onchange="saveSettings()"/>
+          tenuti <input type="number" id="set-molt-Tenuti" min="0.1" step="0.1" style="width:58px" onchange="saveSettings()"/>
+          resto <input type="number" id="set-molt-Altro" min="0.1" step="0.1" style="width:58px" onchange="saveSettings()"/></label>
         <label>PP delle mosse
           <select id="set-ppfonte" onchange="saveSettings()">
             <option value="giochi">come nei videogiochi</option>
@@ -1173,7 +1178,7 @@ window.addEventListener('error', function(e){
 
 <script src="p5e-data.js?v=4"></script>
 <script src="p5e-gen8.js?v=4"></script>
-<script src="p5e-2024.js?v=2"></script>
+<script src="p5e-2024.js?v=3"></script>
 <script src="p5e-fuori.js?v=3"></script>
 
 <script>
@@ -1875,7 +1880,7 @@ const ALL_ITEMS = () => {
     if(gia.has(n)) continue;
     out.push({n, c:'Strumenti tenuti', p:/^bacca/i.test(n)?PREZZO_BACCA:PREZZO_TENUTI, e, src:'dex'});
   }
-  return out.sort((a,b)=>a.n.localeCompare(b.n));
+  return out.map(conPrezzo).sort((a,b)=>a.n.localeCompare(b.n));
 };
 const ITEM_BY_NAME = () => Object.fromEntries(ALL_ITEMS().map(i=>[i.n,i]));
 const BALLS = () => CATALOG.filter(i => i.c === 'Poké Ball');
@@ -1925,6 +1930,54 @@ const MARKET_CATS = ['Poké Ball','Cure','Vitamine','Pietre','Strumenti tenuti',
 /* Gli strumenti che i Pokémon tengono addosso: nel dex ci sono già con i loro
    effetti, ma non avevano un prezzo e quindi non si potevano comprare. */
 const PREZZO_TENUTI = 1500, PREZZO_BACCA = 200;
+
+/* ---- prezzi bilanciati ----
+   Le MT costano quanto dice il sistema (poke5e.app): da 2.500 ₽ per le mosse minori a
+   15.000 per le più forti — Tuono 8.400, Iperraggio 10.800. Le pietre evolutive saltano
+   livelli di crescita, quindi costano come una MT forte. Gli strumenti tenuti sono a fasce:
+   quelli che cambiano una lotta da soli costano quanto una pietra. Gli oggetti legati a un
+   leggendario non si vendono. Il GM regola tutto con i moltiplicatori in Impostazioni. */
+const PREZZI_PIETRE = {_:8000, 'Neropietra':10000, 'Pietrasapienza':10000};
+const PREZZI_TENUTI = {
+  /* chiave di volta di una squadra */
+  'Avanzi':8000, 'Corpetto Assalto':8000, 'Bendascelta':8000, 'Sciarpascelta':8000, 'Occhialiscelta':8000,
+  'Vitasfera':8000, 'Evolcondensa':8000, 'Capsula Abilità':12000, 'Fortunuovo':6000, 'Elettropalla':5000,
+  /* fanno evolvere chi li tiene durante uno scambio o un livello */
+  'Roccia di Re':6000, 'Metalcopertura':6000, 'Squama Abissale':6000, 'Dente Abissale':6000,
+  /* potenziano un tipo (prezzo ufficiale del sistema) */
+  'Carbonella':4400, 'Acquamagica':4400, 'Magnete':4400, 'Miracolseme':4400, 'Gelomai':4400, 'Cinturanera':4400,
+  'Occhialineri':4400, 'Velenaculeo':4400, 'Sabbia Soffice':4400, 'Beccaffilato':4400, 'Cucchiaiotorto':4400,
+  'Argenpolvere':4400, 'Pietradura':4400, 'Spettrotarga':4400, 'Dragozanna':4400, 'Sciarpaseta':4400, 'Fangopece':4400,
+  /* tattici */
+  'Bandana':4000, 'Elmo Ruvido':4000, 'Vigorcintura':4000, 'Pallafumo':4400, 'Grandelente':3000, 'Mirino':3000,
+  'Rapidartigli':3000, 'Affilartiglio':3000, 'Pulsantefuga':3000, 'Restipietra':3000, 'Granradice':3000,
+  'Assorbisfera':3000, 'Verispecchio':3000, 'Levigatoroccia':3000, 'Palloncino':1500, 'Conchinella':3000,
+  'Caldoroccia':3000, 'Umidoroccia':3000, 'Gelidoroccia':3000, 'Fiammosfera':2500, 'Tossicsfera':2500,
+  'Metalpolvere':3000, 'Osso Spesso':3000, 'Porro':3000, 'Fortunpugno':3000, 'Calmanella':1500,
+  /* bacche: le due che curano davvero valgono di più */
+  'Baccacedro':500, 'Baccaprugna':500,
+  /* legati a un leggendario: non si comprano */
+  'Lastra di Arceus':0, 'Modulo di Genesect':0, 'Grigiosfera':0, 'Megalite':0, 'Gracidea':0,
+  'Lunarizzatore N':0, 'Solarizzatore N':0, 'Cuneo DNA':0
+};
+function moltPrezzo(c){
+  const m = (state.settings.molt || {});
+  const k = c === 'MT' || c === 'MN' ? 'MT' : c === 'Pietre' ? 'Pietre' : c === 'Strumenti tenuti' ? 'Tenuti' : 'Altro';
+  const v = parseFloat(m[k]); return v > 0 ? v : 1;
+}
+function prezzoBilanciato(i){
+  let p = i.p;
+  if(i.tm) p = (P5 && P5.TM_COSTO && P5.TM_COSTO[i.tm]) || TM_PRICE;
+  else if(i.c === 'Pietre' && i.p) p = PREZZI_PIETRE[i.n] || PREZZI_PIETRE._;
+  else if(i.c === 'Strumenti tenuti'){
+    if(PREZZI_TENUTI[i.n] != null) p = PREZZI_TENUTI[i.n];
+    else p = /^bacca/i.test(i.n) ? PREZZO_BACCA : 2000;
+  }
+  if(!p || i.mn || i.nosale) return p;
+  const v = p * moltPrezzo(i.c);
+  return v >= 1000 ? Math.round(v / 100) * 100 : Math.max(10, Math.round(v / 10) * 10);
+}
+function conPrezzo(i){ const p = prezzoBilanciato(i); return p === i.p ? i : Object.assign({}, i, {p, nosale: i.nosale || p === 0}); }
 let _tenuti = null;
 function TENUTI(){
   if(_tenuti) return _tenuti;
@@ -1937,7 +1990,7 @@ function TENUTI(){
   _tenuti.sort((a,b)=>a.n.localeCompare(b.n));
   return _tenuti;
 }
-function MARKET_ITEMS(){ return [...CATALOG, ...TENUTI(), ...TM_ITEMS(), ...MN_ITEMS()]; }
+function MARKET_ITEMS(){ return [...CATALOG, ...TENUTI(), ...TM_ITEMS(), ...MN_ITEMS()].map(conPrezzo); }
 function marketByName(){ return Object.fromEntries(MARKET_ITEMS().map(i=>[i.n,i])); }
 function onSale(i){ return !!i.p && !i.nosale; }
 
@@ -2035,7 +2088,7 @@ function maxPF(p){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '4.1';
+const APP_VERSION = '4.2';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -6095,6 +6148,7 @@ function compraDaScheda(name){
   buyItem(name, q);
 }
 
+let marketMostra = 400;   /* abbastanza per tutte le 351 MT in un solo scaffale */
 function setMarketCat(c){ marketCat = c; renderMarket(); }
 function setMarketQty(v){ marketQty = Math.max(1, parseInt(v)||1); renderMarket(); }
 
@@ -6112,7 +6166,7 @@ function renderMarket(){
   const shelves = MARKET_CATS.map(c =>
     `<button class="shelf ${marketCat===c&&!qq?'on':''}" onclick="setMarketCat('${c}')">${esc(c)}</button>`).join('');
 
-  const rows = list.slice(0, 120).map(i => {
+  const rows = list.slice(0, marketMostra).map(i => {
     const sale = onSale(i);
     const have = t ? (t.bag[i.n]||0) : 0;
     const afford = t && money(t) >= i.p * marketQty;
@@ -6154,7 +6208,7 @@ function renderMarket(){
     </div>
     <div class="shelves">${shelves}</div>
     <div class="row" style="margin:10px 0">
-      <input id="market-search" placeholder="Cerca in tutto il negozio (anche fra le 256 MT)…" value="${esc(q)}"
+      <input id="market-search" placeholder="Cerca in tutto il negozio (anche fra le 351 MT)…" value="${esc(q)}"
         style="flex:1; min-width:180px" oninput="renderMarket()"/>
       <label class="hint" style="margin:0">Quantità
         <input type="number" min="1" value="${marketQty}" style="width:70px" onchange="setMarketQty(this.value)"/></label>
@@ -6329,6 +6383,7 @@ function renderSettings(){
   document.getElementById('set-evoabil').value = s.evoAbility || 'ask';
   document.getElementById('set-pp').checked = s.trackPP !== false;
   document.getElementById('set-ppfonte').value = s.ppFonte === 'p5e' ? 'p5e' : 'giochi';
+  for(const k of ['MT','Pietre','Tenuti','Altro']) document.getElementById('set-molt-' + k).value = (s.molt || {})[k] || 1;
   document.getElementById('app-version').textContent = APP_VERSION;
   document.getElementById('app-schema').textContent = SCHEMA;
 }
@@ -6358,6 +6413,11 @@ function saveSettings(){
   s.evoAbility = document.getElementById('set-evoabil').value;
   s.trackPP = document.getElementById('set-pp').checked;
   s.ppFonte = document.getElementById('set-ppfonte').value === 'p5e' ? 'p5e' : 'giochi';
+  s.molt = {};
+  for(const k of ['MT','Pietre','Tenuti','Altro']){
+    const v = parseFloat(String(document.getElementById('set-molt-' + k).value).replace(',', '.'));
+    s.molt[k] = v > 0 ? v : 1;
+  }
   s.needMult = g('set-need')||2;
   s.defeatMult = isNaN(g('set-defeat'))?1:g('set-defeat');
   s.captureMult = isNaN(g('set-capture'))?1:g('set-capture');
