@@ -39,10 +39,12 @@ Esporta/Importa per condividerli).
 - **Esperienza e livelli come nel manuale P5e** (dalla 4.7, Impostazioni → «Esperienza e livelli»):
   l'XP si accumula e il Pokémon sale alle soglie della tabella (200 per il 2°, 800 per il 3°,
   2.000 per il 4°… 450.000 per il 20°, livello massimo). Sconfiggere o catturare un Pokémon dà
-  l'XP della sua SR (SR 1/4 = 50, SR 1 = 200, SR 4 = 1.100…) **× il suo livello ÷ il livello
-  minimo della specie** (dalla 4.8: la SR della scheda vale al livello minimo, quindi un nemico
-  più alto dà di più — Rookidee liv. 12 = 600 XP, Corviknight liv. 12 = 10.800), poi i
-  moltiplicatori della casa; sulla scheda si scrivono specie e livello del nemico (o la sola SR). A ogni livello i PF salgono di un **tiro
+  l'XP della tabella dell'appendice del manuale, **«Pokémon Experience Rewarded by Level & SR»**
+  (dalla 4.9): si incrocia il livello del nemico con la SR della sua specie — Rookidee liv. 12
+  (SR 1/4) = 4.400 XP, Corviknight liv. 12 (SR 11) = 15.800. Le caselle vuote del manuale (SR
+  alte a livelli troppo bassi) prendono il primo valore della colonna. Poi si applicano i
+  moltiplicatori della casa (1 = come il manuale); sulla scheda si scrivono specie (o SR) e
+  livello del nemico. La tabella completa è in «Calcoli». A ogni livello i PF salgono di un **tiro
   del Dado Vita + COS** (almeno 1; la COS vale anche per i livelli già presi), mostrato nella
   finestra del livello. Agli ASI la linea a 3 stadi prende 2 punti, a 2 stadi 3, senza
   evoluzioni 4 (massimo 20), oppure un talento. Si può tornare alla regola veloce della casa e

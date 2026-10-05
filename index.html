@@ -110,6 +110,8 @@ table{border-collapse:collapse; width:100%; font-size:13.5px}
 th,td{border-bottom:1px solid var(--line); padding:7px 8px; text-align:left; vertical-align:top}
 th{color:var(--muted); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.4px}
 .tablewrap{overflow-x:auto}
+.xp-liv-sr{font-variant-numeric:tabular-nums; font-size:12.5px; white-space:nowrap}
+.xp-liv-sr td,.xp-liv-sr th{padding:4px 7px; text-align:right}
 /* dex */
 .dex-item{
   border:1px solid var(--line); border-radius:14px; padding:8px 10px 8px 8px;
@@ -1130,17 +1132,38 @@ window.addEventListener('error', function(e){
 
     <div class="panel">
       <h3 style="margin-top:0">Esperienza per livello (manuale P5e)</h3>
-      <p class="hint">XP totale che serve per arrivare a ogni livello. A ogni livello i PF salgono di un tiro del Dado Vita + COS (la COS conta anche per i livelli già presi). Sconfiggere o catturare un Pokémon dà l'XP della sua SR × il suo livello ÷ il livello minimo della specie (la SR della scheda vale al livello minimo).</p>
+      <p class="hint">XP totale che serve per arrivare a ogni livello. A ogni livello i PF salgono di un tiro del Dado Vita + COS (la COS conta anche per i livelli già presi). Sconfiggere o catturare un Pokémon dà l'XP della tabella qui sotto, incrociando il suo livello con la SR della specie.</p>
       <div class="tablewrap"><table>
         <tr><th>Livello</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td></tr>
         <tr><th>XP</th><td>0</td><td>200</td><td>800</td><td>2.000</td><td>6.000</td><td>12.000</td><td>20.000</td><td>30.000</td><td>44.000</td><td>62.000</td></tr>
         <tr><th>Livello</th><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td></tr>
         <tr><th>XP</th><td>82.000</td><td>104.000</td><td>128.000</td><td>158.000</td><td>194.000</td><td>234.000</td><td>278.000</td><td>326.000</td><td>382.000</td><td>450.000</td></tr>
       </table></div>
-      <div class="tablewrap" style="margin-top:8px"><table>
-        <tr><th>SR</th><td>1/8</td><td>1/4</td><td>1/2</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td></tr>
-        <tr><th>XP</th><td>25</td><td>50</td><td>100</td><td>200</td><td>450</td><td>700</td><td>1.100</td><td>1.800</td><td>2.300</td><td>2.900</td><td>3.900</td><td>5.000</td><td>5.900</td><td>7.200</td><td>8.400</td><td>10.000</td><td>11.500</td><td>13.000</td></tr>
+      <h4 style="margin:12px 0 4px">XP guadagnata per livello e SR del Pokémon sconfitto (appendice del manuale)</h4>
+      <div class="tablewrap" style="margin-top:4px"><table class="xp-liv-sr">
+        <tr><th>Liv. \ SR</th><th>1/8</th><th>1/4</th><th>1/2</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th></tr>
+        <tr><th>1</th><td>20</td><td>40</td><td>80</td><td>160</td><td>360</td><td>560</td><td>880</td><td>1.400</td><td>1.800</td><td>2.300</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><th>2</th><td>40</td><td>80</td><td>160</td><td>360</td><td>560</td><td>880</td><td>1.400</td><td>1.800</td><td>2.300</td><td>3.100</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><th>3</th><td>80</td><td>150</td><td>340</td><td>530</td><td>840</td><td>1.400</td><td>1.700</td><td>2.200</td><td>3.000</td><td>3.800</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><th>4</th><td>140</td><td>320</td><td>500</td><td>790</td><td>1.300</td><td>1.700</td><td>2.100</td><td>2.800</td><td>3.600</td><td>4.200</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><th>5</th><td>360</td><td>560</td><td>880</td><td>1.400</td><td>1.800</td><td>2.300</td><td>3.100</td><td>4.000</td><td>4.700</td><td>5.800</td><td>6.700</td><td>8.000</td><td>9.200</td><td>10.400</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><th>6</th><td>530</td><td>840</td><td>1.400</td><td>1.700</td><td>2.200</td><td>3.000</td><td>3.800</td><td>4.500</td><td>5.500</td><td>6.400</td><td>7.600</td><td>8.700</td><td>9.900</td><td>10.600</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><th>7</th><td>820</td><td>1.300</td><td>1.700</td><td>2.200</td><td>2.900</td><td>3.700</td><td>4.400</td><td>5.400</td><td>6.200</td><td>7.400</td><td>8.600</td><td>9.700</td><td>10.400</td><td>11.000</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><th>8</th><td>1.300</td><td>1.700</td><td>2.100</td><td>2.800</td><td>3.600</td><td>4.300</td><td>5.200</td><td>6.100</td><td>7.300</td><td>8.400</td><td>9.500</td><td>10.200</td><td>10.700</td><td>11.300</td><td>12.200</td><td>13.400</td><td>—</td><td>—</td></tr>
+        <tr><th>9</th><td>1.600</td><td>2.000</td><td>2.700</td><td>3.500</td><td>4.200</td><td>5.100</td><td>5.900</td><td>7.000</td><td>8.100</td><td>9.200</td><td>9.900</td><td>10.400</td><td>10.900</td><td>11.600</td><td>12.600</td><td>14.200</td><td>—</td><td>—</td></tr>
+        <tr><th>10</th><td>2.300</td><td>3.100</td><td>4.000</td><td>4.700</td><td>5.800</td><td>6.700</td><td>8.000</td><td>9.200</td><td>10.400</td><td>11.200</td><td>11.800</td><td>12.400</td><td>13.200</td><td>14.400</td><td>15.600</td><td>16.800</td><td>18.400</td><td>—</td></tr>
+        <tr><th>11</th><td>3.000</td><td>3.800</td><td>4.500</td><td>5.500</td><td>6.500</td><td>7.700</td><td>8.800</td><td>10.000</td><td>10.800</td><td>11.300</td><td>11.900</td><td>12.700</td><td>13.800</td><td>15.000</td><td>16.100</td><td>17.700</td><td>19.200</td><td>—</td></tr>
+        <tr><th>12</th><td>3.800</td><td>4.400</td><td>5.400</td><td>6.300</td><td>7.500</td><td>8.600</td><td>9.800</td><td>10.500</td><td>11.100</td><td>11.700</td><td>12.400</td><td>13.500</td><td>14.700</td><td>15.800</td><td>17.300</td><td>18.800</td><td>20.300</td><td>—</td></tr>
+        <tr><th>13</th><td>4.300</td><td>5.300</td><td>6.200</td><td>7.400</td><td>8.500</td><td>9.600</td><td>10.300</td><td>10.900</td><td>11.400</td><td>12.100</td><td>13.200</td><td>14.400</td><td>15.500</td><td>16.900</td><td>18.400</td><td>19.900</td><td>21.700</td><td>—</td></tr>
+        <tr><th>14</th><td>5.200</td><td>6.000</td><td>7.200</td><td>8.300</td><td>9.400</td><td>10.100</td><td>10.600</td><td>11.200</td><td>11.900</td><td>13.000</td><td>14.000</td><td>15.100</td><td>16.600</td><td>18.000</td><td>19.400</td><td>21.200</td><td>23.000</td><td>—</td></tr>
+        <tr><th>15</th><td>5.900</td><td>7.000</td><td>8.100</td><td>9.200</td><td>9.900</td><td>10.400</td><td>10.900</td><td>11.600</td><td>12.700</td><td>13.700</td><td>14.800</td><td>16.200</td><td>17.600</td><td>19.000</td><td>20.800</td><td>22.500</td><td>24.600</td><td>26.800</td></tr>
+        <tr><th>16</th><td>6.900</td><td>7.900</td><td>8.900</td><td>9.600</td><td>10.100</td><td>10.700</td><td>11.400</td><td>12.400</td><td>13.400</td><td>14.400</td><td>15.800</td><td>17.200</td><td>18.600</td><td>20.300</td><td>22.000</td><td>24.100</td><td>26.100</td><td>28.200</td></tr>
+        <tr><th>17</th><td>9.200</td><td>10.400</td><td>11.200</td><td>11.800</td><td>12.400</td><td>13.200</td><td>14.400</td><td>15.600</td><td>16.800</td><td>18.400</td><td>20.000</td><td>21.600</td><td>23.600</td><td>25.600</td><td>28.000</td><td>30.400</td><td>32.800</td><td>36.000</td></tr>
+        <tr><th>18</th><td>10.000</td><td>10.800</td><td>11.300</td><td>11.900</td><td>12.700</td><td>13.800</td><td>15.000</td><td>16.100</td><td>17.700</td><td>19.200</td><td>20.700</td><td>22.700</td><td>24.600</td><td>26.900</td><td>29.200</td><td>31.500</td><td>34.600</td><td>38.400</td></tr>
+        <tr><th>19</th><td>10.500</td><td>11.100</td><td>11.700</td><td>12.400</td><td>13.500</td><td>14.700</td><td>15.800</td><td>17.300</td><td>18.800</td><td>20.300</td><td>22.200</td><td>24.100</td><td>26.300</td><td>28.600</td><td>30.800</td><td>33.800</td><td>37.600</td><td>42.300</td></tr>
+        <tr><th>20</th><td>10.900</td><td>11.400</td><td>12.100</td><td>13.200</td><td>14.400</td><td>15.500</td><td>16.900</td><td>18.400</td><td>19.900</td><td>21.700</td><td>23.600</td><td>25.800</td><td>28.000</td><td>30.200</td><td>33.100</td><td>36.800</td><td>41.400</td><td>46.000</td></tr>
       </table></div>
+      <p class="hint">«—»: nel manuale la casella è vuota (una specie con quella SR non esiste a quel livello); l'app usa il primo valore della colonna.</p>
       <p class="hint">Agli aumenti di caratteristica (liv. 4, 8, 12, 16, 20) un Pokémon con 3 stadi di evoluzione prende 2 punti, con 2 stadi 3 punti, senza evoluzioni 4 punti (massimo 20), oppure un talento.</p>
     </div>
 
@@ -2164,7 +2187,7 @@ function correggiPFGonfiati(){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '4.8';
+const APP_VERSION = '4.9';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -4468,19 +4491,43 @@ function srScritta(v){
   if(f) return +f[1] / +f[2];
   return /^\d+(\.\d+)?$/.test(t) ? parseFloat(t) : null;
 }
-/* XP che dà un Pokémon sconfitto o catturato. La SR della scheda vale per la specie al
-   suo livello minimo; più è alto il livello del nemico, più XP dà:
-   XP = XP della SR × livello del nemico ÷ livello minimo della specie.
-   Senza scheda nel dex: 50 XP per livello. */
-function xpDettaglio(specie, livello){
+/* XP che dà un Pokémon sconfitto o catturato: tabella dell'appendice del manuale
+   P5e, «Pokémon Experience Rewarded by Level & SR» (riga = livello del nemico,
+   colonna = SR della sua specie). Le caselle vuote del manuale (SR alte a livelli
+   più bassi del minimo della specie) prendono il primo valore della colonna. */
+const XP_LIV_SR = [
+  [0.125, [20,40,80,140,360,530,820,1300,1600,2300,3000,3800,4300,5200,5900,6900,9200,10000,10500,10900]],
+  [0.25, [40,80,150,320,560,840,1300,1700,2000,3100,3800,4400,5300,6000,7000,7900,10400,10800,11100,11400]],
+  [0.5, [80,160,340,500,880,1400,1700,2100,2700,4000,4500,5400,6200,7200,8100,8900,11200,11300,11700,12100]],
+  [1.0, [160,360,530,790,1400,1700,2200,2800,3500,4700,5500,6300,7400,8300,9200,9600,11800,11900,12400,13200]],
+  [2.0, [360,560,840,1300,1800,2200,2900,3600,4200,5800,6500,7500,8500,9400,9900,10100,12400,12700,13500,14400]],
+  [3.0, [560,880,1400,1700,2300,3000,3700,4300,5100,6700,7700,8600,9600,10100,10400,10700,13200,13800,14700,15500]],
+  [4.0, [880,1400,1700,2100,3100,3800,4400,5200,5900,8000,8800,9800,10300,10600,10900,11400,14400,15000,15800,16900]],
+  [5.0, [1400,1800,2200,2800,4000,4500,5400,6100,7000,9200,10000,10500,10900,11200,11600,12400,15600,16100,17300,18400]],
+  [6.0, [1800,2300,3000,3600,4700,5500,6200,7300,8100,10400,10800,11100,11400,11900,12700,13400,16800,17700,18800,19900]],
+  [7.0, [2300,3100,3800,4200,5800,6400,7400,8400,9200,11200,11300,11700,12100,13000,13700,14400,18400,19200,20300,21700]],
+  [8.0, [null,null,null,null,6700,7600,8600,9500,9900,11800,11900,12400,13200,14000,14800,15800,20000,20700,22200,23600]],
+  [9.0, [null,null,null,null,8000,8700,9700,10200,10400,12400,12700,13500,14400,15100,16200,17200,21600,22700,24100,25800]],
+  [10.0, [null,null,null,null,9200,9900,10400,10700,10900,13200,13800,14700,15500,16600,17600,18600,23600,24600,26300,28000]],
+  [11.0, [null,null,null,null,10400,10600,11000,11300,11600,14400,15000,15800,16900,18000,19000,20300,25600,26900,28600,30200]],
+  [12.0, [null,null,null,null,null,null,null,12200,12600,15600,16100,17300,18400,19400,20800,22000,28000,29200,30800,33100]],
+  [13.0, [null,null,null,null,null,null,null,13400,14200,16800,17700,18800,19900,21200,22500,24100,30400,31500,33800,36800]],
+  [14.0, [null,null,null,null,null,null,null,null,null,18400,19200,20300,21700,23000,24600,26100,32800,34600,37600,41400]],
+  [15.0, [null,null,null,null,null,null,null,null,null,null,null,null,null,null,26800,28200,36000,38400,42300,46000]]];
+function xpLivSR(sr, livello){
+  const L = Math.max(1, Math.min(LIV_MAX, Math.round(livello||1)));
+  let col = XP_LIV_SR[0];
+  for(const c of XP_LIV_SR) if(sr >= c[0]) col = c;
+  const v = col[1][L-1];
+  return v != null ? v : col[1].find(x => x != null);
+}
+/* Senza scheda nel dex non c'è la SR: si usa SR 1/4, la più comune fra le forme base */
+function xpDettaglio(specie, livello, srMano){
   const d = specie ? p5data(specie) : null;
-  if(!d || d.sr == null){
-    const L = Math.max(1, livello||1);
-    return {xp: 50 * L, testo: `50 XP × liv. ${L} (specie senza scheda)`};
-  }
-  const min = Math.max(1, d.min||1), L = Math.max(livello||min, min), base = xpPerSR(d.sr);
-  return {xp: Math.max(1, Math.round(base * L / min)),
-    testo: `SR ${fmtSR(d.sr)} (${fmtXP(base)} XP) × liv. ${L}${min > 1 ? ' ÷ liv. min. ' + min : ''}`};
+  const sr = srMano != null ? srMano : (d && d.sr != null ? d.sr : 0.25);
+  const L = Math.max(1, Math.min(LIV_MAX, livello||1));
+  return {xp: xpLivSR(sr, L),
+    testo: `SR ${fmtSR(sr)} · liv. ${L} → tabella del manuale${!d && srMano == null ? ' (specie senza scheda: SR 1/4)' : ''}`};
 }
 function xpDaNemico(specie, livello){ return xpDettaglio(specie, livello).xp; }
 function xpRapidaNeed(p, s){ return Math.max(1, Math.ceil((s || state.settings).needMult * p.level)); }
@@ -4546,19 +4593,15 @@ function grantXP(pid, mode){
   const mult = mode==='capture' ? state.settings.captureMult : state.settings.defeatMult;
   let amount;
   if(xpModo() === 'tabella'){
-    /* specie e livello del nemico (SR × livello ÷ liv. minimo), oppure la sola SR scritta a mano */
+    /* tabella del manuale: serve la SR (dalla specie, o scritta a mano) e il livello del nemico */
     const v = String(el && el.value || '').trim();
     const elLv = document.getElementById('foelv-'+pid);
     const lv = parseInt(elLv && elLv.value) || 0;
     const nome = v && SPECIES.find(s=>s.name.toLowerCase()===v.toLowerCase());
-    if(nome && p5data(nome.name)){
-      if(lv <= 0){ alert('Scrivi anche il livello del ' + nome.name + ' sconfitto: l\'XP dipende dalla SR e dal livello.'); return; }
-      amount = Math.max(1, Math.round(xpDaNemico(nome.name, lv) * mult));
-    } else {
-      const sr = srScritta(v);
-      if(sr == null){ alert('Scrivi la specie del Pokémon nemico (es. Rookidee) e il suo livello, oppure la sola SR (es. 1/4).'); return; }
-      amount = Math.max(1, Math.round(xpPerSR(sr) * mult));
-    }
+    const sr = nome && p5data(nome.name) ? p5data(nome.name).sr : srScritta(v);
+    if(sr == null){ alert('Scrivi la specie del Pokémon nemico (es. Rookidee) oppure la sua SR (es. 1/4), e il suo livello.'); return; }
+    if(lv <= 0){ alert('Scrivi anche il livello del Pokémon sconfitto: l\'XP dipende dalla SR e dal livello.'); return; }
+    amount = Math.max(1, Math.round(xpLivSR(sr, lv) * mult));
   } else {
     const foeLv = parseInt(el && el.value) || 0;
     if(foeLv<=0){ alert('Inserisci il livello del Pokémon nemico.'); return; }
@@ -5802,7 +5845,7 @@ function renderPkm(p){
         <span>${xpTesto(p)}</span>
         <span class="row" style="gap:4px">
           ${xpModo() === 'tabella'
-            ? `<input id="foe-${p.id}" list="specieslist" placeholder="Specie nemico" title="Specie del Pokémon nemico (o la sola SR, es. 1/4)" style="width:116px"/><input type="number" id="foelv-${p.id}" min="1" max="20" placeholder="Lv" title="Livello del Pokémon nemico" style="width:56px"/>`
+            ? `<input id="foe-${p.id}" list="specieslist" placeholder="Specie o SR" title="Specie del Pokémon nemico, oppure la sua SR (es. 1/4)" style="width:116px"/><input type="number" id="foelv-${p.id}" min="1" max="20" placeholder="Lv" title="Livello del Pokémon nemico" style="width:56px"/>`
             : `<input type="number" id="foe-${p.id}" placeholder="Lv nemico" style="width:88px"/>`}
           <button class="btn small" onclick="grantXP('${p.id}','defeat')" title="Pokémon nemico sconfitto">⚔ Sconfitto</button>
           <button class="btn small" onclick="grantXP('${p.id}','capture')" title="Pokémon catturato">◓ Catturato</button>
@@ -6611,7 +6654,7 @@ function renderSettings(){
   document.getElementById('lbl-need').style.display = xpModo() === 'rapida' ? '' : 'none';
   document.querySelectorAll('.xp-unita').forEach(el => el.textContent = xpModo() === 'tabella' ? 'XP della SR nemica' : 'liv. nemico');
   document.getElementById('xp-spiega').innerHTML = xpModo() === 'tabella'
-    ? 'Come nel manuale P5e: l\'XP si accumula e il Pokémon sale di livello alle soglie della tabella (200 per il 2°, 800 per il 3°, 2.000 per il 4°… 450.000 per il 20°: la trovi completa in «Calcoli»). Sconfiggere o catturare un Pokémon dà l\'XP della sua <b>SR</b> (SR 1/4 = 50, SR 1 = 200, SR 4 = 1.100…) <b>× il suo livello ÷ il livello minimo della specie</b>: un Rookidee di livello 12 (SR 1/4, minimo 1) dà 600 XP, un Corviknight di livello 12 (SR 11, minimo 8) 10.800. Poi si moltiplica per i valori qui sotto.'
+    ? 'Come nel manuale P5e: l\'XP si accumula e il Pokémon sale di livello alle soglie della tabella (200 per il 2°, 800 per il 3°, 2.000 per il 4°… 450.000 per il 20°: la trovi completa in «Calcoli»). Sconfiggere o catturare un Pokémon dà l\'XP della tabella del manuale <b>«Pokémon Experience Rewarded by Level &amp; SR»</b>, incrociando il suo <b>livello</b> con la <b>SR</b> della specie: un Rookidee di livello 12 (SR 1/4) dà 4.400 XP, un Corviknight di livello 12 (SR 11) 15.800. Poi si moltiplica per i valori qui sotto (1 = come il manuale).'
     : 'Regola rapida della casa: un Pokémon guadagna XP pari al <b>livello del nemico</b> sconfitto o catturato; per salire serve <b>moltiplicatore × livello attuale</b> XP.';
   document.getElementById('set-defeat').value = s.defeatMult;
   document.getElementById('set-capture').value = s.captureMult;
