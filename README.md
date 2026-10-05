@@ -36,6 +36,15 @@ Esporta/Importa per condividerli).
   ufficiali, abilità sorteggiata fra quelle che quella specie può avere (nascosta compresa).
   Quando il Pokémon evolve l'abilità può cambiare: decide il giocatore (o il GM imposta
   «la tiene» / «si ritira sempre»).
+- **Esperienza e livelli come nel manuale P5e** (dalla 4.7, Impostazioni → «Esperienza e livelli»):
+  l'XP si accumula e il Pokémon sale alle soglie della tabella (200 per il 2°, 800 per il 3°,
+  2.000 per il 4°… 450.000 per il 20°, livello massimo). Sconfiggere o catturare un Pokémon dà
+  l'XP della sua SR (SR 1/4 = 50, SR 1 = 200, SR 4 = 1.100…), per i moltiplicatori della casa;
+  sulla scheda si scrive la specie del nemico o la SR. A ogni livello i PF salgono di un **tiro
+  del Dado Vita + COS** (almeno 1; la COS vale anche per i livelli già presi), mostrato nella
+  finestra del livello. Agli ASI la linea a 3 stadi prende 2 punti, a 2 stadi 3, senza
+  evoluzioni 4 (massimo 20), oppure un talento. Si può tornare alla regola veloce della casa e
+  ai PF medi: l'XP già fatta viene convertita mantenendo la stessa frazione del livello.
 - **Vita dei Pokémon** (Impostazioni → «Vita dei Pokémon»): le regole P5e danno PF alti e lotte
   lunghe, quindi la scala riduce in proporzione i PF di tutti i Pokémon — squadre, selvatici,
   schede del dex e calcolatrice. Di base è **al 60%**; si può scegliere piena (100%), 75%, 50% o

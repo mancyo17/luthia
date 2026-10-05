@@ -967,12 +967,22 @@ window.addEventListener('error', function(e){
     <div id="squad-view"></div>
 
     <div class="panel sub" id="global-settings">
-      <h3 style="margin-top:0">⚙️ Regole veloci di esperienza (della casa — modificabili)</h3>
-      <p class="hint">Regola rapida per velocizzare: un Pokémon guadagna XP pari al <b>livello del nemico</b> sconfitto o catturato; per salire serve <b>moltiplicatore × livello attuale</b> XP. (Il PHB usa una tabella XP classica molto più lenta: se preferisci quella, gestisci l'esperienza a mano e usa solo «+1 livello».)</p>
+      <h3 style="margin-top:0">⚙️ Esperienza e livelli</h3>
+      <p class="hint" id="xp-spiega"></p>
       <div class="row">
-        <label>XP per salire = <input type="number" id="set-need" min="1" step="0.5" onchange="saveSettings()"/> × livello</label>
-        <label>XP sconfitta = <input type="number" id="set-defeat" min="0" step="0.5" onchange="saveSettings()"/> × liv. nemico</label>
-        <label>XP cattura = <input type="number" id="set-capture" min="0" step="0.5" onchange="saveSettings()"/> × liv. nemico</label>
+        <label>Esperienza
+          <select id="set-xpmodo" onchange="saveSettings()">
+            <option value="tabella">tabella del manuale P5e</option>
+            <option value="rapida">regola veloce della casa</option>
+          </select></label>
+        <label>PF salendo di livello
+          <select id="set-pflivello" onchange="saveSettings()">
+            <option value="tiro">tiro del Dado Vita + COS</option>
+            <option value="media">media del Dado Vita + COS</option>
+          </select></label>
+        <label id="lbl-need">XP per salire = <input type="number" id="set-need" min="1" step="0.5" onchange="saveSettings()"/> × livello</label>
+        <label>XP sconfitta = <input type="number" id="set-defeat" min="0" step="0.5" onchange="saveSettings()"/> × <span class="xp-unita">liv. nemico</span></label>
+        <label>XP cattura = <input type="number" id="set-capture" min="0" step="0.5" onchange="saveSettings()"/> × <span class="xp-unita">liv. nemico</span></label>
         <label class="caughtbox" style="margin-left:0"><input type="checkbox" id="set-auto" onchange="saveSettings()"/> salita di livello automatica</label>
       </div>
       <div class="row" style="margin-top:12px">
@@ -1091,7 +1101,7 @@ window.addEventListener('error', function(e){
 
     <div class="panel">
       <h3 style="margin-top:0">Punti Ferita per livello</h3>
-      <p class="hint">PF al livello L = PF base (al livello minimo) + (L − liv. minimo) × (media Dado Vita + mod. COS)</p>
+      <p class="hint">PF al livello L = PF base (al livello minimo) + (L − liv. minimo) × (media Dado Vita + mod. COS). Con il tiro del Dado Vita a ogni livello il risultato varia attorno a questo valore.</p>
       <div class="row">
         <label>PF base <input type="number" id="c-base" value="17" oninput="calcPF()"/></label>
         <label>Liv. minimo <input type="number" id="c-min" value="1" oninput="calcPF()"/></label>
@@ -1116,6 +1126,22 @@ window.addEventListener('error', function(e){
         <label>Livello all'evoluzione <input type="number" id="c-evo" value="4" oninput="calcEvo()"/></label>
         <span style="font-size:16px">➜ <b id="c-evo-out" style="color:var(--accent)"></b></span>
       </div>
+    </div>
+
+    <div class="panel">
+      <h3 style="margin-top:0">Esperienza per livello (manuale P5e)</h3>
+      <p class="hint">XP totale che serve per arrivare a ogni livello. A ogni livello i PF salgono di un tiro del Dado Vita + COS (la COS conta anche per i livelli già presi). Sconfiggere o catturare un Pokémon dà l'XP della sua SR.</p>
+      <div class="tablewrap"><table>
+        <tr><th>Livello</th><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td></tr>
+        <tr><th>XP</th><td>0</td><td>200</td><td>800</td><td>2.000</td><td>6.000</td><td>12.000</td><td>20.000</td><td>30.000</td><td>44.000</td><td>62.000</td></tr>
+        <tr><th>Livello</th><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td></tr>
+        <tr><th>XP</th><td>82.000</td><td>104.000</td><td>128.000</td><td>158.000</td><td>194.000</td><td>234.000</td><td>278.000</td><td>326.000</td><td>382.000</td><td>450.000</td></tr>
+      </table></div>
+      <div class="tablewrap" style="margin-top:8px"><table>
+        <tr><th>SR</th><td>1/8</td><td>1/4</td><td>1/2</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td></tr>
+        <tr><th>XP</th><td>25</td><td>50</td><td>100</td><td>200</td><td>450</td><td>700</td><td>1.100</td><td>1.800</td><td>2.300</td><td>2.900</td><td>3.900</td><td>5.000</td><td>5.900</td><td>7.200</td><td>8.400</td><td>10.000</td><td>11.500</td><td>13.000</td></tr>
+      </table></div>
+      <p class="hint">Agli aumenti di caratteristica (liv. 4, 8, 12, 16, 20) un Pokémon con 3 stadi di evoluzione prende 2 punti, con 2 stadi 3 punti, senza evoluzioni 4 punti (massimo 20), oppure un talento.</p>
     </div>
 
     <div class="panel">
@@ -2070,6 +2096,10 @@ const BADGE_NAMES = ['Sentiero','Fioritura','Scintilla','Bastione','Marea','Toss
 const BADGE_LV = ['2–4','4–7','7–9','9–12','12–14','14–16','16–18','18–20','20–25'];
 const DIE_AVG = {6:4, 8:5, 10:6, 12:7, 20:11};   /* media arrotondata per eccesso, come gli altri */
 const ASI_LEVELS = (P5 && P5.ASI_LEVELS) || [4,8,12,16,20];
+/* tabella XP del manuale P5e (indice = livello): serve già al caricamento dei salvataggi */
+const XP_TAB = [0, 0, 200, 800, 2000, 6000, 12000, 20000, 30000, 44000, 62000, 82000, 104000,
+  128000, 158000, 194000, 234000, 278000, 326000, 382000, 450000];
+const LIV_MAX = 20;
 const NATURES = (P5 && P5.NATURES) || {};
 
 /* ================= FORMULE P5e ================= */
@@ -2094,7 +2124,7 @@ function pfScala(){ let v = 0; try{ v = +state.settings.pfScala; }catch(e){} ret
 function scalaPF(x){ return Math.max(1, Math.round(x * pfScala() / 100)); }
 /* PF del manuale, prima della scala */
 function pfGrezzi(p){
-  return p.basePF + (p.level - p.minLevel) * (DIE_AVG[p.die] + conMod(p)) + (p.evoBonus||0);
+  return p.basePF + (p.level - p.minLevel) * (DIE_AVG[p.die] + conMod(p)) + (p.evoBonus||0) + (p.pfScarto||0);
 }
 function maxPF(p){ return scalaPF(pfGrezzi(p)); }
 /* Il tetto: i PF dello stesso Pokémon catturato selvatico a quel livello, con la sua
@@ -2105,7 +2135,7 @@ function pfTetto(p){
   const d = p5data(p.species);
   if(!d || !d.hp) return null;
   const L = Math.max(p.level, d.min);
-  return d.hp + (L - d.min) * (DIE_AVG[d.die] + conMod(p)) + 2 * p.level;
+  return d.hp + (L - d.min) * (DIE_AVG[d.die] + conMod(p)) + 2 * p.level + Math.max(0, p.pfScarto||0);
 }
 function pfSelvatico(p){ const d = p5data(p.species); return d ? scalaPF(d.hp + (Math.max(p.level, d.min) - d.min) * (DIE_AVG[d.die] + conMod(p))) : null; }
 function pfGonfiati(p){ const t = pfTetto(p); return t != null && pfGrezzi(p) > t; }
@@ -2134,7 +2164,7 @@ function correggiPFGonfiati(){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '4.6';
+const APP_VERSION = '4.7';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -2163,7 +2193,7 @@ function defaultSettings(){
   return {needMult:2, defeatMult:1, captureMult:1, autoLevel:true,
     capBase:10, capLevel:true, capHP:true,
     autoNature:true, autoAbility:true, evoAbility:'ask',
-    trackPP:true, pfScala:60};
+    trackPP:true, pfScala:60, xpModo:'tabella', pfLivello:'tiro'};
 }
 function defaultState(){
   return {schema:SCHEMA, caught:{}, trainers:[], activeTrainer:null, battles:[],
@@ -2266,10 +2296,13 @@ function load(){
       s.schema = SCHEMA;
       /* salvataggi di prima della scala dei PF: i PF attuali scendono in proporzione */
       if(!(saved.settings && saved.settings.pfScala)) s.pfDaScalare = s.settings.pfScala;
+      /* salvataggi di prima della tabella XP: l'esperienza era quella della regola veloce */
+      if(!(saved.settings && saved.settings.xpModo)) s.xpDaConvertire = 'rapida';
     }
   }catch(e){}
   s.trainers.forEach(migrateTrainer);
   if(s.pfDaScalare){ riscalaPFAttuali(s, 100, s.pfDaScalare); delete s.pfDaScalare; }
+  if(s.xpDaConvertire){ convertiXPTutti(s, s.xpDaConvertire, s.settings.xpModo); delete s.xpDaConvertire; }
   return s;
 }
 /* pulsante in testata: passa dalla vita ridotta a quella piena (100%) e ritorno */
@@ -3484,8 +3517,9 @@ function usaOggetto(pid, nome){
     for(const k of Object.keys(p.pp||{})) p.pp[k] = Math.max(0, p.pp[k] - u.ppAll);
     esito = `🧴 Tutte le mosse recuperano ${u.ppAll} PP`;
   } else if(u.level){
-    levelUp(pid, true);
-    esito = `🍬 Sale al livello <b>${p.level}</b>`;
+    if(p.level >= LIV_MAX){ toast(`${p.nick} è già al livello massimo.`); return; }
+    const su = levelUp(pid, true);
+    esito = `🍬 Sale al livello <b>${p.level}</b>` + (su && su.tiro ? ` (🎲 d${su.tiro.die}: ${su.tiro.r}, +${su.gain} PF)` : '');
   } else if(u.stat){
     p.stats[u.stat] = Math.min(20, (p.stats[u.stat]||10) + 1);
     esito = `💪 <b>${u.stat}</b> sale a ${p.stats[u.stat]}`;
@@ -3985,6 +4019,7 @@ function addPokemon(trainer, species, types, level){
   p.nature = state.settings.autoNature ? randomNature() : '';
   p.abil = state.settings.autoAbility ? randomAbility(species) : '';
   if(p.level < p.minLevel) p.level = p.minLevel;
+  if(xpModo() === 'tabella') p.xp = xpSoglia(p.level);
   p.curPF = maxPF(p);
   p.uses = 0;
   p.status = [];
@@ -4081,6 +4116,8 @@ function pkmField(pid, field, value, isNum){
   }
   const before = maxPF(p);
   p[field] = isNum ? (parseFloat(value)||0) : value;
+  if(field === 'level' && xpModo() === 'tabella' && (p.xp < xpSoglia(p.level) || (p.level < LIV_MAX && p.xp >= xpSoglia(p.level + 1))))
+    p.xp = xpSoglia(p.level);
   const after = maxPF(p);
   if(p.curPF!=null && after!==before) p.curPF = Math.max(0, p.curPF + (after-before));
   save(); renderSquad();
@@ -4385,14 +4422,25 @@ function delMove(pid, idx, ev){
 
 function levelUp(pid, silent){
   const [,p] = findPkm(pid); if(!p) return null;
+  if(p.level >= LIV_MAX){ if(!silent) toast(`${p.nick} è già al livello massimo (${LIV_MAX}).`); return null; }
   const oldComp = compBonus(p.level), oldStab = stabBonus(p.level);
   const prima = maxPF(p);
   p.level += 1;
+  /* manuale P5e: a ogni livello i PF salgono di un tiro del Dado Vita + COS (almeno 1).
+     Si tiene solo lo scarto dalla media, così la COS resta retroattiva. */
+  let tiro = null;
+  if(state.settings.pfLivello !== 'media'){
+    const r = 1 + Math.floor(Math.random() * p.die), con = conMod(p);
+    const preso = Math.max(r, 1 - con);
+    p.pfScarto = (p.pfScarto||0) + preso - DIE_AVG[p.die];
+    tiro = {r, die:p.die, con};
+  }
+  if(xpModo() === 'tabella' && (p.xp||0) < xpSoglia(p.level)) p.xp = xpSoglia(p.level);
   const gain = maxPF(p) - prima;
   if(p.curPF!=null) p.curPF += gain;
   const newMoves = p.moves.filter(m=>m.lv===p.level).map(m=>m.name);
   const d = p5data(p.species);
-  const info = {level:p.level, gain, pf:maxPF(p),
+  const info = {level:p.level, gain, pf:maxPF(p), tiro, asiPts: puntiASI(d), stadi: (d && d.ev && d.ev.tot) || 1,
     compUp: compBonus(p.level)>oldComp ? compBonus(p.level) : null,
     stabUp: stabBonus(p.level)>oldStab ? stabBonus(p.level) : null,
     asi: ASI_LEVELS.includes(p.level),
@@ -4402,7 +4450,65 @@ function levelUp(pid, silent){
   if(!silent){ renderSquad(); showLevelUpModal(p,[info]); }
   return info;
 }
-function xpNeed(p){ return Math.max(1, Math.ceil(state.settings.needMult * p.level)); }
+/* Esperienza. Due modi:
+   · «tabella» (manuale P5e): l'XP si accumula e il livello sale alle soglie della tabella;
+     sconfiggere o catturare un Pokémon dà l'XP della sua SR (tabella dei GS di D&D 5e).
+   · «rapida» (regola della casa): XP = livello del nemico, per salire servono molt. × livello. */
+const XP_SR = [[0,10],[0.125,25],[0.25,50],[0.5,100],[1,200],[2,450],[3,700],[4,1100],[5,1800],[6,2300],[7,2900],
+  [8,3900],[9,5000],[10,5900],[11,7200],[12,8400],[13,10000],[14,11500],[15,13000],[16,15000],[17,18000],[18,20000],
+  [19,22000],[20,25000],[21,33000],[22,41000],[23,50000],[24,62000],[25,75000],[26,90000],[27,105000],[28,120000],
+  [29,135000],[30,155000]];
+function xpModo(){ let m = ''; try{ m = state.settings.xpModo; }catch(e){} return m === 'rapida' ? 'rapida' : 'tabella'; }
+function xpSoglia(L){ return XP_TAB[Math.max(1, Math.min(LIV_MAX, L))]; }
+function xpPerSR(sr){ let x = 10; for(const [k, v] of XP_SR) if(sr >= k) x = v; return x; }
+function leggiSR(v){
+  const t = String(v||'').trim().replace(',', '.');
+  const f = t.match(/^(\d+)\s*\/\s*(\d+)$/);
+  if(f) return +f[1] / +f[2];
+  return /^\d+(\.\d+)?$/.test(t) ? parseFloat(t) : null;
+}
+/* XP che dà un Pokémon sconfitto: dalla SR della specie; senza scheda, 50 XP per livello */
+function xpDaNemico(specie, livello){
+  const d = specie ? p5data(specie) : null;
+  return d && d.sr != null ? xpPerSR(d.sr) : Math.max(10, 50 * (livello||1));
+}
+function xpRapidaNeed(p, s){ return Math.max(1, Math.ceil((s || state.settings).needMult * p.level)); }
+/* XP per il prossimo livello: in tabella è la soglia totale, nella regola veloce quanto manca da zero */
+function xpNeed(p){
+  if(xpModo() === 'rapida') return xpRapidaNeed(p);
+  return p.level >= LIV_MAX ? xpSoglia(LIV_MAX) : xpSoglia(p.level + 1);
+}
+function xpQuota(p){
+  if(xpModo() === 'rapida') return Math.min(1, p.xp / xpNeed(p));
+  if(p.level >= LIV_MAX) return 1;
+  const a = xpSoglia(p.level), b = xpSoglia(p.level + 1);
+  return Math.max(0, Math.min(1, (p.xp - a) / (b - a)));
+}
+const fmtXP = n => Math.round(n).toLocaleString('it-IT');
+function xpTesto(p){
+  if(xpModo() === 'tabella' && p.level >= LIV_MAX) return `XP: ${fmtXP(p.xp)} · livello massimo`;
+  return `XP: ${fmtXP(p.xp)} / ${fmtXP(xpNeed(p))} → liv. ${p.level + 1}`;
+}
+/* passa l'esperienza di un Pokémon da un modo all'altro mantenendo la stessa frazione del livello */
+function convertiXP(p, da, a, s){
+  if(da === a) return;
+  const L = p.level || 1;
+  if(a === 'tabella'){
+    const frac = Math.max(0, Math.min(0.99, (p.xp||0) / xpRapidaNeed(p, s)));
+    p.xp = L >= LIV_MAX ? XP_TAB[LIV_MAX] : Math.round(XP_TAB[Math.max(1, L)] + frac * (XP_TAB[L + 1] - XP_TAB[Math.max(1, L)]));
+  } else {
+    const frac = L >= LIV_MAX ? 0 : Math.max(0, Math.min(0.99, ((p.xp||0) - XP_TAB[Math.max(1, L)]) / (XP_TAB[L + 1] - XP_TAB[Math.max(1, L)])));
+    p.xp = Math.floor(frac * xpRapidaNeed(p, s));
+  }
+}
+function convertiXPTutti(st, da, a){
+  for(const t of st.trainers) for(const p of [...(t.team||[]), ...(t.box||[])]) convertiXP(p, da, a, st.settings);
+}
+/* manuale P5e: agli ASI la linea a 3 stadi dà 2 punti, a 2 stadi 3, senza evoluzioni 4 */
+function puntiASI(d){
+  const tot = (d && d.ev && d.ev.tot) || 1;
+  return tot >= 3 ? 2 : tot === 2 ? 3 : 4;
+}
 function applyXP(p, amount){
   p.xp += amount;
   p.uses = (p.uses||0) + 1;
@@ -4410,9 +4516,14 @@ function applyXP(p, amount){
   if(t) t.stats.xpTotal += amount;
   const ups = [];
   if(state.settings.autoLevel){
-    while(p.xp >= xpNeed(p)){
-      p.xp -= xpNeed(p);
-      ups.push(levelUp(p.id, true));
+    if(xpModo() === 'tabella'){
+      while(p.level < LIV_MAX && p.xp >= xpSoglia(p.level + 1)){ const u = levelUp(p.id, true); if(!u) break; ups.push(u); }
+    } else {
+      while(p.level < LIV_MAX && p.xp >= xpNeed(p)){
+        p.xp -= xpNeed(p);
+        const u = levelUp(p.id, true); if(!u) break;
+        ups.push(u);
+      }
     }
   }
   if(t) t.stats.levelUps += ups.length;
@@ -4421,10 +4532,20 @@ function applyXP(p, amount){
 function grantXP(pid, mode){
   const [,p] = findPkm(pid); if(!p) return;
   const el = document.getElementById('foe-'+pid);
-  const foeLv = parseInt(el && el.value) || 0;
-  if(foeLv<=0){ alert('Inserisci il livello del Pokémon nemico.'); return; }
   const mult = mode==='capture' ? state.settings.captureMult : state.settings.defeatMult;
-  const amount = Math.max(1, Math.round(foeLv * mult));
+  let amount;
+  if(xpModo() === 'tabella'){
+    /* specie del nemico (prende la sua SR) oppure la SR scritta a mano: 1/4, 2, 0.5… */
+    const v = String(el && el.value || '').trim();
+    const nome = v && SPECIES.find(s=>s.name.toLowerCase()===v.toLowerCase());
+    const sr = nome && p5data(nome.name) ? p5data(nome.name).sr : leggiSR(v);
+    if(sr == null){ alert('Scrivi la specie del Pokémon nemico (es. Rookidee) oppure la sua SR (es. 1/4).'); return; }
+    amount = Math.max(1, Math.round(xpPerSR(sr) * mult));
+  } else {
+    const foeLv = parseInt(el && el.value) || 0;
+    if(foeLv<=0){ alert('Inserisci il livello del Pokémon nemico.'); return; }
+    amount = Math.max(1, Math.round(foeLv * mult));
+  }
   const ups = applyXP(p, amount);
   save(); renderSquad();
   if(ups.length) showLevelUpModal(p, ups, amount, mode);
@@ -4433,7 +4554,7 @@ function grantXP(pid, mode){
 function toastXP(p, amount, mode){
   showModal(`<h3>${mode==='capture'?'◓ Cattura registrata':'⚔ Vittoria registrata'}</h3>
     <p class="levelup-gain"><b>${esc(p.nick)}</b> guadagna <b>+${amount} XP</b>.</p>
-    <p class="hint">XP: ${p.xp} / ${xpNeed(p)} per il livello ${p.level+1}.</p>
+    <p class="hint">${xpTesto(p)}</p>
     <button class="btn" onclick="closeModal()">OK</button>`);
 }
 function levelUpRows(ups){
@@ -4441,11 +4562,11 @@ function levelUpRows(ups){
     let extra = '';
     if(u.compUp) extra += `<div class="levelup-gain">📈 Competenza sale a <b>+${u.compUp}</b></div>`;
     if(u.stabUp) extra += `<div class="levelup-gain">💥 STAB sale a <b>+${u.stabUp}</b></div>`;
-    if(u.asi) extra += `<div class="levelup-gain">🎯 <b>Aumento di caratteristica (ASI)!</b> Distribuisci i punti sulla scheda.</div>`;
+    if(u.asi) extra += `<div class="levelup-gain">🎯 <b>Aumento di caratteristica (ASI)!</b> <b>+${u.asiPts || 2} punti</b> da distribuire (${(u.stadi||1) >= 3 ? 'linea a 3 stadi' : (u.stadi||1) === 2 ? 'linea a 2 stadi' : 'senza evoluzioni'}; massimo 20), oppure un talento al posto dei punti.</div>`;
     if(u.newMoves.length) extra += `<div class="levelup-gain">✨ Nuove mosse: <b>${u.newMoves.map(esc).join(', ')}</b></div>`;
     if(u.evoReady) extra += `<div class="levelup-gain">🌟 Può evolvere in <b>${esc(u.evoReady)}</b>!</div>`;
     return `<div style="border-bottom:1px solid var(--line); padding:6px 0">
-      <div class="levelup-gain">⬆ <b>${esc(u.nick)}</b> sale al <b>livello ${u.level}</b>! (+${u.gain} PF → ${u.pf} PF)</div>${extra}</div>`;
+      <div class="levelup-gain">⬆ <b>${esc(u.nick)}</b> sale al <b>livello ${u.level}</b>! (+${u.gain} PF → ${u.pf} PF)</div>${u.tiro ? `<div class="levelup-gain">🎲 Dado Vita d${u.tiro.die}: <b>${u.tiro.r}</b> ${fmtMod(u.tiro.con)} COS${pfScala() !== 100 ? ' · vita al ' + pfScala() + '%' : ''}</div>` : ''}${extra}</div>`;
   }).join('');
 }
 function showLevelUpModal(p, ups, xpGained, mode){
@@ -4458,7 +4579,7 @@ function showLevelUpModal(p, ups, xpGained, mode){
          `<button class="btn" onclick="learnNewMove('${p.id}','${esc(m).replace(/'/g,"\\'")}')">✨ Impara ${esc(m)}</button>`).join('')}</div>`
     : '';
   showModal(`<h3>🎉 Livello superato!</h3>${head}${levelUpRows(ups)}
-    <p class="hint">XP attuali: ${p.xp} / ${xpNeed(p)}</p>
+    <p class="hint">${xpTesto(p)}</p>
     ${learnBtns}
     <button class="btn ghost" onclick="closeModal()">${learned.length?'Più tardi':'Fantastico'}</button>`);
 }
@@ -4502,7 +4623,7 @@ function applyEvolution(pid, newName, pts){
   if(wasNickSpecies) p.nick = newName;
   if(nd){
     p.types = nd.t.join('/');
-    p.basePF = grezziPrima - evoPrima; p.die = nd.die; p.minLevel = p.level; p.ca = nd.ac;
+    p.basePF = grezziPrima - evoPrima - (p.pfScarto||0); p.die = nd.die; p.minLevel = p.level; p.ca = nd.ac;
     p.stats = Object.assign({}, nd.attr);
     p.ts = nd.ts.join(', '); p.speed = nd.spd;
     p.abNames = [...nd.ab, ...(nd.hab?[nd.hab]:[])];
@@ -5491,8 +5612,7 @@ function renderPkm(p){
   const cur = p.curPF ?? mx;
   const hpPct = mx>0 ? Math.round(100*cur/mx) : 0;
   const hpColor = hpPct>50 ? 'var(--ok)' : hpPct>25 ? 'var(--warn)' : 'var(--danger)';
-  const need = xpNeed(p);
-  const xpPct = Math.min(100, Math.round(100*p.xp/need));
+  const xpPct = Math.round(100 * xpQuota(p));
   const comp = compBonus(p.level), stab = stabBonus(p.level);
 
   const abilities = STAT_KEYS.map(k => {
@@ -5661,9 +5781,11 @@ function renderPkm(p){
 
     <div>
       <div class="row" style="justify-content:space-between; font-size:12.5px; color:var(--muted)">
-        <span>XP: ${p.xp} / ${need} → liv. ${p.level+1}</span>
+        <span>${xpTesto(p)}</span>
         <span class="row" style="gap:4px">
-          <input type="number" id="foe-${p.id}" placeholder="Lv nemico" style="width:88px"/>
+          ${xpModo() === 'tabella'
+            ? `<input id="foe-${p.id}" list="specieslist" placeholder="Specie o SR" title="Specie del Pokémon nemico (prende la sua SR) o la SR, es. 1/4" style="width:120px"/>`
+            : `<input type="number" id="foe-${p.id}" placeholder="Lv nemico" style="width:88px"/>`}
           <button class="btn small" onclick="grantXP('${p.id}','defeat')" title="Pokémon nemico sconfitto">⚔ Sconfitto</button>
           <button class="btn small" onclick="grantXP('${p.id}','capture')" title="Pokémon catturato">◓ Catturato</button>
         </span>
@@ -5716,7 +5838,7 @@ function renderPkm(p){
       <div class="row"><label style="flex:1">Vulnerabilità (vuoto = auto dai tipi)<br/><input value="${esc(p.vul)}" style="width:100%" onchange="pkmField('${p.id}','vul',this.value)"/></label></div>
       <div class="row"><label style="flex:1">Resistenze (vuoto = auto dai tipi)<br/><input value="${esc(p.res)}" style="width:100%" onchange="pkmField('${p.id}','res',this.value)"/></label></div>
       <div class="row"><label style="flex:1">Note abilità / tratti<br/><input value="${esc(p.ability)}" style="width:100%" onchange="pkmField('${p.id}','ability',this.value)"/></label></div>
-      <p class="hint" style="margin:8px 0 0">Bonus evoluzioni: +${p.evoBonus||0} PF · PF max = ${p.basePF} + (${p.level} − ${p.minLevel}) × (${DIE_AVG[p.die]} + ${conMod(p)}) + ${p.evoBonus||0} = ${pfGrezzi(p)}${pfScala() !== 100 ? ' × ' + pfScala() + '%' : ''} = <b>${mx}</b></p>
+      <p class="hint" style="margin:8px 0 0">Bonus evoluzioni: +${p.evoBonus||0} PF · PF max = ${p.basePF} + (${p.level} − ${p.minLevel}) × (${DIE_AVG[p.die]} + ${conMod(p)}) + ${p.evoBonus||0}${p.pfScarto ? ` ${p.pfScarto > 0 ? '+' : '−'} ${Math.abs(p.pfScarto)} dai tiri del Dado Vita` : ''} = ${pfGrezzi(p)}${pfScala() !== 100 ? ' × ' + pfScala() + '%' : ''} = <b>${mx}</b></p>
       ${pfGonfiati(p) ? `<p class="hint" style="margin:6px 0 0; color:var(--warn, #f0b429)">⚠ Troppi PF: un ${esc(p.species)} selvatico di livello ${p.level} ne ha ${pfSelvatico(p)}. <button class="btn small" onclick="correggiPFPkm('${p.id}')">Riporta ai PF del dex</button></p>` : ''}
     </details>
   </div>`;
@@ -5880,7 +6002,7 @@ function endBattle(id, outcome){
   }
   const t = state.trainers.find(t=>t.id===b.trainerId);
   const mult = outcome==='capture' ? state.settings.captureMult : state.settings.defeatMult;
-  const xpEach = Math.max(1, Math.round(b.level * mult));
+  const xpEach = Math.max(1, Math.round((xpModo() === 'tabella' ? xpDaNemico(b.species, b.level) : b.level) * mult));
   const partList = t ? t.team.map(p =>
     `<label class="caughtbox" style="font-size:13px"><input type="checkbox" class="xp-part" value="${p.id}" checked/> ${esc(p.nick)} (liv. ${p.level})</label>`).join('') : '';
   const inDex = SPECIES.some(s=>s.name===b.species);
@@ -5898,7 +6020,7 @@ function confirmEndBattle(id, outcome){
   const b = findBattle(id); if(!b) return;
   const t = state.trainers.find(t=>t.id===b.trainerId);
   const mult = outcome==='capture' ? state.settings.captureMult : state.settings.defeatMult;
-  const xpEach = Math.max(1, Math.round(b.level * mult));
+  const xpEach = Math.max(1, Math.round((xpModo() === 'tabella' ? xpDaNemico(b.species, b.level) : b.level) * mult));
   let allUps = [];
   if(t){
     const ids = [...document.querySelectorAll('.xp-part:checked')].map(el=>el.value);
@@ -6465,6 +6587,13 @@ function useTMFromBag(tid, itemName){
 function renderSettings(){
   const s = state.settings;
   document.getElementById('set-need').value = s.needMult;
+  document.getElementById('set-xpmodo').value = xpModo();
+  document.getElementById('set-pflivello').value = s.pfLivello === 'media' ? 'media' : 'tiro';
+  document.getElementById('lbl-need').style.display = xpModo() === 'rapida' ? '' : 'none';
+  document.querySelectorAll('.xp-unita').forEach(el => el.textContent = xpModo() === 'tabella' ? 'XP della SR nemica' : 'liv. nemico');
+  document.getElementById('xp-spiega').innerHTML = xpModo() === 'tabella'
+    ? 'Come nel manuale P5e: l\'XP si accumula e il Pokémon sale di livello alle soglie della tabella (200 per il 2°, 800 per il 3°, 2.000 per il 4°… 450.000 per il 20°: la trovi completa in «Calcoli»). Sconfiggere o catturare un Pokémon dà l\'XP della sua <b>SR</b> (SR 1/4 = 50, SR 1 = 200, SR 4 = 1.100…), moltiplicata per i valori qui sotto.'
+    : 'Regola rapida della casa: un Pokémon guadagna XP pari al <b>livello del nemico</b> sconfitto o catturato; per salire serve <b>moltiplicatore × livello attuale</b> XP.';
   document.getElementById('set-defeat').value = s.defeatMult;
   document.getElementById('set-capture').value = s.captureMult;
   document.getElementById('set-auto').checked = s.autoLevel;
@@ -6520,6 +6649,9 @@ function saveSettings(){
     s.molt[k] = v > 0 ? v : 1;
   }
   s.needMult = g('set-need')||2;
+  const nuovoXP = document.getElementById('set-xpmodo').value === 'rapida' ? 'rapida' : 'tabella';
+  if(nuovoXP !== xpModo()){ convertiXPTutti(state, xpModo(), nuovoXP); s.xpModo = nuovoXP; }
+  s.pfLivello = document.getElementById('set-pflivello').value === 'media' ? 'media' : 'tiro';
   s.defeatMult = isNaN(g('set-defeat'))?1:g('set-defeat');
   s.captureMult = isNaN(g('set-capture'))?1:g('set-capture');
   s.autoLevel = document.getElementById('set-auto').checked;
