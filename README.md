@@ -41,6 +41,13 @@ Esporta/Importa per condividerli).
   schede del dex e calcolatrice. Di base è **al 60%**; si può scegliere piena (100%), 75%, 50% o
   40%. Cambiandola, i PF attuali scendono o salgono nella stessa misura, così chi era ferito
   resta ferito allo stesso modo; i salvataggi di prima della 4.4 vengono portati al 60% da soli.
+  **Evoluzione (dalla 4.6)**: come da regola P5e, evolvendo i PF massimi crescono di 2 × livello
+  e da lì i livelli usano il Dado Vita della nuova forma; la scheda non riparte più dai PF base
+  della forma evoluta (prima si sommavano le due cose e un Pokémon cresciuto in squadra superava
+  quello catturato selvatico). Un tetto controlla ogni scheda: se ha più PF di un selvatico della
+  stessa specie e livello più il bonus di un'evoluzione, compare «⚠ Troppi PF» con il pulsante
+  per riportarla ai valori del dex; all'aggiornamento le schede gonfiate vengono corrette da sole.
+  Anche cambiare a mano la specie ricarica PF, dado e livello minimo dal dex.
   Il pulsante **❤ PF 60%** in alto, sempre visibile, passa al volo ai PF pieni (100%) e torna
   alla scala ridotta scelta, per esempio per un incontro importante.
 - **Poké Market**: scaffali per categoria con Poké Ball, cure, vitamine, pietre, oggetti

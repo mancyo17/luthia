@@ -2092,14 +2092,49 @@ function conMod(p){ return p.stats ? mod(effStat(p,'COS')) : (p.con||0); }
 const SCALE_PF = [[100,'piena (regole P5e)'], [75,'ridotta (75%)'], [60,'bassa (60%, consigliata)'], [50,'metà (50%)'], [40,'molto bassa (40%)']];
 function pfScala(){ let v = 0; try{ v = +state.settings.pfScala; }catch(e){} return v > 0 ? v : 100; }
 function scalaPF(x){ return Math.max(1, Math.round(x * pfScala() / 100)); }
-function maxPF(p){
-  return scalaPF(p.basePF + (p.level - p.minLevel) * (DIE_AVG[p.die] + conMod(p)) + (p.evoBonus||0));
+/* PF del manuale, prima della scala */
+function pfGrezzi(p){
+  return p.basePF + (p.level - p.minLevel) * (DIE_AVG[p.die] + conMod(p)) + (p.evoBonus||0);
+}
+function maxPF(p){ return scalaPF(pfGrezzi(p)); }
+/* Il tetto: i PF dello stesso Pokémon catturato selvatico a quel livello, con la sua
+   COS, più il bonus di un'evoluzione (2 × livello). Un Pokémon cresciuto ed evoluto in
+   squadra resta sotto o intorno ai PF del selvatico: se va oltre il tetto, la scheda è
+   stata gonfiata da un errore o da un campo cambiato a mano. */
+function pfTetto(p){
+  const d = p5data(p.species);
+  if(!d || !d.hp) return null;
+  const L = Math.max(p.level, d.min);
+  return d.hp + (L - d.min) * (DIE_AVG[d.die] + conMod(p)) + 2 * p.level;
+}
+function pfSelvatico(p){ const d = p5data(p.species); return d ? scalaPF(d.hp + (Math.max(p.level, d.min) - d.min) * (DIE_AVG[d.die] + conMod(p))) : null; }
+function pfGonfiati(p){ const t = pfTetto(p); return t != null && pfGrezzi(p) > t; }
+/* riporta la scheda ai dati del dex per quella specie e quel livello (PF attuali in proporzione) */
+function riportaPFalDex(p){
+  const d = p5data(p.species); if(!d) return false;
+  const prima = maxPF(p);
+  p.basePF = d.hp; p.minLevel = d.min; p.die = d.die; p.evoBonus = 0;
+  if(p.level < d.min) p.level = d.min;
+  if(p.curPF != null) p.curPF = Math.min(maxPF(p), Math.max(p.curPF > 0 ? 1 : 0, Math.round(p.curPF * maxPF(p) / Math.max(1, prima))));
+  return true;
+}
+function correggiPFPkm(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const prima = maxPF(p);
+  riportaPFalDex(p); save(); renderSquad();
+  toast(`❤ ${p.nick}: PF max ${prima} → ${maxPF(p)}, come un ${p.species} di livello ${p.level} del dex.`);
+}
+function correggiPFGonfiati(){
+  let n = 0;
+  for(const t of state.trainers) for(const p of [...(t.team||[]), ...(t.box||[])])
+    if(pfGonfiati(p) && riportaPFalDex(p)) n++;
+  return n;
 }
 
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '4.5';
+const APP_VERSION = '4.6';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -4031,6 +4066,19 @@ function toggleBox(){ boxOpen = !boxOpen; renderSquad(); }
 
 function pkmField(pid, field, value, isNum){
   const [,p] = findPkm(pid); if(!p) return;
+  /* cambiare specie a mano ricarica la scheda dal dex: prima restavano PF, dado e
+     livello minimo della specie vecchia, e i PF uscivano sballati */
+  if(field === 'species' && value && value !== p.species && p5data(value)){
+    const nd = p5data(value), prima = maxPF(p);
+    if(p.nick === p.species) p.nick = value;
+    p.species = value; p.types = nd.t.join('/'); p.ca = nd.ac;
+    p.stats = Object.assign({}, nd.attr); p.ts = nd.ts.join(', '); p.speed = nd.spd;
+    p.abNames = [...nd.ab, ...(nd.hab?[nd.hab]:[])];
+    p.basePF = nd.hp; p.minLevel = nd.min; p.die = nd.die; p.evoBonus = 0;
+    if(p.level < nd.min) p.level = nd.min;
+    if(p.curPF != null) p.curPF = Math.min(maxPF(p), Math.round(p.curPF * maxPF(p) / Math.max(1, prima)));
+    save(); renderSquad(); return;
+  }
   const before = maxPF(p);
   p[field] = isNum ? (parseFloat(value)||0) : value;
   const after = maxPF(p);
@@ -4444,13 +4492,17 @@ function applyEvolution(pid, newName, pts){
   const [,p] = findPkm(pid); if(!p) return;
   const bonus = 2 * p.level;
   const nd = p5data(newName);
-  p.evoBonus = (p.evoBonus||0) + bonus;
+  /* Regola P5e: evolvendo i PF massimi crescono di 2 × livello; da lì in poi i livelli
+     usano il Dado Vita della nuova forma. La scheda NON riparte dai PF base della forma
+     evoluta (quelli valgono per chi la cattura già evoluta): prima si contavano tutti e due. */
+  const grezziPrima = pfGrezzi(p), evoPrima = p.evoBonus || 0;
+  p.evoBonus = evoPrima + bonus;
   const wasNickSpecies = p.nick === p.species;
   p.species = newName;
   if(wasNickSpecies) p.nick = newName;
   if(nd){
     p.types = nd.t.join('/');
-    p.basePF = nd.hp; p.die = nd.die; p.minLevel = nd.min; p.ca = nd.ac;
+    p.basePF = grezziPrima - evoPrima; p.die = nd.die; p.minLevel = p.level; p.ca = nd.ac;
     p.stats = Object.assign({}, nd.attr);
     p.ts = nd.ts.join(', '); p.speed = nd.spd;
     p.abNames = [...nd.ab, ...(nd.hab?[nd.hab]:[])];
@@ -5664,7 +5716,8 @@ function renderPkm(p){
       <div class="row"><label style="flex:1">Vulnerabilità (vuoto = auto dai tipi)<br/><input value="${esc(p.vul)}" style="width:100%" onchange="pkmField('${p.id}','vul',this.value)"/></label></div>
       <div class="row"><label style="flex:1">Resistenze (vuoto = auto dai tipi)<br/><input value="${esc(p.res)}" style="width:100%" onchange="pkmField('${p.id}','res',this.value)"/></label></div>
       <div class="row"><label style="flex:1">Note abilità / tratti<br/><input value="${esc(p.ability)}" style="width:100%" onchange="pkmField('${p.id}','ability',this.value)"/></label></div>
-      <p class="hint" style="margin:8px 0 0">Bonus evoluzioni: +${p.evoBonus||0} PF · PF max = ${p.basePF} + (${p.level} − ${p.minLevel}) × (${DIE_AVG[p.die]} + ${conMod(p)}) + ${p.evoBonus||0} = <b>${mx}</b></p>
+      <p class="hint" style="margin:8px 0 0">Bonus evoluzioni: +${p.evoBonus||0} PF · PF max = ${p.basePF} + (${p.level} − ${p.minLevel}) × (${DIE_AVG[p.die]} + ${conMod(p)}) + ${p.evoBonus||0} = ${pfGrezzi(p)}${pfScala() !== 100 ? ' × ' + pfScala() + '%' : ''} = <b>${mx}</b></p>
+      ${pfGonfiati(p) ? `<p class="hint" style="margin:6px 0 0; color:var(--warn, #f0b429)">⚠ Troppi PF: un ${esc(p.species)} selvatico di livello ${p.level} ne ha ${pfSelvatico(p)}. <button class="btn small" onclick="correggiPFPkm('${p.id}')">Riporta ai PF del dex</button></p>` : ''}
     </details>
   </div>`;
 }
@@ -6716,6 +6769,9 @@ function renderAll(){
   renderNPCs(); renderItems(); renderMarket(); renderSettings(); renderTypes(); calcPF(); calcEvo();
 }
 if(!state.npcsInit && !state.npcs.length) loadNPCPresets();
+/* 4.6: una volta sola, i Pokémon con più PF di quanti ne prevede il dex tornano ai valori giusti */
+let pfCorrettiAvvio = 0;
+if(!state.pfControllo){ pfCorrettiAvvio = correggiPFGonfiati(); state.pfControllo = 1; save(); }
 /* scorciatoie dell'app installata: #squad, #dex, #market… */
 const startTab = (location.hash||'').replace('#','');
 if(TABS.some(([id]) => id === startTab)) activeTab = startTab;
@@ -6727,6 +6783,7 @@ initDexSort();
 renderAll();
 showInstallBtn();
 bootDone();
+if(pfCorrettiAvvio) setTimeout(() => toast(`❤ Corretti i PF di ${pfCorrettiAvvio} Pokémon che ne avevano più di quanti prevede il dex.`), 600);
 </script>
 </body>
 </html>
