@@ -44,7 +44,11 @@ Esporta/Importa per condividerli).
   (SR 1/4) = 4.400 XP, Corviknight liv. 12 (SR 11) = 15.800. Le caselle vuote del manuale (SR
   alte a livelli troppo bassi) prendono il primo valore della colonna. Poi si applicano i
   moltiplicatori della casa (1 = come il manuale); sulla scheda si scrivono specie (o SR) e
-  livello del nemico. La tabella completa è in «Calcoli». A ogni livello i PF salgono di un **tiro
+  livello del nemico. La tabella completa è in «Calcoli».
+  **XP a mano** (dalla 4.10): il pulsante «✏️ XP» sulla scheda del Pokémon aggiunge o toglie XP
+  (con il meno davanti) o imposta il totale; superata la soglia il Pokémon sale di livello come
+  con una lotta, e l'XP non scende mai sotto la soglia del livello che ha già. Anche a fine lotta
+  l'XP a testa è un campo che si può cambiare prima di confermare. A ogni livello i PF salgono di un **tiro
   del Dado Vita + COS** (almeno 1; la COS vale anche per i livelli già presi), mostrato nella
   finestra del livello. Agli ASI la linea a 3 stadi prende 2 punti, a 2 stadi 3, senza
   evoluzioni 4 (massimo 20), oppure un talento. Si può tornare alla regola veloce della casa e

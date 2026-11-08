@@ -2187,7 +2187,7 @@ function correggiPFGonfiati(){
 /* ================= STATO ================= */
 
 const STORE_KEY = 'aethera-pokedex-v1';
-const APP_VERSION = '4.9';
+const APP_VERSION = '4.10';
 /* Versione della struttura dei salvataggi. Quando cresce, i dati già salvati
    vengono aggiornati da soli all'avvio: nessuno deve riscrivere niente.
    Prima di toccarli se ne tiene una copia di sicurezza. */
@@ -4567,11 +4567,16 @@ function puntiASI(d){
   const tot = (d && d.ev && d.ev.tot) || 1;
   return tot >= 3 ? 2 : tot === 2 ? 3 : 4;
 }
-function applyXP(p, amount){
-  p.xp += amount;
-  p.uses = (p.uses||0) + 1;
+/* manuale = XP messa a mano dal GM: non conta come una lotta del Pokémon, può essere
+   negativa, e non scende mai sotto la soglia del livello che ha già */
+function applyXP(p, amount, manuale){
+  const prima = p.xp || 0;
+  p.xp = prima + amount;
+  const minimo = xpModo() === 'tabella' ? xpSoglia(p.level) : 0;
+  if(p.xp < minimo) p.xp = minimo;
+  if(!manuale) p.uses = (p.uses||0) + 1;
   const [t] = findPkm(p.id);
-  if(t) t.stats.xpTotal += amount;
+  if(t) t.stats.xpTotal += p.xp - prima;
   const ups = [];
   if(state.settings.autoLevel){
     if(xpModo() === 'tabella'){
@@ -4612,6 +4617,50 @@ function grantXP(pid, mode){
   if(ups.length) showLevelUpModal(p, ups, amount, mode);
   else toastXP(p, amount, mode);
 }
+/* --- XP a mano: aggiungere, togliere o impostare il totale --- */
+function openXPMano(pid){
+  const [,p] = findPkm(pid); if(!p) return;
+  const tab = xpModo() === 'tabella';
+  showModal(`<h3>✏️ Punti esperienza di ${esc(p.nick)}</h3>
+    <p class="hint">Livello ${p.level} · ${xpTesto(p)}</p>
+    <div class="mrow" style="align-items:flex-end">
+      <label>Aggiungi XP (con il meno le togli)<br/><input type="number" id="xpm-add" step="1" placeholder="es. 350 o -100" style="width:150px"/></label>
+      <button class="btn" onclick="confermaXPMano('${pid}','add')">Aggiungi</button>
+    </div>
+    <div class="mrow">${[50, 100, 500, 1000, 5000].map(n =>
+      `<button class="btn ghost small" onclick="document.getElementById('xpm-add').value=${n}">+${fmtXP(n)}</button>`).join('')}</div>
+    <div class="mrow" style="align-items:flex-end">
+      <label>${tab ? 'XP totali' : 'XP verso il prossimo livello'}<br/><input type="number" id="xpm-tot" min="0" step="1" value="${p.xp||0}" style="width:150px"/></label>
+      <button class="btn" onclick="confermaXPMano('${pid}','set')">Imposta</button>
+    </div>
+    <p class="hint">${tab
+      ? `Se superi la soglia del livello ${p.level < LIV_MAX ? p.level + 1 + ' (' + fmtXP(xpSoglia(p.level + 1)) + ' XP)' : ''} il Pokémon sale${state.settings.autoLevel ? ' da solo, con il tiro dei PF' : ' quando premi «+1 livello» (la salita automatica è spenta)'}. L'XP non scende sotto ${fmtXP(xpSoglia(p.level))}, la soglia del livello ${p.level}: per abbassare il livello cambialo nei «Dati base della scheda».`
+      : 'Con la regola veloce l\'XP riparte da zero a ogni livello.'}</p>
+    <div class="mrow"><button class="btn ghost" onclick="closeModal()">Chiudi</button></div>`);
+  setTimeout(() => { const el = document.getElementById('xpm-add'); if(el) el.focus(); }, 50);
+}
+function confermaXPMano(pid, modo){
+  const [,p] = findPkm(pid); if(!p) return;
+  let amount;
+  if(modo === 'set'){
+    const tot = parseInt(document.getElementById('xpm-tot').value);
+    if(isNaN(tot) || tot < 0){ alert('Scrivi il numero di XP totali (0 o più).'); return; }
+    amount = tot - (p.xp||0);
+  } else {
+    amount = parseInt(document.getElementById('xpm-add').value);
+    if(!amount){ alert('Scrivi quanti XP aggiungere (o togliere, con il meno davanti).'); return; }
+  }
+  const prima = p.xp || 0, voluto = prima + amount;
+  const ups = applyXP(p, amount, true);
+  save(); renderSquad();
+  const tagliato = xpModo() === 'tabella' && voluto < p.xp && !ups.length;
+  if(ups.length){ showLevelUpModal(p, ups, p.xp - prima, 'mano'); return; }
+  showModal(`<h3>✏️ XP aggiornata</h3>
+    <p class="levelup-gain"><b>${esc(p.nick)}</b>: ${fmtXP(prima)} → <b>${fmtXP(p.xp)} XP</b> (${p.xp - prima >= 0 ? '+' : '−'}${fmtXP(Math.abs(p.xp - prima))}).</p>
+    ${tagliato ? `<p class="hint">Non può scendere sotto ${fmtXP(p.xp)} XP, la soglia del livello ${p.level}: per abbassare il livello cambialo nei «Dati base della scheda».</p>` : ''}
+    <p class="hint">${xpTesto(p)}</p>
+    <button class="btn" onclick="closeModal()">OK</button>`);
+}
 function toastXP(p, amount, mode){
   showModal(`<h3>${mode==='capture'?'◓ Cattura registrata':'⚔ Vittoria registrata'}</h3>
     <p class="levelup-gain"><b>${esc(p.nick)}</b> guadagna <b>+${amount} XP</b>.</p>
@@ -4631,7 +4680,7 @@ function levelUpRows(ups){
   }).join('');
 }
 function showLevelUpModal(p, ups, xpGained, mode){
-  const head = xpGained ? `<p class="hint">${mode==='capture'?'Cattura':'Vittoria'}: +${xpGained} XP</p>` : '';
+  const head = xpGained ? `<p class="hint">${mode==='mano' ? 'XP messa a mano' : mode==='capture' ? 'Cattura' : 'Vittoria'}: +${fmtXP(xpGained)} XP</p>` : '';
   const learned = [...new Set(ups.flatMap(u => u.newMoves||[]))]
     .filter(m => !(p.slots||[]).includes(m));
   const learnBtns = learned.length
@@ -5849,6 +5898,7 @@ function renderPkm(p){
             : `<input type="number" id="foe-${p.id}" placeholder="Lv nemico" style="width:88px"/>`}
           <button class="btn small" onclick="grantXP('${p.id}','defeat')" title="Pokémon nemico sconfitto">⚔ Sconfitto</button>
           <button class="btn small" onclick="grantXP('${p.id}','capture')" title="Pokémon catturato">◓ Catturato</button>
+          <button class="btn small ghost" onclick="openXPMano('${p.id}')" title="Aggiungi, togli o imposta i punti esperienza a mano">✏️ XP</button>
         </span>
       </div>
       <div class="xpbar" style="margin-top:4px"><i style="width:${xpPct}%"></i></div>
@@ -6068,7 +6118,11 @@ function endBattle(id, outcome){
     `<label class="caughtbox" style="font-size:13px"><input type="checkbox" class="xp-part" value="${p.id}" checked/> ${esc(p.nick)} (liv. ${p.level})</label>`).join('') : '';
   const inDex = SPECIES.some(s=>s.name===b.species);
   showModal(`<h3>${outcome==='capture' ? '◓ Cattura!' : '⚔ Selvatico sconfitto!'}</h3>
-    <p class="levelup-gain"><b>${esc(b.species)}</b> liv. ${b.level} — <b>+${fmtXP(xpEach)} XP</b> a ogni partecipante.</p>
+    <p class="levelup-gain"><b>${esc(b.species)}</b> liv. ${b.level}</p>
+    <div class="mrow" style="align-items:flex-end">
+      <label>XP a ogni partecipante<br/><input type="number" id="xp-fine" min="0" step="1" value="${xpEach}" style="width:130px"/></label>
+      <span class="hint" style="margin:0">calcolata: ${fmtXP(xpEach)} · puoi cambiarla a mano</span>
+    </div>
     ${xpModo() === 'tabella' ? `<p class="hint">${esc(xpDettaglio(b.species, b.level).testo)}${mult !== 1 ? ' × ' + mult : ''}</p>` : ''}
     ${t ? `<div class="mrow" style="flex-direction:column; align-items:flex-start">${partList}</div>` : '<p class="hint">Nessun allenatore collegato: niente XP automatici.</p>'}
     ${outcome==='capture' && inDex ? `<label class="caughtbox" style="font-size:13px"><input type="checkbox" id="cap-dex" checked/> segna ${esc(b.species)} nel Pokédex</label>` : ''}
@@ -6082,7 +6136,10 @@ function confirmEndBattle(id, outcome){
   const b = findBattle(id); if(!b) return;
   const t = state.trainers.find(t=>t.id===b.trainerId);
   const mult = outcome==='capture' ? state.settings.captureMult : state.settings.defeatMult;
-  const xpEach = Math.max(1, Math.round((xpModo() === 'tabella' ? xpDaNemico(b.species, b.level) : b.level) * mult));
+  const calcolata = Math.max(1, Math.round((xpModo() === 'tabella' ? xpDaNemico(b.species, b.level) : b.level) * mult));
+  const elXP = document.getElementById('xp-fine');
+  const scritta = elXP ? parseInt(elXP.value) : NaN;
+  const xpEach = !isNaN(scritta) && scritta >= 0 ? scritta : calcolata;
   let allUps = [];
   if(t){
     const ids = [...document.querySelectorAll('.xp-part:checked')].map(el=>el.value);
@@ -6113,7 +6170,7 @@ function confirmEndBattle(id, outcome){
   save(); renderAll();
   let html = `<h3>${outcome==='capture'?'◓ Cattura conclusa!':'⚔ Vittoria!'}</h3>`;
   if(allUps.length) html += levelUpRows(allUps);
-  else html += `<p class="levelup-gain">XP distribuiti (+${xpEach} a testa).</p>`;
+  else html += `<p class="levelup-gain">XP distribuiti (+${fmtXP(xpEach)} a testa${xpEach !== calcolata ? ', messa a mano' : ''}).</p>`;
   if(newPkm) html += `<p class="levelup-gain">🎒 <b>${esc(newPkm.nick)}</b> si unisce alla squadra al liv. ${newPkm.level} con la scheda già compilata dal dex.</p>`;
   if(ballNota) html += `<p class="levelup-gain">◓ ${ballNota}</p>`;
   html += `<button class="btn" onclick="closeModal()">Avanti!</button>`;
